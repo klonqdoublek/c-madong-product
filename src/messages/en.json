@@ -1,0 +1,85 @@
+{
+  "common": {
+    "appName": "C-Madong",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "close": "Close",
+    "viewAll": "View All",
+    "noData": "No data"
+  },
+  "nav": {
+    "home": "Home",
+    "maintenance": "Maintenance",
+    "announcements": "Announcements",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "settings": "Settings"
+  },
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "loginWithLine": "Login with LINE",
+    "email": "Email",
+    "password": "Password",
+    "studentId": "Student ID",
+    "welcomeTitle": "Welcome to C-Madong",
+    "welcomeDescription": "Chulalongkorn University Dormitory Management System"
+  },
+  "dashboard": {
+    "title": "Home",
+    "greeting": "Hello",
+    "residenceCounter": "Days in Residence",
+    "quickActions": "Quick Actions",
+    "recentActivity": "Recent Activity"
+  },
+  "maintenance": {
+    "title": "Maintenance",
+    "newRequest": "New Request",
+    "myRequests": "My Requests",
+    "category": "Category",
+    "description": "Description",
+    "photos": "Photos",
+    "appointment": "Appointment",
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
+  "announcements": {
+    "title": "Announcements",
+    "pinned": "Pinned",
+    "readMore": "Read More",
+    "markAsRead": "Mark as Read"
+  },
+  "profile": {
+    "title": "Profile",
+    "dormCard": "Dorm Card",
+    "room": "Room",
+    "building": "Building",
+    "floor": "Floor",
+    "bed": "Bed",
+    "language": "Language"
+  },
+  "admin": {
+    "dashboard": "Admin Dashboard",
+    "students": "Students",
+    "totalStudents": "Total Students",
+    "openTickets": "Open Tickets",
+    "pendingBills": "Pending Bills",
+    "parcels": "Parcels"
+  }
+}

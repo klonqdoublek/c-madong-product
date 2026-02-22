@@ -1,0 +1,85 @@
+{
+  "common": {
+    "appName": "C-Madong",
+    "loading": "กำลังโหลด...",
+    "error": "เกิดข้อผิดพลาด",
+    "save": "บันทึก",
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "edit": "แก้ไข",
+    "create": "สร้าง",
+    "search": "ค้นหา",
+    "filter": "กรอง",
+    "back": "กลับ",
+    "next": "ถัดไป",
+    "submit": "ส่ง",
+    "confirm": "ยืนยัน",
+    "close": "ปิด",
+    "viewAll": "ดูทั้งหมด",
+    "noData": "ไม่มีข้อมูล"
+  },
+  "nav": {
+    "home": "หน้าหลัก",
+    "maintenance": "แจ้งซ่อม",
+    "announcements": "ประกาศ",
+    "profile": "โปรไฟล์",
+    "notifications": "แจ้งเตือน",
+    "settings": "ตั้งค่า"
+  },
+  "auth": {
+    "login": "เข้าสู่ระบบ",
+    "logout": "ออกจากระบบ",
+    "register": "ลงทะเบียน",
+    "loginWithLine": "เข้าสู่ระบบด้วย LINE",
+    "email": "อีเมล",
+    "password": "รหัสผ่าน",
+    "studentId": "รหัสนิสิต",
+    "welcomeTitle": "ยินดีต้อนรับสู่ C-Madong",
+    "welcomeDescription": "ระบบบริหารจัดการหอพักจุฬาลงกรณ์มหาวิทยาลัย"
+  },
+  "dashboard": {
+    "title": "หน้าหลัก",
+    "greeting": "สวัสดี",
+    "residenceCounter": "วันที่พักอาศัย",
+    "quickActions": "เมนูด่วน",
+    "recentActivity": "กิจกรรมล่าสุด"
+  },
+  "maintenance": {
+    "title": "แจ้งซ่อม",
+    "newRequest": "แจ้งซ่อมใหม่",
+    "myRequests": "รายการแจ้งซ่อมของฉัน",
+    "category": "ประเภท",
+    "description": "รายละเอียด",
+    "photos": "รูปภาพ",
+    "appointment": "นัดหมาย",
+    "status": {
+      "pending": "รอดำเนินการ",
+      "inProgress": "กำลังดำเนินการ",
+      "completed": "เสร็จสิ้น",
+      "cancelled": "ยกเลิก"
+    }
+  },
+  "announcements": {
+    "title": "ประกาศ",
+    "pinned": "ปักหมุด",
+    "readMore": "อ่านเพิ่มเติม",
+    "markAsRead": "อ่านแล้ว"
+  },
+  "profile": {
+    "title": "โปรไฟล์",
+    "dormCard": "บัตรหอพัก",
+    "room": "ห้อง",
+    "building": "ตึก",
+    "floor": "ชั้น",
+    "bed": "เตียง",
+    "language": "ภาษา"
+  },
+  "admin": {
+    "dashboard": "แดชบอร์ดผู้ดูแล",
+    "students": "นิสิต",
+    "totalStudents": "จำนวนนิสิตทั้งหมด",
+    "openTickets": "งานแจ้งซ่อมค้าง",
+    "pendingBills": "บิลค้างชำระ",
+    "parcels": "พัสดุ"
+  }
+}

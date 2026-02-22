@@ -1,0 +1,6 @@
+export { handleChitchat } from "./chitchat"
+export { handleRepair, createRepairTicket } from "./repair"
+export { handleKnowledge } from "./knowledge"
+export { handleScore } from "./score"
+export { handleEvents } from "./events"
+export { handlePostback } from "./postback"
