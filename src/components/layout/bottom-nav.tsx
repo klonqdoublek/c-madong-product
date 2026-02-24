@@ -5,17 +5,20 @@ import { usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
-const navItems = [
+const leftNavItems = [
   { href: "/dashboard", icon: "home", labelKey: "home" as const },
-  {
-    href: "/maintenance",
-    icon: "wrench",
-    labelKey: "maintenance" as const,
-  },
   {
     href: "/announcements",
     icon: "megaphone",
     labelKey: "announcements" as const,
+  },
+] as const;
+
+const rightNavItems = [
+  {
+    href: "/maintenance",
+    icon: "wrench",
+    labelKey: "contact" as const,
   },
   { href: "/profile", icon: "user", labelKey: "profile" as const },
 ] as const;
@@ -84,33 +87,98 @@ const icons: Record<string, React.ReactNode> = {
       <path d="M20 21a8 8 0 0 0-16 0" />
     </svg>
   ),
+  chatbot: (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
+    </svg>
+  ),
 };
+
+function NavItem({
+  href,
+  icon,
+  label,
+  isActive,
+}: {
+  href: string;
+  icon: string;
+  label: string;
+  isActive: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "flex flex-col items-center gap-0.5 px-2 py-1 transition-colors",
+        isActive
+          ? "text-white"
+          : "text-white/70 hover:text-white"
+      )}
+    >
+      {icons[icon]}
+      <span className="font-heading text-[10px] font-bold leading-tight">
+        {label}
+      </span>
+    </Link>
+  );
+}
 
 export function BottomNav() {
   const t = useTranslations("nav");
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:hidden">
-      <div className="flex h-16 items-center justify-around px-2">
-        {navItems.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex flex-col items-center gap-1 px-3 py-1 text-xs transition-colors",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {icons[item.icon]}
-              <span>{t(item.labelKey)}</span>
-            </Link>
-          );
-        })}
+    <nav className="fixed inset-x-0 bottom-0 z-50 px-3 pb-2 pt-1 md:hidden">
+      <div className="relative flex items-center justify-around rounded-full bg-primary px-2 py-2 shadow-lg">
+        {/* Left items */}
+        {leftNavItems.map((item) => (
+          <NavItem
+            key={item.href}
+            href={item.href}
+            icon={item.icon}
+            label={t(item.labelKey)}
+            isActive={pathname.startsWith(item.href)}
+          />
+        ))}
+
+        {/* Center chatbot button */}
+        <Link
+          href="/dashboard"
+          className="flex -mt-5 flex-col items-center"
+        >
+          <div className="flex size-14 items-center justify-center rounded-full bg-white shadow-md ring-4 ring-primary">
+            {icons.chatbot}
+          </div>
+          <span className="font-heading text-[10px] font-bold text-white mt-0.5">
+            {t("chatbot")}
+          </span>
+        </Link>
+
+        {/* Right items */}
+        {rightNavItems.map((item) => (
+          <NavItem
+            key={item.href}
+            href={item.href}
+            icon={item.icon}
+            label={t(item.labelKey)}
+            isActive={pathname.startsWith(item.href)}
+          />
+        ))}
       </div>
     </nav>
   );

@@ -17,7 +17,7 @@ function AdminDashboardContent() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t("dashboard")}</h1>
+      <h1 className="font-heading text-2xl font-bold">{t("dashboard")}</h1>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -26,9 +26,14 @@ function AdminDashboardContent() {
           { label: t("pendingBills"), value: "--" },
           { label: t("parcels"), value: "--" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-lg border bg-card p-6">
+          <div
+            key={stat.label}
+            className="rounded-lg border border-l-4 border-l-primary bg-card p-6"
+          >
             <p className="text-sm text-muted-foreground">{stat.label}</p>
-            <p className="text-3xl font-bold">{stat.value}</p>
+            <p className="font-heading text-3xl font-bold text-primary">
+              {stat.value}
+            </p>
           </div>
         ))}
       </div>

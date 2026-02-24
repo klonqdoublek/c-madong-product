@@ -22,11 +22,12 @@ export type Database = {
         Row: {
           id: string;
           student_id: string | null;
-          full_name_th: string | null;
+          full_name_th: string;
           full_name_en: string | null;
           email: string | null;
           phone: string | null;
           line_uid: string | null;
+          display_name: string | null;
           avatar_url: string | null;
           role: UserRole;
           building_id: string | null;
@@ -35,17 +36,20 @@ export type Database = {
           move_in_date: string | null;
           language: string;
           tags: string[];
+          status: string;
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id: string;
           student_id?: string | null;
-          full_name_th?: string | null;
+          full_name_th: string;
           full_name_en?: string | null;
           email?: string | null;
           phone?: string | null;
           line_uid?: string | null;
+          display_name?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
           building_id?: string | null;
@@ -54,17 +58,20 @@ export type Database = {
           move_in_date?: string | null;
           language?: string;
           tags?: string[];
+          status?: string;
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           student_id?: string | null;
-          full_name_th?: string | null;
+          full_name_th?: string;
           full_name_en?: string | null;
           email?: string | null;
           phone?: string | null;
           line_uid?: string | null;
+          display_name?: string | null;
           avatar_url?: string | null;
           role?: UserRole;
           building_id?: string | null;
@@ -73,6 +80,8 @@ export type Database = {
           move_in_date?: string | null;
           language?: string;
           tags?: string[];
+          status?: string;
+          onboarding_completed?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -125,6 +134,7 @@ export type Database = {
           id: string;
           name_th: string;
           name_en: string;
+          gender: "male" | "female" | "mixed";
           floors: number;
           created_at: string;
         };
@@ -132,12 +142,14 @@ export type Database = {
           id?: string;
           name_th: string;
           name_en: string;
+          gender: "male" | "female" | "mixed";
           floors: number;
           created_at?: string;
         };
         Update: {
           name_th?: string;
           name_en?: string;
+          gender?: "male" | "female" | "mixed";
           floors?: number;
         };
         Relationships: [];

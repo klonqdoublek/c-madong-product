@@ -193,9 +193,9 @@ async function checkUserRegistered(lineUid: string): Promise<boolean> {
     const { createAdminClient } = await import("@/lib/supabase/admin")
     const supabase = createAdminClient()
     const { data } = await supabase
-      .from("students")
+      .from("profiles")
       .select("id")
-      .eq("line_user_id", lineUid)
+      .eq("line_uid", lineUid)
       .single()
     return !!data
   } catch {

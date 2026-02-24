@@ -6,14 +6,16 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  email: z.email(),
-  password: z.string().min(8),
   studentId: z
     .string()
     .regex(/^\d{10}$/, "Student ID must be 10 digits"),
   fullNameTh: z.string().min(1),
-  fullNameEn: z.string().min(1),
+  fullNameEn: z.string().optional(),
+  email: z.email(),
   phone: z.string().optional(),
+  lineUid: z.string().min(1),
+  displayName: z.string().min(1),
+  avatarUrl: z.string().nullable(),
 });
 
 export const onboardingSchema = z.object({

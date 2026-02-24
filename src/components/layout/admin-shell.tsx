@@ -39,7 +39,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-14 items-center border-b px-4">
           <Link
             href="/admin/dashboard"
-            className="text-lg font-bold text-primary"
+            className="font-heading text-lg font-bold text-primary"
           >
             C-Madong Admin
           </Link>
@@ -93,7 +93,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <line x1="4" x2="20" y1="18" y2="18" />
             </svg>
           </button>
-          <span className="ml-3 font-bold text-primary">C-Madong Admin</span>
+          <span className="ml-3 font-heading font-bold text-primary">C-Madong Admin</span>
         </header>
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
