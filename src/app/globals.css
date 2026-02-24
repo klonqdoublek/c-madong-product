@@ -54,10 +54,10 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   /* Typography */
-  --font-sans: var(--font-prompt), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
+  --font-sans: var(--font-chula-charas), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
-  --font-heading: var(--font-prompt), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
-  --font-body: var(--font-sarabun), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
+  --font-heading: var(--font-chulalongkorn), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
+  --font-body: var(--font-chula-charas), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
 }
 
 /* ─── Light Theme (C-Madong Pink) ─── */
