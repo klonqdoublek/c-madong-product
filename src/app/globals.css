@@ -53,7 +53,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Typography */
+  /* Radius — keep inside @theme for static resolution */
+}
+
+/* Typography — must use @theme inline so var() resolves at runtime (Next.js sets font vars on <body>) */
+@theme inline {
   --font-sans: var(--font-chula-charas), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
   --font-heading: var(--font-chulalongkorn), var(--font-geist-sans), "Noto Sans Thai", system-ui, sans-serif;
