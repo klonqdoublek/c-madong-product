@@ -7,23 +7,24 @@ import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
 
 const adminNavItems = [
-  { href: "/admin/dashboard", labelKey: "dashboard" as const },
-  { href: "/admin/maintenance", labelKey: "openTickets" as const },
-  { href: "/admin/students", labelKey: "students" as const },
-  { href: "/admin/announcements", labelKey: "title" as const },
-  { href: "/admin/broadcast", labelKey: "title" as const },
+  { href: "/admin/dashboard", labelKey: "dashboard" as const, ns: "admin" as const },
+  { href: "/admin/maintenance", labelKey: "openTickets" as const, ns: "admin" as const },
+  { href: "/admin/maintenance/technicians", labelKey: "title" as const, ns: "technicians" as const },
+  { href: "/admin/students", labelKey: "students" as const, ns: "admin" as const },
+  { href: "/admin/announcements", labelKey: "title" as const, ns: "announcements" as const },
+  { href: "/admin/broadcast", labelKey: "title" as const, ns: "announcements" as const },
 ] as const;
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("admin");
   const tAnnouncements = useTranslations("announcements");
+  const tTechnicians = useTranslations("admin.technicians");
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
 
   const getLabel = (item: (typeof adminNavItems)[number]) => {
-    if (item.href === "/admin/announcements" || item.href === "/admin/broadcast") {
-      return tAnnouncements(item.labelKey);
-    }
+    if (item.ns === "announcements") return tAnnouncements(item.labelKey);
+    if (item.ns === "technicians") return tTechnicians(item.labelKey);
     return t(item.labelKey);
   };
 

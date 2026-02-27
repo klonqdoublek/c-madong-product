@@ -1,5 +1,14 @@
 export type UserRole = "student" | "committee" | "admin" | "head";
 
+export type TechnicianSpecialty =
+  | "electrical"
+  | "plumbing"
+  | "air_conditioning"
+  | "general"
+  | "furniture"
+  | "internet"
+  | "door_lock";
+
 export type MaintenanceStatus =
   | "pending"
   | "acknowledged"
@@ -211,8 +220,13 @@ export type Database = {
           photos: string[];
           status: MaintenanceStatus;
           assigned_to: string | null;
+          technician_id: string | null;
           appointment_date: string | null;
           appointment_time: string | null;
+          failure_reason: string | null;
+          admin_notes: string | null;
+          accepted_at: string | null;
+          resolved_at: string | null;
           ai_category: string | null;
           ai_priority: string | null;
           created_at: string;
@@ -227,8 +241,13 @@ export type Database = {
           photos?: string[];
           status?: MaintenanceStatus;
           assigned_to?: string | null;
+          technician_id?: string | null;
           appointment_date?: string | null;
           appointment_time?: string | null;
+          failure_reason?: string | null;
+          admin_notes?: string | null;
+          accepted_at?: string | null;
+          resolved_at?: string | null;
           ai_category?: string | null;
           ai_priority?: string | null;
           created_at?: string;
@@ -241,10 +260,46 @@ export type Database = {
           photos?: string[];
           status?: MaintenanceStatus;
           assigned_to?: string | null;
+          technician_id?: string | null;
           appointment_date?: string | null;
           appointment_time?: string | null;
+          failure_reason?: string | null;
+          admin_notes?: string | null;
+          accepted_at?: string | null;
+          resolved_at?: string | null;
           ai_category?: string | null;
           ai_priority?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      technicians: {
+        Row: {
+          id: string;
+          line_user_id: string | null;
+          display_name: string;
+          specialty: TechnicianSpecialty;
+          phone: string | null;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          line_user_id?: string | null;
+          display_name: string;
+          specialty?: TechnicianSpecialty;
+          phone?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          line_user_id?: string | null;
+          display_name?: string;
+          specialty?: TechnicianSpecialty;
+          phone?: string | null;
+          is_active?: boolean;
           updated_at?: string;
         };
         Relationships: [];
@@ -522,11 +577,20 @@ export type Database = {
           similarity: number;
         }[];
       };
+      book_appointment: {
+        Args: {
+          p_ticket_id: string;
+          p_date: string;
+          p_time: string;
+        };
+        Returns: void;
+      };
     };
     Enums: {
       user_role: UserRole;
       maintenance_status: MaintenanceStatus;
       notification_type: NotificationType;
+      technician_specialty: TechnicianSpecialty;
     };
   };
 };
