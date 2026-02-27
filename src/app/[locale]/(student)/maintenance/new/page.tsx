@@ -1,5 +1,8 @@
 import { setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
+import { NewRequestForm } from "@/components/maintenance/new-request-form";
+import { Link } from "@/i18n/navigation";
+import { ChevronLeft } from "lucide-react";
 
 export default async function NewMaintenancePage({
   params,
@@ -17,10 +20,16 @@ function NewMaintenanceContent() {
 
   return (
     <div className="space-y-4 p-4">
-      <h1 className="text-2xl font-bold">{t("newRequest")}</h1>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Maintenance request form — Coming in Phase 3
+      <div className="flex items-center gap-2">
+        <Link
+          href="/maintenance"
+          className="flex items-center text-muted-foreground hover:text-foreground"
+        >
+          <ChevronLeft size={20} />
+        </Link>
+        <h1 className="text-xl font-heading font-bold">{t("newRequest")}</h1>
       </div>
+      <NewRequestForm />
     </div>
   );
 }

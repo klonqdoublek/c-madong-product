@@ -16,7 +16,8 @@ const URGENCY_LABELS: Record<string, string> = {
 
 /** Repair confirmation Flex with Confirm/Edit/Cancel postback buttons */
 export function buildRepairConfirmFlex(
-  detection: RepairDetection
+  detection: RepairDetection,
+  photoCount: number = 0
 ): FlexMessagePayload {
   const categoryName = CATEGORY_NAMES_TH[detection.category] ?? detection.category
   const urgencyColor = URGENCY_COLORS[detection.urgency] ?? URGENCY_COLORS.medium
@@ -84,6 +85,9 @@ export function buildRepairConfirmFlex(
             ],
             alignItems: "center",
           },
+          ...(photoCount > 0
+            ? [buildInfoRow("รูปภาพ", `${photoCount} รูป 📸`)]
+            : []),
           { type: "separator", color: "#E5E7EB", margin: "md" },
           {
             type: "text",

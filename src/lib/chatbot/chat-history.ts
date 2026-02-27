@@ -7,6 +7,7 @@ interface ChatMessage {
   role: "user" | "assistant"
   content: string
   intent?: ChatIntent
+  metadata?: Record<string, unknown>
 }
 
 /** Save a message to chat history */
@@ -19,20 +20,21 @@ export async function saveMessage(
 
   const supabase = createAdminClient()
 
-  // Look up student by line_user_id
-  const { data: student } = await supabase
-    .from("students")
+  // Look up profile by line_uid
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("student_id")
-    .eq("line_user_id", lineUid)
+    .eq("line_uid", lineUid)
     .single()
 
   await supabase.from("ai_chat_messages").insert({
-    student_id: student?.student_id ?? null,
+    student_id: profile?.student_id ?? null,
     session_id: sessionId,
     role: message.role,
     content: message.content,
     intent: message.intent ?? null,
     line_uid: lineUid,
+    metadata: message.metadata ?? {},
   })
 }
 

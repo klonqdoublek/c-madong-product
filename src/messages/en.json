@@ -106,9 +106,76 @@
     "appointment": "Appointment",
     "status": {
       "pending": "Pending",
+      "acknowledged": "Acknowledged",
       "inProgress": "In Progress",
       "completed": "Completed",
       "cancelled": "Cancelled"
+    },
+    "kanban": {
+      "new": "New",
+      "acknowledged": "Acknowledged",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "categories": {
+      "electrical": "Electrical",
+      "plumbing": "Plumbing",
+      "furniture": "Furniture",
+      "air_conditioning": "Air Conditioning",
+      "internet": "Internet",
+      "door_lock": "Door/Lock",
+      "pest": "Pest Control",
+      "cleaning": "Cleaning",
+      "other": "Other"
+    },
+    "specialty": {
+      "electrical": "Electrician",
+      "plumbing": "Plumber",
+      "air_conditioning": "AC Technician",
+      "general": "General",
+      "furniture": "Furniture",
+      "internet": "Network",
+      "door_lock": "Locksmith"
+    },
+    "form": {
+      "stepCategory": "Select Issue Type",
+      "stepCategoryDesc": "Choose the category that best matches your problem",
+      "stepDetails": "Problem Details",
+      "stepDetailsDesc": "Describe the issue so the technician can understand",
+      "stepPhotos": "Attach Photos",
+      "stepPhotosDesc": "Photos of the issue help the technician diagnose faster",
+      "stepReview": "Review",
+      "stepReviewDesc": "Double-check the info before submitting",
+      "titleLabel": "Title",
+      "titlePlaceholder": "e.g. AC not cooling, water leak",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Describe the problem: location, symptoms, when it started",
+      "descriptionHint": "Minimum {min} characters (max {max})",
+      "categoryLabel": "Category",
+      "photosLabel": "Photos ({count})",
+      "statusLabel": "Status",
+      "addPhoto": "Add photo",
+      "takePhoto": "Take/Choose photo",
+      "maxPhotos": "Maximum {count} photos allowed",
+      "photoTooLarge": "File too large (max {size}MB)",
+      "photoHint": "Up to {count} photos, max {size}MB each"
+    },
+    "detail": {
+      "title": "Request Details",
+      "timeline": "Progress",
+      "created": "Submitted",
+      "technician": "Assigned Technician",
+      "assigned": "Assigned",
+      "noTickets": "No maintenance requests yet",
+      "notFound": "Request not found",
+      "cancelReason": "Cancellation Reason"
+    },
+    "success": {
+      "title": "Request Submitted!",
+      "message": "Staff will review your request shortly",
+      "viewTicket": "View Request",
+      "backToList": "Back to List"
     }
   },
   "announcements": {
@@ -132,6 +199,50 @@
     "totalStudents": "Total Students",
     "openTickets": "Open Tickets",
     "pendingBills": "Pending Bills",
-    "parcels": "Parcels"
+    "parcels": "Parcels",
+    "serviceDesk": {
+      "title": "Service Desk",
+      "listView": "List",
+      "kanbanView": "Board",
+      "ticketTitle": "Title",
+      "requester": "Requester",
+      "status": "Status",
+      "technician": "Technician",
+      "date": "Date",
+      "assignTechnician": "Assign Technician",
+      "selectTechnician": "Select technician",
+      "unassigned": "Unassigned",
+      "changeStatus": "Change Status",
+      "adminNotes": "Admin Notes",
+      "notesPlaceholder": "Add a note...",
+      "addNotes": "Add a note...",
+      "failureReason": "Cancellation Reason",
+      "failureReasonPlaceholder": "Provide reason (optional)",
+      "cancelConfirm": "Cancel this ticket?",
+      "created": "Created",
+      "accepted": "Accepted",
+      "resolved": "Resolved"
+    },
+    "technicians": {
+      "title": "Technicians",
+      "add": "Add Technician",
+      "edit": "Edit Technician",
+      "name": "Name",
+      "namePlaceholder": "Technician name",
+      "specialty": "Specialty",
+      "phone": "Phone",
+      "active": "Active",
+      "deleteConfirm": "Delete technician?",
+      "deleteWarning": "Remove {name} from the system? This action cannot be undone."
+    }
+  },
+  "booking": {
+    "title": "Book Appointment",
+    "description": "Select a date and time for the technician to visit",
+    "selectDate": "Select date",
+    "selectTime": "Select time",
+    "confirm": "Confirm Booking",
+    "success": "Booking Confirmed!",
+    "successDescription": "Your appointment has been recorded. You'll receive a LINE notification as a reminder."
   }
 }

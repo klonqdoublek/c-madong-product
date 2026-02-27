@@ -13,24 +13,31 @@ export async function handleRepair(
   message: string,
   lineUid: string
 ): Promise<HandlerResponse> {
+  // Preserve photos from session if user was collecting photos
+  const { getOrCreateSession } = await import("../session-manager")
+  const session = await getOrCreateSession(lineUid)
+  const photos = (session.state_data?.photos as string[]) ?? []
+
   const detection = await detectRepairDetails(message)
 
-  // Save detection to session for postback confirmation
+  // Save detection to session for postback confirmation (preserve photos)
   await updateSessionState(lineUid, "repair_confirming", {
     detection,
     originalMessage: message,
+    photos,
   })
 
   return {
     type: "flex",
-    flex: buildRepairConfirmFlex(detection),
+    flex: buildRepairConfirmFlex(detection, photos.length),
   }
 }
 
 /** Create a maintenance request ticket in DB */
 export async function createRepairTicket(
   lineUid: string,
-  detection: RepairDetection
+  detection: RepairDetection,
+  photos: string[] = []
 ): Promise<{ id: string } | null> {
   if (IS_DEMO) {
     return { id: "demo-ticket-" + Date.now() }
@@ -38,23 +45,23 @@ export async function createRepairTicket(
 
   const supabase = createAdminClient()
 
-  // Look up student by line_user_id
-  const { data: student } = await supabase
-    .from("students")
+  // Look up user profile by line_uid (profiles.id = auth.users.id = requester_id FK)
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("id")
-    .eq("line_user_id", lineUid)
+    .eq("line_uid", lineUid)
     .single()
 
-  if (!student) return null
+  if (!profile) return null
 
   const { data, error } = await supabase
     .from("maintenance_requests")
     .insert({
-      requester_id: student.id,
+      requester_id: profile.id,
       category: detection.category,
       title: detection.title,
       description: detection.description,
-      photos: [],
+      photos,
       status: "pending",
       ai_category: detection.category,
       ai_priority: detection.urgency,

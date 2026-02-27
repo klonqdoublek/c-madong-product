@@ -21,7 +21,7 @@ interface LineEventBase {
 export interface LineMessageEvent extends LineEventBase {
   type: "message"
   replyToken: string
-  message: LineTextMessage | LineUnsupportedMessage
+  message: LineTextMessage | LineImageMessage | LineUnsupportedMessage
 }
 
 export interface LinePostbackEvent extends LineEventBase {
@@ -45,8 +45,14 @@ export interface LineTextMessage {
   text: string
 }
 
+export interface LineImageMessage {
+  type: "image"
+  id: string
+  contentProvider: { type: "line" | "external"; originalContentUrl?: string }
+}
+
 export interface LineUnsupportedMessage {
-  type: "image" | "video" | "audio" | "file" | "location" | "sticker"
+  type: "video" | "audio" | "file" | "location" | "sticker"
   id: string
 }
 
@@ -77,6 +83,7 @@ export type SessionState =
   | "idle"
   | "repair_confirming"
   | "repair_editing"
+  | "repair_collecting_photos"
 
 export interface ChatSession {
   id: string

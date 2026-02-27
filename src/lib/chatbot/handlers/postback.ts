@@ -50,7 +50,11 @@ async function handleRepairConfirm(
     urgency: (params.get("urgency") as RepairDetection["urgency"]) ?? "medium",
   }
 
-  const ticket = await createRepairTicket(lineUid, detection)
+  // Get photos from session state
+  const session = await getOrCreateSession(lineUid)
+  const photos = (session.state_data?.photos as string[]) ?? []
+
+  const ticket = await createRepairTicket(lineUid, detection, photos)
 
   if (ticket) {
     await replyFlexMessage(
@@ -59,6 +63,7 @@ async function handleRepairConfirm(
         id: ticket.id,
         category: detection.category,
         title: detection.title,
+        photoCount: photos.length,
       })
     )
   } else {

@@ -60,16 +60,23 @@ async function processEvent(event: LineEvent): Promise<void> {
 }
 
 async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
-  if (event.message.type !== "text") {
-    await replyTextMessage(
-      event.replyToken,
-      "ซีมะโด่งอ่านได้แค่ข้อความตอนนี้น้า 📝 พิมพ์มาเลยจ้า"
-    )
+  const lineUid = event.source.userId
+  if (!lineUid) return
+
+  // Handle image messages
+  if (event.message.type === "image") {
+    await handleImageMessage(event, lineUid)
     return
   }
 
-  const lineUid = event.source.userId
-  if (!lineUid) return
+  // Handle unsupported message types
+  if (event.message.type !== "text") {
+    await replyTextMessage(
+      event.replyToken,
+      "ซีมะโด่งอ่านได้แค่ข้อความกับรูปภาพตอนนี้น้า 📝 พิมพ์หรือส่งรูปมาเลยจ้า"
+    )
+    return
+  }
 
   const message = event.message.text.trim()
   if (!message) return
@@ -98,8 +105,12 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   // Get session
   const session = await getOrCreateSession(lineUid)
 
-  // If in active flow (repair confirming/editing), route to repair handler
-  if (session.state === "repair_confirming" || session.state === "repair_editing") {
+  // If in active flow (repair confirming/editing/collecting photos), route to repair handler
+  if (
+    session.state === "repair_confirming" ||
+    session.state === "repair_editing" ||
+    session.state === "repair_collecting_photos"
+  ) {
     // User sent a new text while in repair flow — treat as new repair description
     const response = await handleRepair(message, lineUid)
     await sendResponse(event.replyToken, response)
@@ -143,6 +154,86 @@ async function handlePostbackEvent(event: LinePostbackEvent): Promise<void> {
   if (!lineUid) return
 
   await handlePostback(event.replyToken, event.postback.data, lineUid)
+}
+
+async function handleImageMessage(
+  event: LineMessageEvent,
+  lineUid: string
+): Promise<void> {
+  const messageId = event.message.id
+
+  // Check registration
+  const isRegistered = IS_DEMO || (await checkUserRegistered(lineUid))
+  if (!isRegistered) {
+    const registerUrl = LIFF_URL ? `${LIFF_URL}/register` : "แอปหอพัก"
+    await replyTextMessage(
+      event.replyToken,
+      `สวัสดีจ้า! 🏠 น้องยังไม่ได้ลงทะเบียนในระบบน้า\n\nลงทะเบียนได้ที่: ${registerUrl}`
+    )
+    return
+  }
+
+  const session = await getOrCreateSession(lineUid)
+
+  // If in repair flow or idle, download and store the image
+  try {
+    const { downloadLineImage } = await import("@/lib/line/image-download")
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const { uploadPhotoBuffer } = await import("@/lib/supabase/storage")
+
+    const { buffer, contentType } = await downloadLineImage(messageId)
+    const supabase = createAdminClient()
+
+    // Look up profile for user ID
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("line_uid", lineUid)
+      .single()
+
+    const userId = profile?.id ?? lineUid
+    const { url } = await uploadPhotoBuffer(supabase, buffer, contentType, userId)
+
+    // Get existing photos from session
+    const existingPhotos = (session.state_data?.photos as string[]) ?? []
+    const photos = [...existingPhotos, url]
+
+    if (photos.length >= 5) {
+      // Max photos reached
+      const { updateSessionState } = await import("./session-manager")
+      await updateSessionState(lineUid, session.state === "idle" ? "repair_collecting_photos" : session.state, {
+        ...session.state_data,
+        photos,
+      })
+      await replyTextMessage(
+        event.replyToken,
+        `ได้รูปแล้วจ้า 📸 (${photos.length}/5 รูป) ครบแล้วน้า!\n\nพิมพ์อธิบายปัญหามาเลยนะ เช่น "แอร์ไม่เย็น" หรือ "น้ำรั่ว"`
+      )
+    } else {
+      const { updateSessionState } = await import("./session-manager")
+      await updateSessionState(lineUid, session.state === "idle" ? "repair_collecting_photos" : session.state, {
+        ...session.state_data,
+        photos,
+      })
+      await replyTextMessage(
+        event.replyToken,
+        `ได้รูปแล้วจ้า 📸 (${photos.length}/5 รูป)\n\nส่งเพิ่มได้อีก หรือพิมพ์อธิบายปัญหามาเลยนะ`
+      )
+    }
+
+    // Save chat message
+    await saveMessage(lineUid, session.id, {
+      role: "user",
+      content: `[ส่งรูปภาพ]`,
+      metadata: { imageUrl: url },
+    })
+  } catch (err) {
+    console.error("[Webhook] Image handling error:", err)
+    await replyTextMessage(
+      event.replyToken,
+      "อุ๊ปส์! รับรูปไม่ได้น้า 😅 ลองส่งใหม่อีกทีนะ"
+    )
+  }
 }
 
 async function sendResponse(
