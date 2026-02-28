@@ -11,20 +11,26 @@ const adminNavItems = [
   { href: "/admin/maintenance", labelKey: "openTickets" as const, ns: "admin" as const },
   { href: "/admin/maintenance/technicians", labelKey: "title" as const, ns: "technicians" as const },
   { href: "/admin/students", labelKey: "students" as const, ns: "admin" as const },
+  { href: "/admin/tags", labelKey: "tags" as const, ns: "admin" as const },
   { href: "/admin/announcements", labelKey: "title" as const, ns: "announcements" as const },
+  { href: "/admin/templates", labelKey: "templatesNav" as const, ns: "admin" as const },
   { href: "/admin/broadcast", labelKey: "title" as const, ns: "announcements" as const },
+  { href: "/admin/knowledge-base", labelKey: "knowledgeBaseNav" as const, ns: "admin" as const },
+  { href: "/admin/roles", labelKey: "title" as const, ns: "rbac" as const },
 ] as const;
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("admin");
   const tAnnouncements = useTranslations("announcements");
   const tTechnicians = useTranslations("admin.technicians");
+  const tRbac = useTranslations("admin.rbac");
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar } = useUIStore();
 
   const getLabel = (item: (typeof adminNavItems)[number]) => {
     if (item.ns === "announcements") return tAnnouncements(item.labelKey);
     if (item.ns === "technicians") return tTechnicians(item.labelKey);
+    if (item.ns === "rbac") return tRbac(item.labelKey);
     return t(item.labelKey);
   };
 

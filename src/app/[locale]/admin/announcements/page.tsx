@@ -1,5 +1,5 @@
-import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { AnnouncementsPageContent } from "@/components/admin/announcements/announcements-page-content";
 
 export default async function AdminAnnouncementsPage({
   params,
@@ -9,18 +9,5 @@ export default async function AdminAnnouncementsPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <Content />;
-}
-
-function Content() {
-  const t = useTranslations("announcements");
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Admin announcements management — Coming in Phase 4
-      </div>
-    </div>
-  );
+  return <AnnouncementsPageContent />;
 }

@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { NewAnnouncementPageContent } from "@/components/admin/announcements/new-announcement-page-content";
 
 export default async function AdminAnnouncementDetailPage({
   params,
@@ -8,12 +9,5 @@ export default async function AdminAnnouncementDetailPage({
   const { locale, id } = await params;
   setRequestLocale(locale);
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Announcement #{id}</h1>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Announcement editor — Coming in Phase 4
-      </div>
-    </div>
-  );
+  return <NewAnnouncementPageContent announcementId={id} />;
 }

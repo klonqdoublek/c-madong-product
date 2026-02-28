@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { BroadcastPageContent } from "@/components/admin/broadcast/broadcast-page-content";
 
 export default async function BroadcastPage({
   params,
@@ -8,12 +9,5 @@ export default async function BroadcastPage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Broadcast</h1>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Broadcast management — Coming in Phase 8
-      </div>
-    </div>
-  );
+  return <BroadcastPageContent />;
 }

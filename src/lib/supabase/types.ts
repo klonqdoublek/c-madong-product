@@ -1,4 +1,43 @@
-export type UserRole = "student" | "committee" | "admin" | "head";
+// ============================================================================
+// RBAC Types (12 roles)
+// ============================================================================
+
+export type AppRole =
+  | "super_admin"     // ผอ.หอพัก / ผู้ดูแลระบบ
+  | "head"            // หัวหน้ากลุ่มภารกิจหอพักนิสิต
+  | "registrar"       // เจ้าหน้าที่ทะเบียน
+  | "finance"         // เจ้าหน้าที่การเงิน
+  | "parcel"          // เจ้าหน้าที่พัสดุ
+  | "admin_staff"     // ธุรการหอพัก
+  | "service"         // เจ้าหน้าที่บริการทั่วไป
+  | "activity"        // เจ้าหน้าที่กิจกรรม
+  | "technician_head" // หัวหน้าช่างหอพัก
+  | "technician"      // ช่างหอพัก
+  | "technician_it"   // ช่างไอที / ดูแลระบบ
+  | "committee"       // กรรมการนิสิตหอพัก
+  | "student";        // นิสิตหอพัก
+
+// Legacy alias for backwards compatibility
+export type UserRole = AppRole;
+
+// Building codes (5 buildings)
+export type BuildingCode =
+  | "chumpee"    // จำปี
+  | "chumpa"     // จำปา
+  | "pudson"     // พุดซ้อน
+  | "pudtan"     // พุดตาน
+  | "chuanchom"; // ชวนชม
+
+// Building scopes for registrars (8 options)
+export type BuildingScope =
+  | "chumpee"    // จำปี (เฉพาะอาคาร)
+  | "chumpa"     // จำปา (เฉพาะอาคาร)
+  | "pudson"     // พุดซ้อน (เฉพาะอาคาร)
+  | "pudtan"     // พุดตาน (เฉพาะอาคาร)
+  | "chuanchom"  // ชวนชม (เฉพาะอาคาร)
+  | "male"       // หอพักชาย (Chumpee + Chumpa)
+  | "female"     // หอพักหญิง (Pudson + Pudtan)
+  | "all";       // ทุกอาคาร
 
 export type TechnicianSpecialty =
   | "electrical"
@@ -316,6 +355,12 @@ export type Database = {
           target_tags: string[];
           author_id: string;
           published_at: string | null;
+          message_type: string;
+          flex_json: Record<string, unknown> | null;
+          status: string;
+          target_type: string;
+          scheduled_at: string | null;
+          sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -330,6 +375,12 @@ export type Database = {
           target_tags?: string[];
           author_id: string;
           published_at?: string | null;
+          message_type?: string;
+          flex_json?: Record<string, unknown> | null;
+          status?: string;
+          target_type?: string;
+          scheduled_at?: string | null;
+          sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -342,6 +393,12 @@ export type Database = {
           is_pinned?: boolean;
           target_tags?: string[];
           published_at?: string | null;
+          message_type?: string;
+          flex_json?: Record<string, unknown> | null;
+          status?: string;
+          target_type?: string;
+          scheduled_at?: string | null;
+          sent_at?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -435,6 +492,10 @@ export type Database = {
           content: string;
           source: string | null;
           metadata: Record<string, unknown>;
+          status: string;
+          filename: string | null;
+          file_path: string | null;
+          content_type: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -442,9 +503,13 @@ export type Database = {
         Insert: {
           id?: string;
           title: string;
-          content: string;
+          content?: string;
           source?: string | null;
           metadata?: Record<string, unknown>;
+          status?: string;
+          filename?: string | null;
+          file_path?: string | null;
+          content_type?: string | null;
           created_by?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -454,6 +519,10 @@ export type Database = {
           content?: string;
           source?: string | null;
           metadata?: Record<string, unknown>;
+          status?: string;
+          filename?: string | null;
+          file_path?: string | null;
+          content_type?: string | null;
           updated_at?: string;
         };
         Relationships: [];
@@ -482,6 +551,70 @@ export type Database = {
           embedding?: unknown;
           token_count?: number | null;
           metadata?: Record<string, unknown>;
+        };
+        Relationships: [];
+      };
+      tags: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          color?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      message_templates: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          category: string;
+          message_type: string;
+          content: string | null;
+          flex_json: Record<string, unknown> | null;
+          is_active: boolean;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          category?: string;
+          message_type?: string;
+          content?: string | null;
+          flex_json?: Record<string, unknown> | null;
+          is_active?: boolean;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          category?: string;
+          message_type?: string;
+          content?: string | null;
+          flex_json?: Record<string, unknown> | null;
+          is_active?: boolean;
+          updated_at?: string;
         };
         Relationships: [];
       };

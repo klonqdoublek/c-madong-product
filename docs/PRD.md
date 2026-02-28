@@ -1,9 +1,9 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.0
-> **Last Updated**: 2026-02-14
+> **Version**: 1.2
+> **Last Updated**: 2026-02-28
 > **Author**: Khaoklong (Product Designer)
-> **Status**: Draft
+> **Status**: In Development
 
 ---
 
@@ -48,26 +48,31 @@ C-Madong Platform
 │   ├── Notifications
 │   └── Profile Management
 │
-├── Admin Portal (chula-dorm-connect)    — To be integrated into c-madong-product
-│   ├── Dashboard & Analytics
-│   ├── Student Management
-│   ├── Announcement Broadcasting (LINE)
-│   ├── Maintenance Ticket Management
-│   ├── Template Library
+├── Admin Portal (ported into c-madong-product) ✅
+│   ├── Dashboard (KPI cards, recent tickets, quick actions)
+│   ├── Student Management (directory, tags, edit)
+│   ├── Maintenance Service Desk (Kanban, list, detail modal)
+│   ├── Technician CRUD
+│   ├── Announcement Management + LINE Flex Editor
+│   ├── Message Template Library
+│   ├── LINE Broadcast
+│   ├── Knowledge Base (RAG: document upload, AI Q&A)
+│   ├── Booking (public appointment page)
 │   └── Settings & Configuration
 │
 ├── LINE Integration
 │   ├── LIFF Mini App
-│   ├── LINE Login (OAuth)
-│   ├── Flex Message Broadcasting
-│   └── Webhook (events & messaging)
+│   ├── LINE Login (OAuth) ✅
+│   ├── Flex Message Broadcasting ✅
+│   ├── Webhook (events & messaging) ✅
+│   └── Chatbot น้องซีมะโด่ง (intent router, RAG, chitchat) ✅
 │
 └── Backend (Supabase)
-    ├── PostgreSQL Database
-    ├── Authentication
-    ├── Real-time Subscriptions
+    ├── PostgreSQL Database + pgvector (RAG embeddings)
+    ├── Authentication (LINE OAuth + synthetic email)
+    ├── Real-time Subscriptions ✅
     ├── Edge Functions
-    └── Storage (images/files)
+    └── Storage (maintenance-photos, dorm-knowledge)
 ```
 
 ---
@@ -299,78 +304,113 @@ C-Madong Platform
 
 ## 3. Phased Rollout Plan
 
-### Phase 0: Project Scaffolding ✅ COMPLETE
-- Next.js 16 project setup with App Router
-- 37 pages scaffolded (placeholder + partial)
-- i18n (Thai/English) with next-intl
-- shadcn/ui component library
-- Supabase client setup
+### Phase 0: Project Scaffolding ✅ COMPLETE (2026-02-14)
+- Next.js 16 project setup with App Router, Turbopack
+- 45 pages scaffolded
+- i18n (Thai/English) with next-intl v4
+- shadcn/ui component library (new-york style)
+- Supabase client setup (@supabase/ssr)
 - Zustand stores, TanStack Query
 - Layout components (student shell, admin shell)
+- Chulalongkorn University fonts (heading + body)
+- CU Pink brand palette
 
-### Phase 1: Authentication & Onboarding 🔜 NEXT
+### Phase 1: Authentication & Onboarding ✅ DEPLOYED (2026-02-23)
 - Supabase project setup + environment variables
-- Database migrations (profiles, buildings, rooms, beds)
-- LINE Login OAuth flow (`/api/auth/line`)
-- Registration with CUNET email verification
-- Multi-step onboarding (personal info → room → preferences → language)
-- Middleware: auth protection + i18n routing + admin role gating
-- Staff email/password login
+- Database migrations (profiles, buildings, rooms, beds — 5 buildings, 200 rooms, 560 beds)
+- LINE Login OAuth flow (`/api/auth/line` → `/api/auth/callback`)
+- Synthetic email auth pattern (`{lineUid}@line.c-madong.app`)
+- Registration form (`/api/auth/register`)
+- Multi-step onboarding wizard (profile → room/bed → language)
+- Middleware: auth protection + i18n routing + admin role gating + onboarding redirect
+- LINE Login channel (ID: 2009201565) published & verified
 
-### Phase 2: Profile & Digital Dorm Card
-- Student profile page
-- Digital dorm card with QR code
-- Profile editing (language, preferences)
-- Avatar upload
+### Phase 2: Admin Portal + Student Maintenance ✅ DEPLOYED (2026-02-28)
+**Student-facing:**
+- Maintenance request form (multi-step: category → details → photos → review)
+- Maintenance ticket list & detail with realtime status
+- Photo upload to Supabase Storage (maintenance-photos bucket)
+- Booking page (public appointment scheduling)
 
-### Phase 3: Maintenance System
-- Student: submit request form (category, description, photos, appointment)
-- Student: request list & detail with status tracking
-- Admin: Kanban board (drag-and-drop)
-- Admin: list view with filters
-- Admin: ticket management (status, notes, assignment)
-- LINE notification on status change
-- Photo upload to Supabase Storage
+**Admin portal (15 pages — ported from Lovable):**
+- Dashboard: 4 KPI cards, recent tickets, 6 quick-action buttons
+- Service Desk: Kanban board (drag-and-drop) + list view + ticket detail modal
+- Technician CRUD management
+- Student directory: search, tag/building filters, edit dialog with cascading selects
+- Tag management: color-coded CRUD with 8 color presets
+- Announcements: list with status filter + create/edit with text/Flex tabs
+- Message Templates: grid view + create with category + text/Flex support
+- Flex Message Editor: JSON editor + preview + template selector
+- AI Writing Assistant: Gemini-powered Thai copy generation
+- LINE Broadcast: quick send with template shortcuts + tag targeting
+- Knowledge Base (RAG): document upload → OpenAI embeddings → Gemini Q&A playground
+- Settings: LINE OA info, AI API keys (localStorage), app info
 
-### Phase 4: Announcements & Notifications
-- Student: announcement list & detail
-- Student: notification center with unread count
-- Admin: announcement CRUD with editor
-- Admin: LINE Flex message editor & preview
-- Scheduled & recurring announcements
-- Tag-based targeting
-- Template library
+**Chatbot น้องซีมะโด่ง ✅ (2026-02-25):**
+- LINE webhook handler (`/api/webhooks/line`)
+- Intent router (repair, knowledge, score, events, chitchat)
+- Session management + chat history
+- RAG integration (pgvector embeddings)
+- Image support
 
-### Phase 5: Student Management & Analytics
-- Admin: student directory (CRUD, search, filter)
-- Admin: tag management
-- Admin: dashboard analytics & charts
-- Import/export student data
-- LINE follower sync
+**LINE Messaging Pipeline ✅ (2026-02-21):**
+- `@line/bot-sdk` integration
+- Push/broadcast/reply for text + Flex messages
+- Bill reminder Flex template (tested end-to-end)
 
-### Phase 6: LINE LIFF Integration
+**Database tables deployed:**
+- profiles, buildings, rooms, beds
+- maintenance_requests, technicians
+- announcements (extended: message_type, flex_json, status, target_type, scheduled_at, sent_at)
+- notifications
+- tags (new)
+- message_templates (new)
+- documents (extended: status, filename, file_path, content_type) + document_sections (pgvector)
+- ai_chat_messages, chatbot_sessions
+- score_categories, score_entries, dorm_events
+
+### Phase 3: Billing & Payments 🔜 NEXT
+- Utility bill generation & viewing
+- Bill history
+- LINE Flex bill reminders (template ready)
+- QR payment integration
+
+### Phase 4: Parcel Management
+- Parcel notification system
+- Parcel pickup tracking
+- LINE notification on arrival
+
+### Phase 5: Dorm Score & Activities (Plan drafted)
+- Score categories (activities, community service, rules, meetings)
+- Dorm events with schedule + attendance tracking
+- Student score dashboard
+- Admin score entry management
+
+### Phase 6: AI Adaptive UX Layer (Plan drafted)
+- Dashboard insights (personalized for each student)
+- Smart notifications (AI-prioritized)
+- Adaptive UX (usage-based interface optimization)
+- Chatbot enhancement (multi-turn, proactive suggestions)
+
+### Phase 7: LINE LIFF Integration
 - LIFF mini app setup
 - Auto-login from LINE
-- Deep linking
+- Deep linking from Flex messages
 - Quick actions within LINE
 
-### Phase 7: Broadcasting & AI
-- Broadcast management dashboard
-- AI-assisted copy generation (Thai)
-- AI image generation for Flex messages
-- Scheduled broadcast processing (cron)
-
-### Phase 8: Utilities & Billing
-- Utility bill viewing
-- Parcel notification system
-- Payment integration
+### Phase 8: Reports & Analytics
+- Admin dashboard charts
+- Maintenance response time analytics
+- Student activity reports
+- Export capabilities (CSV/PDF)
 
 ### Phase 9: Polish & Launch
-- Performance optimization
+- Performance optimization (FCP < 2s, Lighthouse > 90)
 - Error boundaries & logging
 - Comprehensive testing
 - Security audit (RLS policies, input validation)
-- Production deployment
+- WCAG 2.1 AA compliance audit
+- Production launch
 
 ---
 
