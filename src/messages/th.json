@@ -50,7 +50,10 @@
     "emailInvalid": "รูปแบบอีเมลไม่ถูกต้อง",
     "errorGeneric": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้งนะ",
     "errorLineDenied": "การเข้าสู่ระบบผ่าน LINE ถูกยกเลิก",
-    "errorNoLineData": "กรุณาเข้าสู่ระบบผ่าน LINE ก่อนลงทะเบียนนะ"
+    "errorNoLineData": "กรุณาเข้าสู่ระบบผ่าน LINE ก่อนลงทะเบียนนะ",
+    "devLogin": "Dev Login",
+    "devLoginDescription": "สำหรับทดสอบเท่านั้น",
+    "loginWithEmail": "เข้าสู่ระบบด้วยอีเมล"
   },
   "onboarding": {
     "stepProfile": "โปรไฟล์",

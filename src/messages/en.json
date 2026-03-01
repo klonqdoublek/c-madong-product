@@ -50,7 +50,10 @@
     "emailInvalid": "Invalid email format",
     "errorGeneric": "Something went wrong. Please try again.",
     "errorLineDenied": "LINE login was cancelled",
-    "errorNoLineData": "Please login with LINE before registering"
+    "errorNoLineData": "Please login with LINE before registering",
+    "devLogin": "Dev Login",
+    "devLoginDescription": "For testing only",
+    "loginWithEmail": "Login with email"
   },
   "onboarding": {
     "stepProfile": "Profile",

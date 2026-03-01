@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function LoginPage() {
   return (
@@ -15,6 +15,7 @@ export default function LoginPage() {
 function LoginContent() {
   const t = useTranslations("auth");
   const searchParams = useSearchParams();
+  const router = useRouter();
   const error = searchParams.get("error");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,6 +26,41 @@ function LoginContent() {
     token_failed: t("errorGeneric"),
     profile_failed: t("errorGeneric"),
     server_error: t("errorGeneric"),
+  };
+
+  // Dev login state
+  const showDevLogin = process.env.NEXT_PUBLIC_DEV_LOGIN === "true";
+  const [devExpanded, setDevExpanded] = useState(false);
+  const [devEmail, setDevEmail] = useState("dev@c-madong.app");
+  const [devPassword, setDevPassword] = useState("devadmin123");
+  const [devLoading, setDevLoading] = useState(false);
+  const [devError, setDevError] = useState("");
+
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDevLoading(true);
+    setDevError("");
+
+    try {
+      const res = await fetch("/api/auth/dev-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: devEmail, password: devPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setDevError(data.error || "Login failed");
+        return;
+      }
+
+      router.push("/admin/dashboard");
+    } catch {
+      setDevError("Network error");
+    } finally {
+      setDevLoading(false);
+    }
   };
 
   return (
@@ -83,6 +119,59 @@ function LoginContent() {
           {isLoading ? t("loggingIn") : t("loginWithLine")}
         </a>
       </div>
+
+      {showDevLogin && (
+        <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/30 p-4">
+          <button
+            type="button"
+            onClick={() => setDevExpanded(!devExpanded)}
+            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {t("devLogin")} — {t("devLoginDescription")}
+          </button>
+
+          {devExpanded && (
+            <form onSubmit={handleDevLogin} className="mt-4 space-y-3 text-left">
+              {devError && (
+                <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+                  {devError}
+                </div>
+              )}
+              <div>
+                <label htmlFor="dev-email" className="text-xs font-medium text-muted-foreground">
+                  {t("email")}
+                </label>
+                <input
+                  id="dev-email"
+                  type="email"
+                  value={devEmail}
+                  onChange={(e) => setDevEmail(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label htmlFor="dev-password" className="text-xs font-medium text-muted-foreground">
+                  {t("password")}
+                </label>
+                <input
+                  id="dev-password"
+                  type="password"
+                  value={devPassword}
+                  onChange={(e) => setDevPassword(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={devLoading}
+                className="w-full rounded-md bg-muted px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted/80 disabled:opacity-50"
+              >
+                {devLoading ? t("loggingIn") : t("loginWithEmail")}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }
