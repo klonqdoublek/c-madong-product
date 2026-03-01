@@ -17,8 +17,8 @@ export type AppRole =
   | "committee"       // กรรมการนิสิตหอพัก
   | "student";        // นิสิตหอพัก
 
-// Legacy alias for backwards compatibility
-export type UserRole = AppRole;
+// Legacy role values still used in profiles.role column
+export type UserRole = AppRole | "admin" | "staff";
 
 // Building codes (5 buildings)
 export type BuildingCode =
@@ -694,6 +694,52 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_roles: {
+        Row: {
+          id: string;
+          user_id: string;
+          role: AppRole;
+          building_scope: BuildingScope | null;
+          granted_by: string | null;
+          granted_at: string;
+          is_active: boolean;
+          metadata: Record<string, unknown>;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          role: AppRole;
+          building_scope?: BuildingScope | null;
+          granted_by?: string | null;
+          granted_at?: string;
+          is_active?: boolean;
+          metadata?: Record<string, unknown>;
+        };
+        Update: {
+          role?: AppRole;
+          building_scope?: BuildingScope | null;
+          granted_by?: string | null;
+          is_active?: boolean;
+          metadata?: Record<string, unknown>;
+          granted_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_roles_granted_by_fkey";
+            columns: ["granted_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -718,9 +764,19 @@ export type Database = {
         };
         Returns: void;
       };
+      has_role: {
+        Args: {
+          p_user_id: string;
+          p_role: string;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       user_role: UserRole;
+      app_role: AppRole;
+      building_code: BuildingCode;
+      building_scope: BuildingScope;
       maintenance_status: MaintenanceStatus;
       notification_type: NotificationType;
       technician_specialty: TechnicianSpecialty;
