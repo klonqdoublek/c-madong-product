@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations, useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   return (
@@ -14,8 +15,8 @@ export default function LoginPage() {
 
 function LoginContent() {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const error = searchParams.get("error");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,20 +43,20 @@ function LoginContent() {
     setDevError("");
 
     try {
-      const res = await fetch("/api/auth/dev-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: devEmail, password: devPassword }),
+      const supabase = createClient();
+      // Sign out any existing session first
+      await supabase.auth.signOut();
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: devEmail,
+        password: devPassword,
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setDevError(data.error || "Login failed");
+      if (authError) {
+        setDevError(authError.message);
         return;
       }
 
-      router.push("/admin/dashboard");
+      window.location.href = `/${locale}/admin/dashboard`;
     } catch {
       setDevError("Network error");
     } finally {

@@ -86,17 +86,32 @@ export async function middleware(request: NextRequest) {
 
   // User is logged in
   if (isPublicRoute) {
+    // Allow login page when dev login is enabled (for switching accounts)
+    if (
+      strippedPath === "/login" &&
+      process.env.NEXT_PUBLIC_DEV_LOGIN === "true"
+    ) {
+      return response;
+    }
     // Already logged in, redirect away from login/register
     const dashboardUrl = new URL(`/${locale}/dashboard`, request.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
   // 8. Check onboarding status
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("onboarding_completed, role")
-    .eq("id", user.id)
-    .single();
+  // Use service role to bypass RLS — middleware's anon client can't always
+  // resolve auth.uid() in RLS policies (Edge runtime limitation)
+  const profileRes = await fetch(
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=onboarding_completed,role`,
+    {
+      headers: {
+        apikey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY!}`,
+      },
+    }
+  );
+  const profiles = await profileRes.json();
+  const profile = profiles?.[0] ?? null;
 
   if (profile && !profile.onboarding_completed && !isOnboardingRoute) {
     const onboardingUrl = new URL(`/${locale}/onboarding`, request.url);
