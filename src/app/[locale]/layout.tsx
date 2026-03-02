@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -5,6 +6,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/providers";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

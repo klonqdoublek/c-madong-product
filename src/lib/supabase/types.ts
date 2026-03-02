@@ -346,14 +346,17 @@ export type Database = {
       announcements: {
         Row: {
           id: string;
+          title: string;
           title_th: string;
           title_en: string;
+          content: string | null;
           content_th: string;
           content_en: string;
           cover_image: string | null;
           is_pinned: boolean;
           target_tags: string[];
           author_id: string;
+          created_by: string | null;
           published_at: string | null;
           message_type: string;
           flex_json: Record<string, unknown> | null;
@@ -366,14 +369,17 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          title?: string;
           title_th: string;
           title_en: string;
+          content?: string | null;
           content_th: string;
           content_en: string;
           cover_image?: string | null;
           is_pinned?: boolean;
           target_tags?: string[];
           author_id: string;
+          created_by?: string | null;
           published_at?: string | null;
           message_type?: string;
           flex_json?: Record<string, unknown> | null;
@@ -385,8 +391,10 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          title?: string;
           title_th?: string;
           title_en?: string;
+          content?: string | null;
           content_th?: string;
           content_en?: string;
           cover_image?: string | null;
