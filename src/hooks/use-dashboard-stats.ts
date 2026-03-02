@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useSupabase } from "@/providers/supabase-provider";
+import type { MaintenanceStatus } from "@/lib/supabase/types";
 
 export interface DashboardStats {
   totalStudents: number;
@@ -62,24 +63,41 @@ export function useDashboardStats() {
   });
 }
 
+interface RecentTicket {
+  id: string;
+  title: string;
+  status: MaintenanceStatus;
+  category: string;
+  created_at: string;
+  requester: { full_name_th?: string; full_name_en?: string };
+}
+
 export function useRecentTickets(limit = 5) {
   const supabase = useSupabase();
 
   return useQuery({
     queryKey: ["recent-tickets", limit],
-    queryFn: async () => {
+    queryFn: async (): Promise<RecentTicket[]> => {
       const { data, error } = await supabase
-        .from("maintenance_requests")
+        .from("maintenance_requests_with_requester" as "maintenance_requests")
         .select(
-          `
-          id, title, status, category, created_at,
-          requester:profiles!requester_id(full_name_th, full_name_en)
-        `
+          "id, title, status, category, created_at, requester_name_th, requester_name_en"
         )
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return data ?? [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return ((data as any[]) ?? []).map((t) => ({
+        id: t.id as string,
+        title: t.title as string,
+        status: t.status as MaintenanceStatus,
+        category: t.category as string,
+        created_at: t.created_at as string,
+        requester: {
+          full_name_th: t.requester_name_th as string | undefined,
+          full_name_en: t.requester_name_en as string | undefined,
+        },
+      }));
     },
   });
 }
