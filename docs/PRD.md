@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.2
-> **Last Updated**: 2026-02-28
+> **Version**: 1.3
+> **Last Updated**: 2026-03-03
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -343,15 +343,17 @@ C-Madong Platform
 - Flex Message Editor: JSON editor + preview + template selector
 - AI Writing Assistant: Gemini-powered Thai copy generation
 - LINE Broadcast: quick send with template shortcuts + tag targeting
-- Knowledge Base (RAG): document upload → OpenAI embeddings → Gemini Q&A playground
+- Knowledge Base (RAG): document upload (txt/md/PDF) → drag & drop → OpenAI embeddings → gpt-4o-mini Q&A playground ✅
 - Settings: LINE OA info, AI API keys (localStorage), app info
 
-**Chatbot น้องซีมะโด่ง ✅ (2026-02-25):**
+**Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-03):**
 - LINE webhook handler (`/api/webhooks/line`)
-- Intent router (repair, knowledge, score, events, chitchat)
+- Intent router (OpenAI gpt-4o-mini classification)
 - Session management + chat history
-- RAG integration (pgvector embeddings)
+- RAG integration (pgvector embeddings → gpt-4o-mini answer) — tested end-to-end on LINE ✅
+- Quick Reply menu (trigger: "น้องซีมะโด่ง", "เมนู", "help") with 4 action buttons ✅
 - Image support
+- All AI: OpenAI gpt-4o-mini (switched from Gemini — free tier quota exhausted)
 
 **LINE Messaging Pipeline ✅ (2026-02-21):**
 - `@line/bot-sdk` integration

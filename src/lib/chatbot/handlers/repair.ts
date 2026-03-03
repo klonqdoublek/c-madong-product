@@ -1,4 +1,4 @@
-import { getGeminiClient, GEMINI_FLASH_MODEL } from "@/lib/ai/gemini"
+import { getOpenAIClient } from "@/lib/ai/openai"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { REPAIR_DETECTION_PROMPT } from "../system-prompts"
 import { detectRepairCategory, AI_TIMEOUT_MS, CATEGORY_NAMES_TH } from "../constants"
@@ -77,28 +77,26 @@ export async function createRepairTicket(
   return data
 }
 
-/** Detect repair details using Gemini Flash, with keyword fallback */
+/** Detect repair details using OpenAI gpt-4o-mini, with keyword fallback */
 async function detectRepairDetails(message: string): Promise<RepairDetection> {
   try {
-    const ai = getGeminiClient()
+    const openai = getOpenAIClient()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
 
-    const response = await ai.models.generateContent({
-      model: GEMINI_FLASH_MODEL,
-      contents: [
-        { role: "user", parts: [{ text: `${REPAIR_DETECTION_PROMPT}\n\nข้อความ: "${message}"` }] },
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: REPAIR_DETECTION_PROMPT },
+        { role: "user", content: message },
       ],
-      config: {
-        temperature: 0.1,
-        maxOutputTokens: 200,
-        abortSignal: controller.signal,
-      },
-    })
+      temperature: 0.1,
+      max_tokens: 200,
+    }, { signal: controller.signal })
 
     clearTimeout(timeout)
 
-    const text = response.text?.trim() ?? ""
+    const text = response.choices[0]?.message?.content?.trim() ?? ""
     const cleaned = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim()
     const data = JSON.parse(cleaned)
 

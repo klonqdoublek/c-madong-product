@@ -1,11 +1,11 @@
-import { getGeminiClient, GEMINI_FLASH_MODEL } from "@/lib/ai/gemini"
+import { getOpenAIClient } from "@/lib/ai/openai"
 import { INTENT_CLASSIFICATION_PROMPT } from "./system-prompts"
 import { isRepairRelated } from "./constants"
 import { AI_TIMEOUT_MS } from "./constants"
 import type { ChatIntent, IntentResult } from "./types"
 
 /**
- * Classify user message intent using Gemini Flash.
+ * Classify user message intent using OpenAI gpt-4o-mini.
  * Falls back to keyword detection if AI fails or times out.
  */
 export async function classifyIntent(message: string): Promise<IntentResult> {
@@ -15,25 +15,23 @@ export async function classifyIntent(message: string): Promise<IntentResult> {
   }
 
   try {
-    const ai = getGeminiClient()
+    const openai = getOpenAIClient()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
 
-    const response = await ai.models.generateContent({
-      model: GEMINI_FLASH_MODEL,
-      contents: [
-        { role: "user", parts: [{ text: `${INTENT_CLASSIFICATION_PROMPT}\n\nข้อความ: "${message}"` }] },
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: INTENT_CLASSIFICATION_PROMPT },
+        { role: "user", content: message },
       ],
-      config: {
-        temperature: 0.1,
-        maxOutputTokens: 100,
-        abortSignal: controller.signal,
-      },
-    })
+      temperature: 0.1,
+      max_tokens: 100,
+    }, { signal: controller.signal })
 
     clearTimeout(timeout)
 
-    const text = response.text?.trim() ?? ""
+    const text = response.choices[0]?.message?.content?.trim() ?? ""
     const parsed = parseIntentJson(text)
     if (parsed) return parsed
   } catch {

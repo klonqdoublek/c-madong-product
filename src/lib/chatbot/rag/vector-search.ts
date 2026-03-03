@@ -14,7 +14,7 @@ interface SearchResult {
 export async function searchDocuments(
   query: string,
   matchCount: number = 5,
-  matchThreshold: number = 0.5
+  matchThreshold: number = 0.3
 ): Promise<SearchResult[]> {
   const supabase = createAdminClient()
   const embedding = await generateEmbedding(query)

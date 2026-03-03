@@ -101,9 +101,23 @@ export interface RepairDetection {
   urgency: "low" | "medium" | "high"
 }
 
+/** Quick Reply item for LINE messages */
+export interface QuickReplyItem {
+  type: "action"
+  imageUrl?: string
+  action: {
+    type: "message" | "postback" | "uri"
+    label: string
+    text?: string
+    data?: string
+    uri?: string
+  }
+}
+
 /** Handler response - what to send back to LINE */
 export interface HandlerResponse {
   type: "text" | "flex"
   text?: string
   flex?: import("../line/flex-builders/bill-reminder").FlexMessagePayload
+  quickReply?: { items: QuickReplyItem[] }
 }

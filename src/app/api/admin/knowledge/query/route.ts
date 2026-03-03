@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+const SYSTEM_PROMPT = `คุณคือผู้ช่วยตอบคำถามของเจ้าหน้าที่หอพักนิสิตจุฬาลงกรณ์มหาวิทยาลัย
+
+กฎสำคัญ:
+- ตอบเฉพาะสิ่งที่ถูกถามเท่านั้น ห้ามเอาข้อมูลอื่นมาใส่เพิ่ม
+- ตอบกระชับ ตรงประเด็น ใช้ภาษาไทยที่เข้าใจง่าย
+- ถ้าในบริบทไม่มีข้อมูลที่เกี่ยวข้องกับคำถาม ให้บอกว่า "ไม่พบข้อมูลที่เกี่ยวข้องในเอกสาร"
+- ห้ามแต่งเติมข้อมูลที่ไม่มีในบริบท`;
 
 export async function POST(request: Request) {
   try {
@@ -9,7 +17,6 @@ export async function POST(request: Request) {
     }
 
     const openaiKey = process.env.OPENAI_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
 
     if (!openaiKey) {
       return NextResponse.json(
@@ -39,13 +46,13 @@ export async function POST(request: Request) {
     const queryEmbedding = embData.data?.[0]?.embedding;
 
     // Search similar documents
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data: matches, error: matchError } = await supabase.rpc(
       "match_documents",
       {
         query_embedding: JSON.stringify(queryEmbedding),
-        match_count: 5,
-        match_threshold: 0.5,
+        match_count: 3,
+        match_threshold: 0.3,
       }
     );
 
@@ -55,44 +62,40 @@ export async function POST(request: Request) {
 
     const context = (matches ?? []).map((m: { content: string }) => m.content).join("\n\n");
 
-    // Generate answer with Gemini
-    if (!geminiKey) {
+    if (!context) {
       return NextResponse.json({
-        answer: context || "No relevant documents found.",
-        sources: matches ?? [],
+        answer: "ไม่พบเอกสารที่เกี่ยวข้องกับคำถามนี้",
+        sources: [],
       });
     }
 
-    const genRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You are a helpful assistant for Chulalongkorn University dormitory staff.
-Answer the question based on the context provided. Respond in Thai.
-If the context doesn't contain relevant information, say so.
-
-Context:
-${context}
-
-Question: ${question}`,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
+    // Generate answer with OpenAI gpt-4o-mini
+    const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${openaiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `บริบทจากเอกสาร:\n${context}\n\nคำถาม: ${question}`,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 500,
+      }),
+    });
 
     let answer = "ไม่สามารถตอบคำถามได้ในขณะนี้";
-    if (genRes.ok) {
-      const genData = await genRes.json();
-      answer = genData?.candidates?.[0]?.content?.parts?.[0]?.text ?? answer;
+    if (chatRes.ok) {
+      const chatData = await chatRes.json();
+      answer = chatData?.choices?.[0]?.message?.content ?? answer;
+    } else {
+      console.error("[Query] OpenAI chat error:", await chatRes.text());
     }
 
     return NextResponse.json({

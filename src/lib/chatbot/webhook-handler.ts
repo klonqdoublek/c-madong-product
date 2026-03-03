@@ -1,8 +1,9 @@
-import { replyTextMessage, replyFlexMessage } from "@/lib/line/client"
+import { replyTextMessage, replyFlexMessage, replyMessage } from "@/lib/line/client"
 import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
 import { RATE_LIMIT_PER_MINUTE } from "./constants"
+import { isMenuTrigger, MAIN_MENU_QUICK_REPLY } from "./quick-reply"
 import {
   handleChitchat,
   handleRepair,
@@ -40,10 +41,11 @@ async function processEvent(event: LineEvent): Promise<void> {
         await handlePostbackEvent(event)
         break
       case "follow":
-        await replyTextMessage(
-          event.replyToken,
-          "สวัสดีจ้า! 🏠 น้องซีมะโด่งยินดีต้อนรับเข้าหอพักนะ\n\nพิมพ์อะไรมาก็ได้ เช่น:\n• แจ้งซ่อม: \"แอร์ไม่เย็น\"\n• ถามข้อมูล: \"กฎหอพัก\"\n• เช็คคะแนน: \"คะแนนหอ\"\n• ดูกิจกรรม: \"กิจกรรมหอ\"\n• หรือคุยเล่นก็ได้น้า 💬"
-        )
+        await sendResponse(event.replyToken, {
+          type: "text",
+          text: "สวัสดีจ้า! 🏠 น้องซีมะโด่งยินดีต้อนรับเข้าหอพักนะ\n\nเลือกเมนูด้านล่าง หรือพิมพ์อะไรมาก็ได้เลยจ้า ✨",
+          quickReply: MAIN_MENU_QUICK_REPLY,
+        })
         break
       case "unfollow": {
         const uid = event.source.userId
@@ -80,6 +82,16 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
 
   const message = event.message.text.trim()
   if (!message) return
+
+  // Quick Reply menu trigger — "น้องซีมะโด่ง", "เมนู", etc.
+  if (isMenuTrigger(message)) {
+    await sendResponse(event.replyToken, {
+      type: "text",
+      text: "สวัสดีจ้า! 🏠 น้องซีมะโด่งพร้อมช่วยเสมอนะ\n\nเลือกเมนูด้านล่าง หรือพิมพ์อะไรมาก็ได้เลยจ้า ✨",
+      quickReply: MAIN_MENU_QUICK_REPLY,
+    })
+    return
+  }
 
   // Rate limiting
   const recentCount = await countRecentUserMessages(lineUid)
@@ -241,7 +253,21 @@ async function sendResponse(
   response: HandlerResponse
 ): Promise<void> {
   try {
-    if (response.type === "flex" && response.flex) {
+    if (response.quickReply) {
+      // Use raw replyMessage to attach quickReply to any message type
+      if (response.type === "flex" && response.flex) {
+        await replyMessage(replyToken, {
+          ...response.flex,
+          quickReply: response.quickReply,
+        } as Record<string, unknown>)
+      } else if (response.text) {
+        await replyMessage(replyToken, {
+          type: "text",
+          text: response.text,
+          quickReply: response.quickReply,
+        } as Record<string, unknown>)
+      }
+    } else if (response.type === "flex" && response.flex) {
       await replyFlexMessage(replyToken, response.flex)
     } else if (response.text) {
       await replyTextMessage(replyToken, response.text)

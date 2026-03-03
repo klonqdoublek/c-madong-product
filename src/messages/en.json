@@ -398,8 +398,9 @@
       "title": "Knowledge Base",
       "documentsTab": "Documents",
       "playgroundTab": "Q&A Playground",
-      "uploadDescription": "Upload documents (.txt, .md, .pdf) for AI to answer questions from",
-      "upload": "Upload Document",
+      "uploadDescription": "Drag & drop a file here, or click to upload",
+      "dropHere": "Drop file here",
+      "upload": "Choose File",
       "uploading": "Uploading...",
       "noDocuments": "No documents yet",
       "statusPending": "Pending",
@@ -413,7 +414,8 @@
       "answer": "Answer",
       "sources": "Sources",
       "similarity": "Relevance",
-      "queryError": "Unable to answer. Please try again."
+      "queryError": "Unable to answer. Please try again.",
+      "reprocess": "Reprocess"
     },
     "broadcast": {
       "title": "Broadcast Message",

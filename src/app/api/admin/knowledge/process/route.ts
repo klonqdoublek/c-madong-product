@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+// Allow up to 60s for processing (Pro plan), Hobby = 10s
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
@@ -8,7 +11,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "documentId required" }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Get document
     const { data: doc, error: docError } = await supabase
@@ -30,7 +33,6 @@ export async function POST(request: Request) {
     // Chunk content
     const chunks = chunkText(doc.content, 500, 50);
 
-    // Generate embeddings and insert sections
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
       await supabase
@@ -49,32 +51,55 @@ export async function POST(request: Request) {
       .delete()
       .eq("document_id", documentId);
 
-    for (const chunk of chunks) {
-      // Get embedding
-      const embRes = await fetch("https://api.openai.com/v1/embeddings", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "text-embedding-3-small",
-          input: chunk,
-        }),
-      });
+    // Batch embed all chunks in one API call (much faster than per-chunk)
+    const embRes = await fetch("https://api.openai.com/v1/embeddings", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${openaiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "text-embedding-3-small",
+        input: chunks,
+      }),
+    });
 
-      if (!embRes.ok) continue;
+    if (!embRes.ok) {
+      const err = await embRes.text();
+      console.error("[Process] OpenAI embedding error:", err);
+      await supabase
+        .from("documents")
+        .update({ status: "error" })
+        .eq("id", documentId);
+      return NextResponse.json({ error: "Embedding failed" }, { status: 502 });
+    }
 
-      const embData = await embRes.json();
-      const embedding = embData.data?.[0]?.embedding;
-      if (!embedding) continue;
+    const embData = await embRes.json();
+    const embeddings = embData.data as { embedding: number[]; index: number }[];
 
-      await supabase.from("document_sections").insert({
+    // Insert all sections in one batch
+    const sections = embeddings
+      .sort((a, b) => a.index - b.index)
+      .map((emb) => ({
         document_id: documentId,
-        content: chunk,
-        embedding: JSON.stringify(embedding),
-        token_count: Math.ceil(chunk.length / 4),
-      });
+        content: chunks[emb.index],
+        embedding: JSON.stringify(emb.embedding),
+        token_count: Math.ceil(chunks[emb.index].length / 4),
+      }));
+
+    if (sections.length > 0) {
+      const { error: insertError } = await supabase
+        .from("document_sections")
+        .insert(sections);
+
+      if (insertError) {
+        console.error("[Process] Insert sections error:", insertError);
+        await supabase
+          .from("documents")
+          .update({ status: "error" })
+          .eq("id", documentId);
+        return NextResponse.json({ error: "Insert failed" }, { status: 500 });
+      }
     }
 
     await supabase
@@ -83,7 +108,8 @@ export async function POST(request: Request) {
       .eq("id", documentId);
 
     return NextResponse.json({ success: true, chunks: chunks.length });
-  } catch {
+  } catch (err) {
+    console.error("[Process] Unexpected error:", err);
     return NextResponse.json({ error: "Processing failed" }, { status: 500 });
   }
 }

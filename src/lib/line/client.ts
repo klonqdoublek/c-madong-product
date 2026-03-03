@@ -63,6 +63,18 @@ export async function replyFlexMessage(
   })
 }
 
+/** Reply with a raw message object (for attaching quickReply etc.) */
+export async function replyMessage(
+  replyToken: string,
+  message: Record<string, unknown>
+): Promise<void> {
+  const api = getClient()
+  await api.replyMessage({
+    replyToken,
+    messages: [message as unknown as messagingApi.Message],
+  })
+}
+
 /** Push a text message to a user (no reply token needed) */
 export async function pushTextMessage(
   lineUid: string,
