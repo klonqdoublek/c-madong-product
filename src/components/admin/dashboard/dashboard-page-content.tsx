@@ -29,6 +29,8 @@ import {
   UserCheck,
   ClipboardList,
   History,
+  Banknote,
+  AlertTriangle,
 } from "lucide-react";
 
 const STATUS_COLORS: Record<MaintenanceStatus, string> = {
@@ -243,6 +245,58 @@ export function DashboardPageContent() {
               </Card>
             </Link>
           ))}
+        </div>
+      </div>
+
+      {/* Billing Stats */}
+      <div>
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+          <Banknote className="h-4 w-4" />
+          {t("billingSystem")}
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link href="/admin/billing">
+            <Card className="border-l-4 border-l-yellow-400 shadow-card transition-all duration-200 hover:shadow-hover">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-50 text-yellow-600">
+                  <Banknote className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {t("pendingBills")}
+                  </p>
+                  <p className="font-heading text-2xl font-bold">
+                    {statsLoading ? (
+                      <span className="inline-block h-7 w-10 animate-pulse rounded bg-muted" />
+                    ) : (
+                      stats?.pendingBills ?? 0
+                    )}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+          <Link href="/admin/billing">
+            <Card className="border-l-4 border-l-red-400 shadow-card transition-all duration-200 hover:shadow-hover">
+              <CardContent className="flex items-center gap-4 p-5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {t("overdueBills")}
+                  </p>
+                  <p className="font-heading text-2xl font-bold">
+                    {statsLoading ? (
+                      <span className="inline-block h-7 w-10 animate-pulse rounded bg-muted" />
+                    ) : (
+                      stats?.overdueBills ?? 0
+                    )}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 

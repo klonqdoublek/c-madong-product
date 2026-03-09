@@ -11,6 +11,8 @@ export interface DashboardStats {
   completedTickets: number;
   sentThisMonth: number;
   pendingScheduled: number;
+  pendingBills: number;
+  overdueBills: number;
 }
 
 export function useDashboardStats() {
@@ -22,7 +24,7 @@ export function useDashboardStats() {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      const [studentsRes, openRes, inProgressRes, completedRes, sentRes, scheduledRes] =
+      const [studentsRes, openRes, inProgressRes, completedRes, sentRes, scheduledRes, pendingBillsRes, overdueBillsRes] =
         await Promise.all([
           supabase
             .from("profiles")
@@ -49,6 +51,14 @@ export function useDashboardStats() {
             .from("announcements")
             .select("id", { count: "exact", head: true })
             .eq("status", "scheduled"),
+          supabase
+            .from("bills")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "pending"),
+          supabase
+            .from("bills")
+            .select("id", { count: "exact", head: true })
+            .eq("status", "overdue"),
         ]);
 
       return {
@@ -58,6 +68,8 @@ export function useDashboardStats() {
         completedTickets: completedRes.count ?? 0,
         sentThisMonth: sentRes.count ?? 0,
         pendingScheduled: scheduledRes.count ?? 0,
+        pendingBills: pendingBillsRes.count ?? 0,
+        overdueBills: overdueBillsRes.count ?? 0,
       };
     },
   });

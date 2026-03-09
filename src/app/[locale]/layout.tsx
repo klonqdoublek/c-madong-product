@@ -6,6 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/providers";
+import { Toaster } from "@/components/ui/sonner";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -67,6 +68,7 @@ export default async function LocaleLayout({
       >
         <NextIntlClientProvider>
           <Providers>{children}</Providers>
+          <Toaster richColors position="top-center" />
         </NextIntlClientProvider>
       </body>
     </html>

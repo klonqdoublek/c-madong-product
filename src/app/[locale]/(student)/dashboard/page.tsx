@@ -1,5 +1,7 @@
 import { useTranslations } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { DashboardBillCard } from "@/components/student/dashboard-bill-card";
 import {
   Banknote,
   Wrench,
@@ -23,14 +25,14 @@ export default async function DashboardPage({
 }
 
 const menuItems = [
-  { icon: Banknote, labelKey: "menuBilling" as const },
-  { icon: Wrench, labelKey: "menuRepair" as const },
-  { icon: Package, labelKey: "menuParcel" as const },
-  { icon: Megaphone, labelKey: "menuNews" as const },
-  { icon: ShieldAlert, labelKey: "menuEmergency" as const },
-  { icon: Info, labelKey: "menuInfo" as const },
-  { icon: Phone, labelKey: "menuContact" as const },
-  { icon: Star, labelKey: "menuReview" as const },
+  { icon: Banknote, labelKey: "menuBilling" as const, href: "/billing" },
+  { icon: Wrench, labelKey: "menuRepair" as const, href: "/maintenance" },
+  { icon: Package, labelKey: "menuParcel" as const, href: "#" },
+  { icon: Megaphone, labelKey: "menuNews" as const, href: "/announcements" },
+  { icon: ShieldAlert, labelKey: "menuEmergency" as const, href: "#" },
+  { icon: Info, labelKey: "menuInfo" as const, href: "#" },
+  { icon: Phone, labelKey: "menuContact" as const, href: "#" },
+  { icon: Star, labelKey: "menuReview" as const, href: "#" },
 ] as const;
 
 function DashboardContent() {
@@ -50,19 +52,23 @@ function DashboardContent() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <Link
                 key={item.labelKey}
+                href={item.href}
                 className="flex flex-col items-center gap-1.5 rounded-lg bg-secondary p-3 transition-colors hover:bg-cu-light-pink"
               >
                 <Icon className="size-6 text-primary" />
                 <span className="font-heading text-[11px] font-bold leading-tight text-cu-grey">
                   {t(item.labelKey)}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </div>
       </section>
+
+      {/* Pending Bill Card */}
+      <DashboardBillCard />
 
       {/* Status Card */}
       <section className="space-y-3">

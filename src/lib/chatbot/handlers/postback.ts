@@ -26,6 +26,20 @@ export async function handlePostback(
       await handleRepairCancel(replyToken, lineUid)
       break
 
+    case "remind_bill":
+      await replyTextMessage(
+        replyToken,
+        "ได้เลยจ้า! ซีมะโด่งจะเตือนอีกครั้งนะ 🔔"
+      )
+      break
+
+    case "confirm_payment":
+      await replyTextMessage(
+        replyToken,
+        "บันทึกแล้วจ้า ทางหอจะตรวจสอบให้นะ ✅"
+      )
+      break
+
     case "event_register":
       await replyTextMessage(
         replyToken,

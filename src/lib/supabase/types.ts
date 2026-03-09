@@ -48,6 +48,10 @@ export type TechnicianSpecialty =
   | "internet"
   | "door_lock";
 
+export type BillStatus = "pending" | "paid" | "overdue" | "cancelled";
+
+export type BillCategory = "room" | "electricity" | "water" | "deposit" | "fine" | "other";
+
 export type MaintenanceStatus =
   | "pending"
   | "acknowledged"
@@ -246,6 +250,90 @@ export type Database = {
           room_id?: string;
           bed_label?: string;
           is_occupied?: boolean;
+        };
+        Relationships: [];
+      };
+      bills: {
+        Row: {
+          id: string;
+          student_id: string;
+          building_id: string | null;
+          room_id: string | null;
+          bed_id: string | null;
+          billing_month: number;
+          billing_year: number;
+          billing_round: number;
+          total_amount: number;
+          due_date: string;
+          status: BillStatus;
+          admin_notes: string | null;
+          paid_at: string | null;
+          paid_by: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          building_id?: string | null;
+          room_id?: string | null;
+          bed_id?: string | null;
+          billing_month: number;
+          billing_year: number;
+          billing_round?: number;
+          total_amount?: number;
+          due_date: string;
+          status?: BillStatus;
+          admin_notes?: string | null;
+          paid_at?: string | null;
+          paid_by?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          student_id?: string;
+          building_id?: string | null;
+          room_id?: string | null;
+          bed_id?: string | null;
+          billing_month?: number;
+          billing_year?: number;
+          billing_round?: number;
+          total_amount?: number;
+          due_date?: string;
+          status?: BillStatus;
+          admin_notes?: string | null;
+          paid_at?: string | null;
+          paid_by?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      bill_items: {
+        Row: {
+          id: string;
+          bill_id: string;
+          label: string;
+          category: BillCategory;
+          amount: number;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          bill_id: string;
+          label: string;
+          category?: BillCategory;
+          amount?: number;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          label?: string;
+          category?: BillCategory;
+          amount?: number;
+          notes?: string | null;
         };
         Relationships: [];
       };
@@ -781,6 +869,8 @@ export type Database = {
       };
     };
     Enums: {
+      bill_status: BillStatus;
+      bill_category: BillCategory;
       user_role: UserRole;
       app_role: AppRole;
       building_code: BuildingCode;

@@ -25,6 +25,7 @@ import {
   Tag,
   Shield,
   Cog,
+  Banknote,
 } from "lucide-react";
 
 interface NavItem {
@@ -104,6 +105,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ],
     },
   ];
+
+  // Billing standalone item
+  const billingItem: NavItem = {
+    href: "/admin/billing",
+    label: t("navBilling"),
+  };
 
   // Knowledge base standalone item
   const knowledgeBaseItem: NavItem = {
@@ -199,6 +206,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </CollapsibleContent>
           </Collapsible>
         ))}
+
+        {/* Billing */}
+        <Link
+          href={billingItem.href}
+          className={linkClasses(billingItem.href)}
+          onClick={() => setSidebarOpen(false)}
+        >
+          <Banknote className="h-4 w-4" />
+          {billingItem.label}
+        </Link>
 
         {/* Knowledge Base */}
         <Link
