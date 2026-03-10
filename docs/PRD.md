@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.3
-> **Last Updated**: 2026-03-03
+> **Version**: 1.4
+> **Last Updated**: 2026-03-09
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -370,12 +370,45 @@ C-Madong Platform
 - documents (extended: status, filename, file_path, content_type) + document_sections (pgvector)
 - ai_chat_messages, chatbot_sessions
 - score_categories, score_entries, dorm_events
+- bills, bill_items (new — Phase 3)
+- user_roles, role_permissions (RBAC — cross-phase)
 
-### Phase 3: Billing & Payments 🔜 NEXT
-- Utility bill generation & viewing
-- Bill history
-- LINE Flex bill reminders (template ready)
-- QR payment integration
+**RBAC System ✅ (2026-03-05):**
+- 13 roles (super_admin, head, registrar, finance, parcel, admin_staff, service, activity, technician_head, technician, technician_it, committee, student)
+- 80+ permissions, building scopes for registrars
+- Role Management UI at `/admin/roles`
+- PermissionGuard component for conditional rendering
+
+### Phase 3: Billing & Payments ✅ DEPLOYED (2026-03-09)
+
+**Admin billing portal:**
+- Create bill form with student search (API-backed, debounced, shows building/room)
+- Bill list with stat cards (revenue, outstanding, overdue, paid), filters (status/month/year)
+- Bill detail with status management (mark paid/overdue/cancelled), admin notes
+- Checkbox selection + batch LINE Flex reminder send (up to 50 at once)
+- Single bill LINE Flex reminder send
+- Zod validation on all inputs
+
+**Student billing views:**
+- Billing page: current bills (pending/overdue) + payment history
+- Bill detail: amount breakdown, room info, due date, status
+- Dashboard bill card: shows most urgent pending/overdue bill with amount and due date
+
+**Database (migration `20260314_phase3_billing.sql`):**
+- `bills` table: student_id, building/room/bed refs, billing_month/year/round, total_amount, status (pending/paid/overdue/cancelled), due_date, timestamps
+- `bill_items` table: bill_id, label, category (room/electricity/water/deposit/fine/other), amount
+- RLS policies for student read access + admin full access
+
+**API routes:**
+- `GET/POST /api/admin/bills` — list (with filters) + create
+- `GET/PATCH/DELETE /api/admin/bills/[id]` — detail + status update + delete
+- `POST /api/admin/bills/[id]/send-reminder` — single LINE Flex send
+- `POST /api/admin/bills/batch-send` — batch LINE Flex send
+- `GET /api/admin/students/search?q=` — student search (admin client, bypasses RLS)
+- `GET /api/student/bills` — student's own bills
+
+**Not yet implemented:**
+- QR payment integration (requires PromptPay/bank API)
 
 ### Phase 4: Parcel Management
 - Parcel notification system

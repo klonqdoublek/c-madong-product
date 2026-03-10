@@ -11,3 +11,8 @@ export {
   buildBillReminderFlex,
   DEMO_BILL_DATA,
 } from "./flex-builders/bill-reminder"
+export type { ParcelNotificationData } from "./flex-builders/parcel-notification"
+export {
+  buildParcelNotificationFlex,
+  DEMO_PARCEL_DATA,
+} from "./flex-builders/parcel-notification"

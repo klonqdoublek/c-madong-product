@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { REPAIR_DETECTION_PROMPT } from "../system-prompts"
 import { detectRepairCategory, AI_TIMEOUT_MS, CATEGORY_NAMES_TH } from "../constants"
 import { updateSessionState } from "../session-manager"
-import { buildRepairConfirmFlex } from "../flex-builders/repair-confirm"
+import { buildRepairConfirmFlex, type RepairConfirmContext } from "../flex-builders/repair-confirm"
 import type { HandlerResponse, RepairDetection } from "../types"
 
 const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -20,6 +20,9 @@ export async function handleRepair(
 
   const detection = await detectRepairDetails(message)
 
+  // Fetch reporter profile for the Flex card context
+  const context = await getReporterContext(lineUid)
+
   // Save detection to session for postback confirmation (preserve photos)
   await updateSessionState(lineUid, "repair_confirming", {
     detection,
@@ -29,7 +32,7 @@ export async function handleRepair(
 
   return {
     type: "flex",
-    flex: buildRepairConfirmFlex(detection, photos.length),
+    flex: buildRepairConfirmFlex(detection, context, photos.length),
   }
 }
 
@@ -75,6 +78,44 @@ export async function createRepairTicket(
   }
 
   return data
+}
+
+/** Fetch reporter profile + room info for the Flex card */
+async function getReporterContext(lineUid: string): Promise<RepairConfirmContext> {
+  const fallback: RepairConfirmContext = {
+    reporterName: "ผู้แจ้ง",
+    roomInfo: "-",
+  }
+
+  if (IS_DEMO) return { ...fallback, reporterName: "ข้าวกล้อง :)" }
+
+  try {
+    const supabase = createAdminClient()
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name_th, display_name, buildings(name_th), rooms(room_number), beds(label)")
+      .eq("line_uid", lineUid)
+      .single()
+
+    if (!profile) return fallback
+
+    const name = profile.display_name || profile.full_name_th || "ผู้แจ้ง"
+    const building = (profile.buildings as { name_th?: string } | null)?.name_th
+    const room = (profile.rooms as { room_number?: string } | null)?.room_number
+    const bed = (profile.beds as { label?: string } | null)?.label
+    const roomParts = [
+      building,
+      room,
+      bed ? `เตียง ${bed}` : null,
+    ].filter(Boolean)
+
+    return {
+      reporterName: name,
+      roomInfo: roomParts.length > 0 ? roomParts.join(" ") : "-",
+    }
+  } catch {
+    return fallback
+  }
 }
 
 /** Detect repair details using OpenAI gpt-4o-mini, with keyword fallback */
