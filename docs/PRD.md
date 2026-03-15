@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.4
-> **Last Updated**: 2026-03-09
+> **Version**: 1.5
+> **Last Updated**: 2026-03-12
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -369,7 +369,7 @@ C-Madong Platform
 - message_templates (new)
 - documents (extended: status, filename, file_path, content_type) + document_sections (pgvector)
 - ai_chat_messages, chatbot_sessions
-- score_categories, score_entries, dorm_events
+- score_categories, score_entries, dorm_events, event_attendance (Phase 5)
 - bills, bill_items (new — Phase 3)
 - user_roles, role_permissions (RBAC — cross-phase)
 
@@ -415,11 +415,73 @@ C-Madong Platform
 - Parcel pickup tracking
 - LINE notification on arrival
 
-### Phase 5: Dorm Score & Activities (Plan drafted)
-- Score categories (activities, community service, rules, meetings)
-- Dorm events with schedule + attendance tracking
-- Student score dashboard
-- Admin score entry management
+### Phase 5: Dorm Score & Activities ✅ UI COMPLETE (2026-03-12)
+
+> Reference: [`docs/dorm-score-activities.md`](dorm-score-activities.md) — Full activity impact matrix, scoring rules, and DB schema.
+
+**Database (migration `20260315_phase5_dorm_score.sql`):**
+- `score_categories` table: 4 categories (Activities 40%, Community Service 20%, Rules Compliance 25%, Meetings 15%)
+- `dorm_events` table: title TH/EN, description TH/EN, location TH/EN, event_type, impact_level, mandatory flag, score/penalty points, capacity, status workflow (draft→published→ongoing→completed→cancelled)
+- `score_entries` table: student scoring with source tracking (manual_admin, event_attendance, system)
+- `event_attendance` table: student registration + attendance status (registered/attended/absent/excused)
+- Materialized view `student_score_summary` for composite score calculation
+- RPC `get_composite_score(student_uuid)` for student score retrieval
+- Trigger `auto_score_from_attendance`: attendance status change → auto score_entry
+- RLS policies for all tables
+
+**Student pages (US-5.1, US-5.2):**
+- Dashboard: Score card (composite score + 4 category mini bars + tier color) + Upcoming events section (3 events with mandatory badges)
+- `/score` page: Composite score card with tier indicator, 2x2 category breakdown grid, score history timeline with load more
+- `/events` page: Tabs (upcoming/past), event type filter, register/unregister buttons, attendance status badges
+- `/events/[id]` detail: Full event info, capacity progress bar, register/unregister, attendance status
+
+**Admin pages (US-5.3, US-5.4):**
+- `/admin/events`: 4 stat cards, type/status filters, events table with CRUD, create/edit form dialog (bilingual fields, scoring config, capacity, status)
+- `/admin/events/[id]/attendance`: Event info header, student attendance table with status dropdowns, bulk "Mark All Attended"
+- `/admin/scores`: 4 stat cards (avg score, below 60 count, top scorer, total entries), search filter, student score table with category mini bars, manual score entry dialog
+
+**Hooks:**
+- `use-score.ts`: useMyScore (RPC), useMyScoreHistory, useScoreCategories, useStudentScores, useAddScoreEntry
+- `use-events.ts`: useUpcomingEvents, usePastEvents, useEventDetail, useMyAttendance, useRegisterEvent, useUnregisterEvent, useAdminEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useEventAttendees, useUpdateAttendance
+
+**Not yet implemented (US-5.5):**
+- Obligation deadline tracking + LINE push reminders (needs LINE scheduling, separate concern)
+- Bulk attendance import (CSV/QR scan)
+- Export scores (CSV)
+
+### Student Dashboard Redesign (Figma → Code, 2026-03-15)
+
+Redesigned student home page from Figma design (node 189:1102):
+- **DashboardHeader**: Profile avatar, personalized greeting ("สวัสดี, [name] :)"), notification bell with badge, search bar pill
+- **DashboardActionCards**: Horizontal scroll "ที่ต้องดำเนินการ" section — featured pink gradient card with urgency/deadline badges + secondary outline cards (static mock data, ready for real integration)
+- **DashboardStatusCard**: Combined room info (pink header bar with room number, bed, building) + score progress bar (segmented by category with legend)
+- **Quick Menu Grid**: 4x2 grid with `bg-cu-light-pink` tiles — ค่าหอพัก, แจ้งซ่อม, พัสดุ, ข่าวสาร, ฉุกเฉิน, ข้อมูล, ติดต่อ, ประเมิน
+- **DashboardAnnouncements**: Events list with color-coded date badges (primary→light pink→tint), importance badges, time labels
+- **Footer**: Pink wave SVG decoration + "RCU.C-MADONG" + "Version 1.0"
+- **Bottom nav updated**: Mascot center icon ("ถามน้องซี"), ฉุกเฉิน replaces แจ้งซ่อม, บัญชีของฉัน replaces โปรไฟล์
+- **StudentShell**: Global Header hidden on dashboard page (dashboard has its own DashboardHeader)
+
+**Files**: `dashboard/content.tsx`, `dashboard-header.tsx`, `dashboard-action-cards.tsx`, `dashboard-status-card.tsx`, `dashboard-announcements.tsx`
+
+### LINE Flex Messages — Dorm Score Cards (2026-03-16)
+
+Two Flex Message builders from Figma designs (file `zepMkYbO2pzKy9lhya4sVW`):
+
+1. **Score Summary** (`src/lib/line/flex-builders/score-summary.ts`, node 1:2606):
+   - Pink (#DD598B) bubble with greeting, composite score (3xl), mascot image, "ดูรายละเอียดเพิ่มเติม" action → `/th/score`
+   - Interface: `ScoreSummaryData { studentName, score, updatedAt }`
+
+2. **Score Added** (`src/lib/line/flex-builders/score-added.ts`, node 3:2):
+   - Green (#23BE47) for positive, Red (#E53E3E) for negative score changes
+   - Shows activity name + "+N คะแนน!" or "-N คะแนน"
+   - Interface: `ScoreAddedData { studentName, activityName, pointsChange, updatedAt }`
+
+**Chatbot integration**: Score handler (`src/lib/chatbot/handlers/score.ts`) updated to:
+- Query `profiles.line_uid` (fixed: was querying nonexistent `students` table)
+- Use `get_composite_score` RPC for accurate composite score
+- Return new pink Figma Flex card (replaced old purple card)
+- Quick reply "📊 คะแนนหอ" and typed "คะแนนหอ" both trigger score Flex response
+- Tested end-to-end on LINE (2026-03-16)
 
 ### Phase 6: AI Adaptive UX Layer (Plan drafted)
 - Dashboard insights (personalized for each student)

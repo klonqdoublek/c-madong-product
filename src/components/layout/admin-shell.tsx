@@ -26,6 +26,8 @@ import {
   Shield,
   Cog,
   Banknote,
+  CalendarDays,
+  Trophy,
 } from "lucide-react";
 
 interface NavItem {
@@ -105,6 +107,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       ],
     },
   ];
+
+  // Events standalone item
+  const eventsItem: NavItem = {
+    href: "/admin/events",
+    label: t("navEvents"),
+  };
+
+  // Scores standalone item
+  const scoresItem: NavItem = {
+    href: "/admin/scores",
+    label: t("navScores"),
+  };
 
   // Billing standalone item
   const billingItem: NavItem = {
@@ -206,6 +220,26 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </CollapsibleContent>
           </Collapsible>
         ))}
+
+        {/* Events */}
+        <Link
+          href={eventsItem.href}
+          className={linkClasses(eventsItem.href)}
+          onClick={() => setSidebarOpen(false)}
+        >
+          <CalendarDays className="h-4 w-4" />
+          {eventsItem.label}
+        </Link>
+
+        {/* Scores */}
+        <Link
+          href={scoresItem.href}
+          className={linkClasses(scoresItem.href)}
+          onClick={() => setSidebarOpen(false)}
+        >
+          <Trophy className="h-4 w-4" />
+          {scoresItem.label}
+        </Link>
 
         {/* Billing */}
         <Link

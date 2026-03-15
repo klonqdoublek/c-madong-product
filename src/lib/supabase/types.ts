@@ -66,6 +66,26 @@ export type NotificationType =
   | "parcel"
   | "general";
 
+// Phase 5: Dorm Score & Activities
+export type EventType =
+  | "meeting"
+  | "evaluation"
+  | "safety_drill"
+  | "obligation"
+  | "community_service"
+  | "social"
+  | "workshop"
+  | "sports"
+  | "other";
+
+export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
+
+export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
+
+export type ImpactLevel = "high" | "medium" | "low";
+
+export type ScoreSource = "manual_admin" | "auto_attendance" | "bulk_import" | "system";
+
 // Placeholder – run `npx supabase gen types typescript` after creating migrations
 export type Database = {
   public: {
@@ -720,6 +740,14 @@ export type Database = {
           name: string;
           slug: string;
           max_score: number;
+          name_th: string | null;
+          name_en: string | null;
+          description_th: string | null;
+          description_en: string | null;
+          weight: number;
+          icon: string | null;
+          color: string | null;
+          is_active: boolean;
           created_at: string;
         };
         Insert: {
@@ -727,12 +755,28 @@ export type Database = {
           name: string;
           slug: string;
           max_score?: number;
+          name_th?: string | null;
+          name_en?: string | null;
+          description_th?: string | null;
+          description_en?: string | null;
+          weight?: number;
+          icon?: string | null;
+          color?: string | null;
+          is_active?: boolean;
           created_at?: string;
         };
         Update: {
           name?: string;
           slug?: string;
           max_score?: number;
+          name_th?: string | null;
+          name_en?: string | null;
+          description_th?: string | null;
+          description_en?: string | null;
+          weight?: number;
+          icon?: string | null;
+          color?: string | null;
+          is_active?: boolean;
         };
         Relationships: [];
       };
@@ -743,6 +787,13 @@ export type Database = {
           category_id: string;
           points: number;
           reason: string | null;
+          event_id: string | null;
+          source: ScoreSource;
+          description_th: string | null;
+          description_en: string | null;
+          academic_year: number | null;
+          semester: number | null;
+          awarded_by: string | null;
           created_at: string;
         };
         Insert: {
@@ -751,11 +802,25 @@ export type Database = {
           category_id: string;
           points: number;
           reason?: string | null;
+          event_id?: string | null;
+          source?: ScoreSource;
+          description_th?: string | null;
+          description_en?: string | null;
+          academic_year?: number | null;
+          semester?: number | null;
+          awarded_by?: string | null;
           created_at?: string;
         };
         Update: {
           points?: number;
           reason?: string | null;
+          event_id?: string | null;
+          source?: ScoreSource;
+          description_th?: string | null;
+          description_en?: string | null;
+          academic_year?: number | null;
+          semester?: number | null;
+          awarded_by?: string | null;
         };
         Relationships: [];
       };
@@ -767,8 +832,29 @@ export type Database = {
           event_date: string;
           event_time: string | null;
           location: string | null;
-          event_status: string;
+          event_status: EventStatus;
+          title_th: string | null;
+          title_en: string | null;
+          description_th: string | null;
+          description_en: string | null;
+          location_th: string | null;
+          location_en: string | null;
+          event_type: EventType;
+          impact_level: ImpactLevel;
+          is_mandatory: boolean;
+          score_points: number;
+          penalty_points: number;
+          score_category_id: string | null;
+          start_datetime: string | null;
+          end_datetime: string | null;
+          max_capacity: number | null;
+          building_id: string | null;
+          created_by: string | null;
+          academic_year: number | null;
+          semester: number | null;
+          cover_image: string | null;
           created_at: string;
+          updated_at: string;
         };
         Insert: {
           id?: string;
@@ -777,8 +863,29 @@ export type Database = {
           event_date: string;
           event_time?: string | null;
           location?: string | null;
-          event_status?: string;
+          event_status?: EventStatus;
+          title_th?: string | null;
+          title_en?: string | null;
+          description_th?: string | null;
+          description_en?: string | null;
+          location_th?: string | null;
+          location_en?: string | null;
+          event_type?: EventType;
+          impact_level?: ImpactLevel;
+          is_mandatory?: boolean;
+          score_points?: number;
+          penalty_points?: number;
+          score_category_id?: string | null;
+          start_datetime?: string | null;
+          end_datetime?: string | null;
+          max_capacity?: number | null;
+          building_id?: string | null;
+          created_by?: string | null;
+          academic_year?: number | null;
+          semester?: number | null;
+          cover_image?: string | null;
           created_at?: string;
+          updated_at?: string;
         };
         Update: {
           title?: string;
@@ -786,7 +893,63 @@ export type Database = {
           event_date?: string;
           event_time?: string | null;
           location?: string | null;
-          event_status?: string;
+          event_status?: EventStatus;
+          title_th?: string | null;
+          title_en?: string | null;
+          description_th?: string | null;
+          description_en?: string | null;
+          location_th?: string | null;
+          location_en?: string | null;
+          event_type?: EventType;
+          impact_level?: ImpactLevel;
+          is_mandatory?: boolean;
+          score_points?: number;
+          penalty_points?: number;
+          score_category_id?: string | null;
+          start_datetime?: string | null;
+          end_datetime?: string | null;
+          max_capacity?: number | null;
+          building_id?: string | null;
+          created_by?: string | null;
+          academic_year?: number | null;
+          semester?: number | null;
+          cover_image?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      event_attendance: {
+        Row: {
+          id: string;
+          event_id: string;
+          student_id: string;
+          checked_in: boolean;
+          checked_in_at: string | null;
+          status: AttendanceStatus;
+          checked_out_at: string | null;
+          notes: string | null;
+          recorded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          student_id: string;
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          status?: AttendanceStatus;
+          checked_out_at?: string | null;
+          notes?: string | null;
+          recorded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          checked_in?: boolean;
+          checked_in_at?: string | null;
+          status?: AttendanceStatus;
+          checked_out_at?: string | null;
+          notes?: string | null;
+          recorded_by?: string | null;
         };
         Relationships: [];
       };
@@ -867,6 +1030,34 @@ export type Database = {
         };
         Returns: boolean;
       };
+      get_composite_score: {
+        Args: {
+          p_student_id: string;
+          p_academic_year?: number;
+          p_semester?: number;
+        };
+        Returns: {
+          student_id: string;
+          academic_year: number;
+          semester: number;
+          composite_score: number;
+          categories: {
+            category_id: string;
+            slug: string;
+            name: string;
+            weight: number;
+            raw_points: number;
+            score: number;
+            max_score: number;
+            weighted: number;
+            entries: number;
+          }[];
+        };
+      };
+      refresh_score_summary: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
     };
     Enums: {
       bill_status: BillStatus;
@@ -878,6 +1069,11 @@ export type Database = {
       maintenance_status: MaintenanceStatus;
       notification_type: NotificationType;
       technician_specialty: TechnicianSpecialty;
+      event_type: EventType;
+      event_status: EventStatus;
+      attendance_status: AttendanceStatus;
+      impact_level: ImpactLevel;
+      score_source: ScoreSource;
     };
   };
 };

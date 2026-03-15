@@ -65,9 +65,9 @@ export default function OnboardingPage() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("display_name, full_name_th, avatar_url")
+        .select("*")
         .eq("id", user.id)
-        .single();
+        .single() as { data: { display_name: string | null; full_name_th: string; avatar_url: string | null } | null };
 
       if (data) {
         setProfile({
@@ -163,7 +163,8 @@ export default function OnboardingPage() {
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (supabase as any)
             .from("profiles")
             .update({ full_name_th: editedNameTh })
             .eq("id", user.id);
