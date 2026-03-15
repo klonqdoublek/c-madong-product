@@ -26,7 +26,10 @@
     "notifications": "Notifications",
     "settings": "Settings",
     "chatbot": "Ask C",
-    "contact": "Contact"
+    "contact": "Contact",
+    "emergency": "Emergency",
+    "myAccount": "My Account",
+    "askNongC": "Ask C"
   },
   "auth": {
     "login": "Login",
@@ -97,6 +100,8 @@
     "menuInfo": "Info",
     "menuContact": "Contact",
     "menuReview": "Review",
+    "menuScore": "Score",
+    "menuEvents": "Events",
     "myStatus": "My Status",
     "dormScore": "Dorm Score",
     "viewDormCard": "View Dorm Card",
@@ -104,7 +109,27 @@
     "viewAll": "View All",
     "today": "Today",
     "important": "Important",
-    "moreBills": "{count} more pending bill(s)"
+    "moreBills": "{count} more pending bill(s)",
+    "subtitle": "Chula Student Dormitory",
+    "searchPlaceholder": "Dorm fees, announcements...",
+    "actionItems": "Action Items",
+    "completed": "Done ({done}/{total})",
+    "urgent": "Urgent",
+    "2days": "2 days left",
+    "5days": "5 days left",
+    "7days": "7 days left",
+    "uploadDocTitle": "Upload Documents",
+    "uploadDocDesc": "Registration & identity verification",
+    "payBillTitle": "Pay Dorm Fee",
+    "payBillDesc": "June dorm fee payment",
+    "evaluationTitle": "Dorm Evaluation",
+    "evaluationDesc": "Satisfaction survey",
+    "doNow": "Do Now",
+    "currentResident": "Current Resident",
+    "bed": "Bed",
+    "points": "points",
+    "announcementsTitle": "Announcements & News",
+    "noAnnouncements": "No announcements right now"
   },
   "maintenance": {
     "title": "Maintenance",
@@ -482,6 +507,8 @@
       "close": "Close",
       "error": "Failed to generate text. Please try again."
     },
+    "navEvents": "Events",
+    "navScores": "Dorm Scores",
     "navBilling": "Billing",
     "billingPage": {
       "title": "Billing Management",
@@ -533,6 +560,64 @@
       "deleteBill": "Delete Bill",
       "deleteConfirm": "Delete this bill?"
     },
+    "eventsPage": {
+      "title": "Manage Events",
+      "createEvent": "Create Event",
+      "editEvent": "Edit Event",
+      "totalEvents": "Total Events",
+      "upcomingEvents": "Upcoming",
+      "mandatoryCount": "Mandatory",
+      "avgAttendance": "Avg Attendance",
+      "noEvents": "No events yet",
+      "deleteConfirm": "Delete this event?",
+      "attendance": "Attendance",
+      "eventForm": {
+        "titleTh": "Title (Thai)",
+        "titleEn": "Title (English)",
+        "descriptionTh": "Description (Thai)",
+        "descriptionEn": "Description (English)",
+        "locationTh": "Location (Thai)",
+        "locationEn": "Location (English)",
+        "eventType": "Event Type",
+        "impactLevel": "Impact Level",
+        "isMandatory": "Mandatory",
+        "startDatetime": "Start Date/Time",
+        "endDatetime": "End Date/Time",
+        "scorePoints": "Score Points",
+        "penaltyPoints": "Penalty Points",
+        "scoreCategory": "Score Category",
+        "maxCapacity": "Max Capacity",
+        "building": "Building",
+        "status": "Status",
+        "academicYear": "Academic Year",
+        "semester": "Semester"
+      },
+      "attendancePage": {
+        "title": "Event Attendance",
+        "markAllAttended": "Mark All Attended",
+        "markSelectedAbsent": "Mark Absent",
+        "studentName": "Student Name",
+        "studentId": "Student ID",
+        "status": "Status",
+        "noAttendees": "No registrations yet"
+      }
+    },
+    "scoresPage": {
+      "title": "Manage Dorm Scores",
+      "avgComposite": "Average Score",
+      "belowThreshold": "Below 60",
+      "topScorer": "Top Scorer",
+      "totalEntries": "Total Entries",
+      "addEntry": "Add Entry",
+      "addScoreEntry": "Add Score Entry",
+      "student": "Student",
+      "category": "Category",
+      "points": "Points",
+      "reason": "Reason",
+      "reasonPlaceholder": "Reason for score entry",
+      "allBuildings": "All Buildings",
+      "scoreRange": "Score Range"
+    },
     "flexEditor": {
       "jsonTab": "Edit JSON",
       "previewTab": "Preview",
@@ -564,6 +649,60 @@
       "paid": "Paid",
       "overdue": "Overdue",
       "cancelled": "Cancelled"
+    }
+  },
+  "score": {
+    "title": "Dorm Score",
+    "compositeScore": "Composite Score",
+    "categoryBreakdown": "Category Breakdown",
+    "history": "Score History",
+    "noHistory": "No score history yet",
+    "loadMore": "Load More",
+    "points": "points",
+    "renewalPriority": "Renewal Priority",
+    "excellent": "Excellent",
+    "good": "Good",
+    "fair": "Fair",
+    "needsImprovement": "Needs Improvement",
+    "source": {
+      "manual_admin": "Manual Entry",
+      "auto_attendance": "Event Attendance",
+      "bulk_import": "Bulk Import",
+      "system": "System"
+    }
+  },
+  "events": {
+    "title": "Dorm Events",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "noEvents": "No events at the moment",
+    "mandatory": "Mandatory",
+    "mandatoryPenalty": "Absent -{points} points",
+    "register": "Register",
+    "registered": "Registered",
+    "unregister": "Unregister",
+    "capacity": "Capacity",
+    "capacityFull": "Full",
+    "spotsLeft": "{count} spots left",
+    "detail": {
+      "title": "Event Details",
+      "datetime": "Date & Time",
+      "location": "Location",
+      "type": "Type",
+      "scoreInfo": "Score",
+      "scoreReward": "Attend +{points} points",
+      "penaltyInfo": "Absent -{points} points",
+      "myAttendance": "My Status",
+      "registeredCount": "{count} registered"
+    },
+    "attendance": {
+      "registered": "Registered",
+      "attended": "Attended",
+      "absent": "Absent",
+      "excused": "Excused"
+    },
+    "filter": {
+      "allTypes": "All Types"
     }
   },
   "booking": {

@@ -26,7 +26,10 @@
     "notifications": "แจ้งเตือน",
     "settings": "ตั้งค่า",
     "chatbot": "ถามน้องซี",
-    "contact": "ติดต่อ"
+    "contact": "ติดต่อ",
+    "emergency": "ฉุกเฉิน",
+    "myAccount": "บัญชีของฉัน",
+    "askNongC": "ถามน้องซี"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
@@ -97,6 +100,8 @@
     "menuInfo": "ข้อมูล",
     "menuContact": "ติดต่อ",
     "menuReview": "ประเมิน",
+    "menuScore": "คะแนน",
+    "menuEvents": "กิจกรรม",
     "myStatus": "สถานะของฉัน",
     "dormScore": "คะแนนหอพัก",
     "viewDormCard": "ดูบัตรหอพัก",
@@ -104,7 +109,27 @@
     "viewAll": "ดูทั้งหมด",
     "today": "วันนี้",
     "important": "สำคัญ",
-    "moreBills": "อีก {count} รายการค้างชำระ"
+    "moreBills": "อีก {count} รายการค้างชำระ",
+    "subtitle": "ระบบหอพักนิสิตจุฬาฯ",
+    "searchPlaceholder": "ค่าหอพัก, ประกาศเดือนมิถุนายน...",
+    "actionItems": "ที่ต้องดำเนินการ",
+    "completed": "ทำแล้ว ({done}/{total})",
+    "urgent": "สำคัญ",
+    "2days": "อีก 2 วัน",
+    "5days": "อีก 5 วัน",
+    "7days": "อีก 7 วัน",
+    "uploadDocTitle": "อัปโหลดเอกสาร",
+    "uploadDocDesc": "การลงทะเบียนหอพัก เอกสารยืนยันตัวตน",
+    "payBillTitle": "ชำระค่าหอพัก",
+    "payBillDesc": "ค่าหอพักเดือนมิถุนายน",
+    "evaluationTitle": "ประเมินหอพัก",
+    "evaluationDesc": "แบบประเมินความพึงพอใจ",
+    "doNow": "ทำเลย",
+    "currentResident": "นิสิตหอพักปัจจุบัน",
+    "bed": "เตียง",
+    "points": "คะแนน",
+    "announcementsTitle": "ประกาศและข่าวสาร",
+    "noAnnouncements": "ยังไม่มีประกาศตอนนี้"
   },
   "maintenance": {
     "title": "แจ้งซ่อม",
@@ -482,6 +507,8 @@
       "close": "ปิด",
       "error": "ไม่สามารถสร้างข้อความได้ ลองใหม่อีกครั้งนะ"
     },
+    "navEvents": "กิจกรรม",
+    "navScores": "คะแนนหอพัก",
     "navBilling": "ค่าหอพัก",
     "billingPage": {
       "title": "จัดการค่าหอพัก",
@@ -533,6 +560,64 @@
       "deleteBill": "ลบบิล",
       "deleteConfirm": "ยืนยันลบบิลนี้?"
     },
+    "eventsPage": {
+      "title": "จัดการกิจกรรม",
+      "createEvent": "สร้างกิจกรรม",
+      "editEvent": "แก้ไขกิจกรรม",
+      "totalEvents": "กิจกรรมทั้งหมด",
+      "upcomingEvents": "กำลังจะมาถึง",
+      "mandatoryCount": "กิจกรรมบังคับ",
+      "avgAttendance": "อัตราเข้าร่วม",
+      "noEvents": "ยังไม่มีกิจกรรม",
+      "deleteConfirm": "ยืนยันลบกิจกรรมนี้?",
+      "attendance": "เช็คชื่อ",
+      "eventForm": {
+        "titleTh": "ชื่อกิจกรรม (ไทย)",
+        "titleEn": "ชื่อกิจกรรม (อังกฤษ)",
+        "descriptionTh": "รายละเอียด (ไทย)",
+        "descriptionEn": "รายละเอียด (อังกฤษ)",
+        "locationTh": "สถานที่ (ไทย)",
+        "locationEn": "สถานที่ (อังกฤษ)",
+        "eventType": "ประเภทกิจกรรม",
+        "impactLevel": "ระดับผลกระทบ",
+        "isMandatory": "กิจกรรมบังคับ",
+        "startDatetime": "วัน-เวลาเริ่ม",
+        "endDatetime": "วัน-เวลาสิ้นสุด",
+        "scorePoints": "คะแนนที่ได้",
+        "penaltyPoints": "คะแนนที่หัก",
+        "scoreCategory": "หมวดคะแนน",
+        "maxCapacity": "จำนวนรับ",
+        "building": "อาคาร",
+        "status": "สถานะ",
+        "academicYear": "ปีการศึกษา",
+        "semester": "ภาคเรียน"
+      },
+      "attendancePage": {
+        "title": "เช็คชื่อกิจกรรม",
+        "markAllAttended": "เช็คชื่อทั้งหมด",
+        "markSelectedAbsent": "บันทึกขาด",
+        "studentName": "ชื่อนิสิต",
+        "studentId": "รหัสนิสิต",
+        "status": "สถานะ",
+        "noAttendees": "ยังไม่มีผู้ลงทะเบียน"
+      }
+    },
+    "scoresPage": {
+      "title": "จัดการคะแนนหอพัก",
+      "avgComposite": "คะแนนเฉลี่ย",
+      "belowThreshold": "ต่ำกว่า 60 คะแนน",
+      "topScorer": "คะแนนสูงสุด",
+      "totalEntries": "จำนวนรายการ",
+      "addEntry": "เพิ่มคะแนน",
+      "addScoreEntry": "บันทึกคะแนน",
+      "student": "นิสิต",
+      "category": "หมวดหมู่",
+      "points": "คะแนน",
+      "reason": "เหตุผล",
+      "reasonPlaceholder": "ระบุเหตุผลการให้คะแนน",
+      "allBuildings": "ทุกอาคาร",
+      "scoreRange": "ช่วงคะแนน"
+    },
     "flexEditor": {
       "jsonTab": "แก้ไข JSON",
       "previewTab": "ดูตัวอย่าง",
@@ -564,6 +649,60 @@
       "paid": "ชำระแล้ว",
       "overdue": "เลยกำหนด",
       "cancelled": "ยกเลิก"
+    }
+  },
+  "score": {
+    "title": "คะแนนหอพัก",
+    "compositeScore": "คะแนนรวม",
+    "categoryBreakdown": "คะแนนตามหมวดหมู่",
+    "history": "ประวัติคะแนน",
+    "noHistory": "ยังไม่มีประวัติคะแนน",
+    "loadMore": "ดูเพิ่มเติม",
+    "points": "คะแนน",
+    "renewalPriority": "ลำดับต่อสัญญา",
+    "excellent": "ดีเยี่ยม",
+    "good": "ดี",
+    "fair": "พอใช้",
+    "needsImprovement": "ต้องปรับปรุง",
+    "source": {
+      "manual_admin": "เจ้าหน้าที่บันทึก",
+      "auto_attendance": "เข้าร่วมกิจกรรม",
+      "bulk_import": "นำเข้าข้อมูล",
+      "system": "ระบบ"
+    }
+  },
+  "events": {
+    "title": "กิจกรรมหอพัก",
+    "upcoming": "กำลังจะมาถึง",
+    "past": "ที่ผ่านมา",
+    "noEvents": "ไม่มีกิจกรรมในขณะนี้",
+    "mandatory": "จำเป็น",
+    "mandatoryPenalty": "ขาด -{points} คะแนน",
+    "register": "ลงทะเบียน",
+    "registered": "ลงทะเบียนแล้ว",
+    "unregister": "ยกเลิกลงทะเบียน",
+    "capacity": "รับจำนวน",
+    "capacityFull": "เต็มแล้ว",
+    "spotsLeft": "เหลืออีก {count} ที่",
+    "detail": {
+      "title": "รายละเอียดกิจกรรม",
+      "datetime": "วัน-เวลา",
+      "location": "สถานที่",
+      "type": "ประเภท",
+      "scoreInfo": "คะแนน",
+      "scoreReward": "เข้าร่วม +{points} คะแนน",
+      "penaltyInfo": "ขาด -{points} คะแนน",
+      "myAttendance": "สถานะของฉัน",
+      "registeredCount": "{count} คนลงทะเบียน"
+    },
+    "attendance": {
+      "registered": "ลงทะเบียน",
+      "attended": "เข้าร่วมแล้ว",
+      "absent": "ขาด",
+      "excused": "ลา"
+    },
+    "filter": {
+      "allTypes": "ทุกประเภท"
     }
   },
   "booking": {
