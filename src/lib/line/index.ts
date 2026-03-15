@@ -16,3 +16,13 @@ export {
   buildParcelNotificationFlex,
   DEMO_PARCEL_DATA,
 } from "./flex-builders/parcel-notification"
+export type { ScoreSummaryData } from "./flex-builders/score-summary"
+export {
+  buildScoreSummaryFlex,
+  DEMO_SCORE_SUMMARY,
+} from "./flex-builders/score-summary"
+export type { ScoreAddedData } from "./flex-builders/score-added"
+export {
+  buildScoreAddedFlex,
+  DEMO_SCORE_ADDED,
+} from "./flex-builders/score-added"
