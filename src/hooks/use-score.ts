@@ -129,17 +129,20 @@ export function useStudentScores(filters?: { buildingId?: string; search?: strin
 
 export function useAddScoreEntry() {
   const queryClient = useQueryClient();
-  const supabase = useSupabase();
 
   return useMutation({
     mutationFn: async (entry: Database["public"]["Tables"]["score_entries"]["Insert"]) => {
-      const { data, error } = await supabase
-        .from("score_entries")
-        .insert(entry)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      const res = await fetch("/api/admin/scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify(entry),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to add score entry");
+      }
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [SCORE_KEY] });
