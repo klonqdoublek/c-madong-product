@@ -24,128 +24,106 @@ export function buildScoreAddedFlex(
   const isPositive = data.pointsChange >= 0
   const bgColor = isPositive ? COLOR_GREEN : COLOR_RED
   const pointsText = isPositive
-    ? `+${data.pointsChange} คะแนน!`
-    : `${data.pointsChange} คะแนน`
+    ? `+${data.pointsChange}`
+    : `${data.pointsChange}`
   const altPrefix = isPositive ? "ได้รับ" : "ถูกหัก"
+  const emoji = isPositive ? "🎉" : "⚠️"
 
   const bubble = {
     type: "bubble",
-    size: "kilo",
+    size: "micro",
     body: {
       type: "box",
       layout: "vertical",
       contents: [
-        // --- Colored top section ---
+        // Points change + mascot row
         {
           type: "box",
-          layout: "vertical",
+          layout: "horizontal",
           contents: [
-            // Text content column (left side via horizontal wrapper)
             {
               type: "box",
-              layout: "horizontal",
+              layout: "vertical",
               contents: [
-                // Left: text stack
                 {
-                  type: "box",
-                  layout: "vertical",
-                  contents: [
-                    {
-                      type: "text",
-                      text: `🌟 คะแนนหอพักของพี่ ${data.studentName} :)`,
-                      color: "#FFFFFF",
-                      size: "sm",
-                      weight: "bold",
-                      wrap: true,
-                    },
-                    {
-                      type: "text",
-                      text: data.activityName,
-                      color: "#FFFFFF",
-                      size: "sm",
-                      weight: "bold",
-                      wrap: true,
-                      margin: "sm",
-                    },
-                    {
-                      type: "text",
-                      text: pointsText,
-                      color: "#FFFFFF",
-                      size: "3xl",
-                      weight: "bold",
-                      margin: "lg",
-                    },
-                    {
-                      type: "text",
-                      text: `อัปเดทล่าสุด: ${data.updatedAt}`,
-                      color: "#FFFFFF80",
-                      size: "xxs",
-                      margin: "md",
-                    },
-                  ],
-                  flex: 3,
+                  type: "text",
+                  text: `${emoji} ${data.studentName}`,
+                  color: "#FFFFFF",
+                  size: "xxs",
+                  weight: "bold",
                 },
-                // Right: mascot image
                 {
-                  type: "box",
-                  layout: "vertical",
-                  contents: [
-                    {
-                      type: "image",
-                      url: MASCOT_URL,
-                      size: "80px",
-                      aspectMode: "fit",
-                      aspectRatio: "1:1",
-                    },
-                  ],
-                  flex: 1,
-                  justifyContent: "flex-end",
-                  alignItems: "flex-end",
+                  type: "text",
+                  text: pointsText,
+                  color: "#FFFFFF",
+                  size: "xxl",
+                  weight: "bold",
+                  margin: "xs",
+                },
+                {
+                  type: "text",
+                  text: "คะแนน",
+                  color: "#FFFFFFCC",
+                  size: "xxs",
                 },
               ],
-              alignItems: "flex-end",
+              flex: 3,
+            },
+            {
+              type: "image",
+              url: MASCOT_URL,
+              size: "45px",
+              aspectMode: "fit",
+              aspectRatio: "1:1",
+              flex: 0,
+              gravity: "bottom",
             },
           ],
-          backgroundColor: bgColor,
-          cornerRadius: "10px",
-          paddingAll: "xl",
+          alignItems: "flex-end",
+        },
+        // Activity name
+        {
+          type: "text",
+          text: data.activityName,
+          color: "#FFFFFFCC",
+          size: "xxs",
+          wrap: true,
+          margin: "md",
+          maxLines: 2,
+        },
+        // Date
+        {
+          type: "text",
+          text: data.updatedAt,
+          color: "#FFFFFF80",
+          size: "xxs",
+          margin: "xs",
         },
       ],
-      paddingAll: "0px",
-      backgroundColor: "#FFFFFF",
+      backgroundColor: bgColor,
+      paddingAll: "lg",
     },
     footer: {
       type: "box",
       layout: "vertical",
       contents: [
         {
-          type: "box",
-          layout: "vertical",
-          contents: [
-            {
-              type: "text",
-              text: "ดูรายละเอียดเพิ่มเติม",
-              color: "#565655",
-              size: "sm",
-              weight: "bold",
-              align: "center",
-            },
-          ],
-          paddingAll: "md",
-          action: {
-            type: "uri",
-            label: "ดูรายละเอียด",
-            uri: SCORE_PAGE_URL,
-          },
+          type: "text",
+          text: "ดูรายละเอียด →",
+          color: bgColor,
+          size: "xs",
+          weight: "bold",
+          align: "center",
         },
       ],
       paddingAll: "sm",
-      backgroundColor: "#FFFFFF",
+      action: {
+        type: "uri",
+        label: "ดูรายละเอียด",
+        uri: SCORE_PAGE_URL,
+      },
     },
     styles: {
-      body: {
-        separator: false,
-      },
       footer: {
         separator: true,
       },
@@ -154,7 +132,7 @@ export function buildScoreAddedFlex(
 
   return {
     type: "flex",
-    altText: `🌟 ${data.studentName} ${altPrefix} ${Math.abs(data.pointsChange)} คะแนนจากกิจกรรม${data.activityName}`,
+    altText: `${emoji} ${data.studentName} ${altPrefix} ${Math.abs(data.pointsChange)} คะแนนจาก${data.activityName}`,
     contents: bubble,
   }
 }

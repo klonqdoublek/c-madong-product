@@ -21,92 +21,90 @@ export function buildScoreSummaryFlex(
 ): FlexMessagePayload {
   const bubble = {
     type: "bubble",
-    size: "kilo",
+    size: "micro",
     body: {
       type: "box",
       layout: "vertical",
       contents: [
-        // Greeting text
-        {
-          type: "text",
-          text: `🌟 คะแนนหอพักของพี่ ${data.studentName} :)`,
-          color: "#FFFFFF",
-          size: "md",
-          weight: "bold",
-          wrap: true,
-        },
-        // Score display
-        {
-          type: "text",
-          text: `${data.score} คะแนน`,
-          color: "#FFFFFF",
-          size: "3xl",
-          weight: "bold",
-          margin: "md",
-        },
-        // Updated date
-        {
-          type: "text",
-          text: `อัปเดทล่าสุด: ${data.updatedAt}`,
-          color: "#FFFFFF80",
-          size: "xs",
-          margin: "sm",
-        },
-        // Spacer + mascot overlay area
+        // Header row: text + mascot
         {
           type: "box",
           layout: "horizontal",
           contents: [
-            { type: "filler" },
+            {
+              type: "box",
+              layout: "vertical",
+              contents: [
+                {
+                  type: "text",
+                  text: `🌟 ${data.studentName}`,
+                  color: "#FFFFFF",
+                  size: "xs",
+                  weight: "bold",
+                  wrap: true,
+                },
+                {
+                  type: "text",
+                  text: `${data.score}`,
+                  color: "#FFFFFF",
+                  size: "xxl",
+                  weight: "bold",
+                  margin: "sm",
+                },
+                {
+                  type: "text",
+                  text: "คะแนน",
+                  color: "#FFFFFFCC",
+                  size: "xxs",
+                },
+              ],
+              flex: 3,
+            },
             {
               type: "image",
               url: MASCOT_URL,
-              size: "80px",
+              size: "50px",
               aspectRatio: "1:1",
               aspectMode: "fit",
               flex: 0,
+              gravity: "bottom",
             },
           ],
+          alignItems: "flex-end",
+        },
+        // Updated date
+        {
+          type: "text",
+          text: `อัปเดท ${data.updatedAt}`,
+          color: "#FFFFFF80",
+          size: "xxs",
           margin: "md",
-          position: "relative",
         },
       ],
       backgroundColor: "#DD598B",
-      paddingAll: "xl",
-      cornerRadius: "10px",
+      paddingAll: "lg",
     },
     footer: {
       type: "box",
       layout: "vertical",
       contents: [
         {
-          type: "box",
-          layout: "vertical",
-          contents: [
-            {
-              type: "text",
-              text: "ดูรายละเอียดเพิ่มเติม",
-              color: "#565655",
-              size: "md",
-              weight: "bold",
-              align: "center",
-            },
-          ],
-          paddingAll: "lg",
-          action: {
-            type: "uri",
-            label: "ดูรายละเอียดเพิ่มเติม",
-            uri: SCORE_PAGE_URL,
-          },
+          type: "text",
+          text: "ดูรายละเอียด →",
+          color: "#DD598B",
+          size: "xs",
+          weight: "bold",
+          align: "center",
         },
       ],
-      backgroundColor: "#FFFFFF",
-      paddingAll: "none",
+      paddingAll: "sm",
+      action: {
+        type: "uri",
+        label: "ดูรายละเอียด",
+        uri: SCORE_PAGE_URL,
+      },
     },
     styles: {
-      body: {
-        separator: false,
-      },
       footer: {
         separator: true,
       },
@@ -115,7 +113,7 @@ export function buildScoreSummaryFlex(
 
   return {
     type: "flex",
-    altText: `🌟 คะแนนหอพักของพี่ ${data.studentName}: ${data.score} คะแนน`,
+    altText: `🌟 คะแนนหอพักของ ${data.studentName}: ${data.score} คะแนน`,
     contents: bubble,
   }
 }

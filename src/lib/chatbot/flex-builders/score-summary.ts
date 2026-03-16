@@ -1,6 +1,6 @@
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder"
 
-const PRIMARY = "#7C3AED"
+const PRIMARY = "#DD598B"
 
 interface ScoreCategory {
   name: string
@@ -15,7 +15,7 @@ interface ScoreSummaryData {
   categories: ScoreCategory[]
 }
 
-/** Score breakdown Flex bubble */
+/** Score breakdown Flex bubble — compact chatbot version */
 export function buildScoreSummaryFlex(data: ScoreSummaryData): FlexMessagePayload {
   const percentage = Math.round((data.totalScore / data.maxTotal) * 100)
 
@@ -24,58 +24,73 @@ export function buildScoreSummaryFlex(data: ScoreSummaryData): FlexMessagePayloa
     altText: `📊 คะแนนหอ: ${data.totalScore}/${data.maxTotal} (${percentage}%)`,
     contents: {
       type: "bubble",
-      size: "mega",
+      size: "kilo",
       header: {
         type: "box",
-        layout: "vertical",
+        layout: "horizontal",
         contents: [
-          {
-            type: "text",
-            text: "📊 สรุปคะแนนหอพัก",
-            size: "sm",
-            color: "#FFFFFF",
-            weight: "bold",
-          },
-          {
-            type: "text",
-            text: data.studentName,
-            size: "xs",
-            color: "#FFFFFFCC",
-            margin: "xs",
-          },
-        ],
-        backgroundColor: PRIMARY,
-        paddingAll: "lg",
-      },
-      body: {
-        type: "box",
-        layout: "vertical",
-        spacing: "md",
-        contents: [
-          // Total score
           {
             type: "box",
-            layout: "horizontal",
+            layout: "vertical",
+            contents: [
+              {
+                type: "text",
+                text: "📊 สรุปคะแนนหอพัก",
+                size: "xs",
+                color: "#FFFFFF",
+                weight: "bold",
+              },
+              {
+                type: "text",
+                text: data.studentName,
+                size: "xxs",
+                color: "#FFFFFFAA",
+                margin: "xs",
+              },
+            ],
+            flex: 3,
+          },
+          {
+            type: "box",
+            layout: "vertical",
             contents: [
               {
                 type: "text",
                 text: `${data.totalScore}`,
-                size: "3xl",
+                size: "xl",
                 weight: "bold",
-                color: PRIMARY,
+                color: "#FFFFFF",
+                align: "end",
               },
               {
                 type: "text",
-                text: `/ ${data.maxTotal} คะแนน (${percentage}%)`,
-                size: "sm",
-                color: "#888888",
-                gravity: "bottom",
-                margin: "md",
+                text: `/ ${data.maxTotal}`,
+                size: "xxs",
+                color: "#FFFFFFAA",
+                align: "end",
               },
             ],
-            alignItems: "baseline",
+            flex: 1,
           },
-          { type: "separator", color: "#E5E7EB" },
+        ],
+        backgroundColor: PRIMARY,
+        paddingAll: "md",
+        alignItems: "center",
+      },
+      body: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        contents: [
+          // Progress indicator text
+          {
+            type: "text",
+            text: `${percentage}% ของคะแนนเต็ม`,
+            size: "xxs",
+            color: "#999999",
+            align: "end",
+          },
+          { type: "separator", color: "#F3F4F6" },
           // Category breakdown
           ...data.categories.map((cat) => ({
             type: "box" as const,
@@ -84,23 +99,24 @@ export function buildScoreSummaryFlex(data: ScoreSummaryData): FlexMessagePayloa
               {
                 type: "text" as const,
                 text: cat.name,
-                size: "sm" as const,
+                size: "xs" as const,
                 color: "#555555",
-                flex: 5,
+                flex: 4,
+                wrap: true,
               },
               {
                 type: "text" as const,
                 text: `${cat.score}/${cat.maxScore}`,
-                size: "sm" as const,
+                size: "xs" as const,
                 color: "#333333",
                 weight: "bold" as const,
                 align: "end" as const,
-                flex: 2,
+                flex: 1,
               },
             ],
           })),
         ],
-        paddingAll: "xl",
+        paddingAll: "md",
       },
     },
   }
