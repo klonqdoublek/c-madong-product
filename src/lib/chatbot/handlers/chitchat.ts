@@ -1,20 +1,35 @@
 import { getOpenAIClient } from "@/lib/ai/openai"
-import { CHITCHAT_SYSTEM_PROMPT } from "../system-prompts"
+import { CHITCHAT_SYSTEM_PROMPT, buildProfileAwareChitchatPrompt } from "../system-prompts"
 import { AI_TIMEOUT_MS } from "../constants"
 import type { HandlerResponse } from "../types"
+
+interface ChitchatOptions {
+  profileContext?: {
+    name?: string
+    building?: string
+    room?: string
+    summary?: string | null
+  }
+}
 
 /** Handle chitchat intent using OpenAI gpt-4o-mini with น้องซีมะโด่ง persona */
 export async function handleChitchat(
   message: string,
-  recentHistory: { role: string; content: string }[] = []
+  recentHistory: { role: string; content: string }[] = [],
+  options?: ChitchatOptions
 ): Promise<HandlerResponse> {
   try {
     const openai = getOpenAIClient()
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
 
-    // Build conversation history for context
-    const historyMessages = recentHistory.slice(-6).map((msg) => ({
+    // Use profile-aware prompt if context available, otherwise default
+    const systemPrompt = options?.profileContext
+      ? buildProfileAwareChitchatPrompt(options.profileContext)
+      : CHITCHAT_SYSTEM_PROMPT
+
+    // Build conversation history for context (increased to 10 messages)
+    const historyMessages = recentHistory.slice(-10).map((msg) => ({
       role: msg.role as "user" | "assistant",
       content: msg.content,
     }))
@@ -22,7 +37,7 @@ export async function handleChitchat(
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-        { role: "system", content: CHITCHAT_SYSTEM_PROMPT },
+        { role: "system", content: systemPrompt },
         ...historyMessages,
         { role: "user", content: message },
       ],

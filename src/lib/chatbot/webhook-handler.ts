@@ -2,6 +2,8 @@ import { replyTextMessage, replyFlexMessage, replyMessage } from "@/lib/line/cli
 import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
+import { getConversationContext, incrementAndMaybeSummarize } from "./context-manager"
+import { getSuggestionsForIntent } from "./suggestions"
 import { RATE_LIMIT_PER_MINUTE } from "./constants"
 import { isMenuTrigger, MAIN_MENU_QUICK_REPLY } from "./quick-reply"
 import {
@@ -10,6 +12,7 @@ import {
   handleKnowledge,
   handleScore,
   handleEvents,
+  handleParcel,
   handlePostback,
 } from "./handlers"
 import type {
@@ -18,6 +21,7 @@ import type {
   LineMessageEvent,
   LinePostbackEvent,
   HandlerResponse,
+  ChatIntent,
 } from "./types"
 
 const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -133,6 +137,9 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   // Classify intent
   const { intent } = await classifyIntent(message)
 
+  // Get conversation context for enhanced responses
+  const context = await getConversationContext(lineUid, session.id)
+
   // Route to handler
   let response: HandlerResponse
 
@@ -149,16 +156,51 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
     case "events":
       response = await handleEvents()
       break
+    case "parcel":
+      response = await handleParcel(lineUid)
+      break
     case "chitchat":
     default: {
       const history = await getRecentMessages(lineUid)
-      response = await handleChitchat(message, history)
+      // Fetch profile context for personalized chitchat
+      let profileContext: { name?: string; building?: string; room?: string; summary?: string | null } | undefined
+      try {
+        const { createAdminClient } = await import("@/lib/supabase/admin")
+        const adminDb = createAdminClient()
+        const { data: profile } = await adminDb
+          .from("profiles")
+          .select("full_name_th, display_name, building_id, room_id")
+          .eq("line_uid", lineUid)
+          .single()
+        if (profile) {
+          profileContext = {
+            name: profile.display_name || profile.full_name_th || undefined,
+            building: profile.building_id || undefined,
+            room: profile.room_id || undefined,
+            summary: context.summary,
+          }
+        }
+      } catch {
+        // Non-critical
+      }
+      response = await handleChitchat(message, history, { profileContext })
       break
+    }
+  }
+
+  // Append suggestion Quick Replies if handler didn't already set them
+  if (!response.quickReply && intent !== "chitchat") {
+    const suggestions = getSuggestionsForIntent(intent as ChatIntent)
+    if (suggestions) {
+      response = { ...response, quickReply: { items: suggestions } }
     }
   }
 
   await sendResponse(event.replyToken, response)
   await saveMessages(lineUid, session.id, message, response, intent)
+
+  // Increment message count and maybe generate summary (fire-and-forget)
+  incrementAndMaybeSummarize(lineUid, session.id).catch(() => {})
 }
 
 async function handlePostbackEvent(event: LinePostbackEvent): Promise<void> {

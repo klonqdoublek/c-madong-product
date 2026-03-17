@@ -47,6 +47,10 @@ export async function handlePostback(
       )
       break
 
+    case "confirm_parcel_received":
+      await handleConfirmParcelReceived(replyToken, lineUid)
+      break
+
     default:
       await replyTextMessage(replyToken, "ซีมะโด่งไม่เข้าใจคำสั่งนี้น้า 🤔")
   }
@@ -119,4 +123,59 @@ async function handleRepairCancel(
     replyToken,
     "ยกเลิกแจ้งซ่อมแล้วนะ ✌️ ถ้าอยากแจ้งใหม่ก็พิมพ์มาได้เลยจ้า"
   )
+}
+
+async function handleConfirmParcelReceived(
+  replyToken: string,
+  lineUid: string
+): Promise<void> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const adminDb = createAdminClient()
+
+    // Find profile by LINE UID
+    const { data: profile } = await adminDb
+      .from("profiles")
+      .select("id")
+      .eq("line_uid", lineUid)
+      .single()
+
+    if (!profile) {
+      await replyTextMessage(
+        replyToken,
+        "หาข้อมูลน้องไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ"
+      )
+      return
+    }
+
+    // Mark all pending/notified parcels as picked up
+    const { data: updated } = await adminDb
+      .from("parcels")
+      .update({
+        status: "picked_up",
+        picked_up_at: new Date().toISOString(),
+      })
+      .eq("student_id", profile.id)
+      .in("status", ["pending", "notified"])
+      .select("id")
+
+    const count = updated?.length ?? 0
+    if (count > 0) {
+      await replyTextMessage(
+        replyToken,
+        `รับพัสดุเรียบร้อยแล้วจ้า ✅ (${count} ชิ้น)\nขอบคุณที่มารับนะ!`
+      )
+    } else {
+      await replyTextMessage(
+        replyToken,
+        "ตอนนี้ไม่มีพัสดุรอรับแล้วน้า 📦✨"
+      )
+    }
+  } catch (err) {
+    console.error("[Postback] Confirm parcel received error:", err)
+    await replyTextMessage(
+      replyToken,
+      "อุ๊ปส์! อัปเดตไม่ได้น้า 😅 ลองอีกทีนะ"
+    )
+  }
 }

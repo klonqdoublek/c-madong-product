@@ -85,6 +85,8 @@ function mockSession(lineUid: string): ChatSession {
     line_uid: lineUid,
     state: "idle",
     state_data: {},
+    context_summary: null,
+    message_count: 0,
     updated_at: new Date().toISOString(),
   }
 }

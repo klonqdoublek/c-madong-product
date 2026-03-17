@@ -69,6 +69,7 @@ export type ChatIntent =
   | "knowledge"
   | "score"
   | "events"
+  | "parcel"
   | "chitchat"
 
 /** Intent classification result from Gemini */
@@ -90,6 +91,8 @@ export interface ChatSession {
   line_uid: string
   state: SessionState
   state_data: Record<string, unknown>
+  context_summary: string | null
+  message_count: number
   updated_at: string
 }
 

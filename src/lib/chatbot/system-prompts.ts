@@ -7,10 +7,11 @@ export const INTENT_CLASSIFICATION_PROMPT = `คุณคือระบบจ�
 - "knowledge": ถามข้อมูลหอพัก กฎระเบียบ ขั้นตอน วิธีการ คำถามทั่วไปเกี่ยวกับหอ
 - "score": ถามคะแนนหอ คะแนนกิจกรรม คะแนนรวม อันดับ
 - "events": ถามกิจกรรมหอ อีเวนท์ ตารางกิจกรรม งานที่จะมี
+- "parcel": ถามพัสดุ รับพัสดุ มีพัสดุมั้ย เช็คพัสดุ ของมาส่ง กล่อง ซอง
 - "chitchat": ทักทาย สนทนาทั่วไป ขอบคุณ ล้อเล่น คุยเล่น
 
 ตอบเป็น JSON เท่านั้น ไม่มีข้อความอื่น:
-{"intent": "repair|knowledge|score|events|chitchat", "confidence": 0.0-1.0}
+{"intent": "repair|knowledge|score|events|parcel|chitchat", "confidence": 0.0-1.0}
 
 ถ้าข้อความกำกวม ให้เลือกประเภทที่น่าจะเป็นไปได้มากที่สุด
 ถ้าข้อความสั้นมากหรือไม่ชัดเจน ให้ตอบ "chitchat" ด้วย confidence ต่ำ`
@@ -29,6 +30,7 @@ export const CHITCHAT_SYSTEM_PROMPT = `คุณคือ "น้องซีม
 - ตอบคำถามเกี่ยวกับหอพัก (กฎ ระเบียบ ข้อมูลทั่วไป)
 - เช็คคะแนนหอ
 - ดูกิจกรรมหอพักที่จะมี
+- เช็คพัสดุที่มาส่ง
 - คุยเล่นทั่วไป
 
 ตอบเป็นข้อความสั้นๆ ภาษาไทย ไม่ใช้ markdown`
@@ -46,6 +48,32 @@ export const REPAIR_DETECTION_PROMPT = `คุณคือระบบตรว�
 
 ตอบเป็น JSON เท่านั้น:
 {"category": "...", "title": "สรุปสั้นๆ", "description": "รายละเอียดจากข้อความ", "urgency": "low|medium|high"}`
+
+export const CONTEXT_SUMMARY_PROMPT = `สรุปบทสนทนาต่อไปนี้เป็นภาษาไทย 2-3 ประโยค
+เน้นประเด็นสำคัญ: ปัญหาที่แจ้ง สิ่งที่ถาม อารมณ์ของผู้ใช้
+ตอบแค่สรุป ไม่ต้องมีคำนำ`
+
+export function buildProfileAwareChitchatPrompt(profileContext: {
+  name?: string;
+  building?: string;
+  room?: string;
+  summary?: string | null;
+}): string {
+  let prompt = CHITCHAT_SYSTEM_PROMPT;
+
+  if (profileContext.name || profileContext.building || profileContext.room) {
+    prompt += `\n\nข้อมูลน้องที่คุยด้วย:`;
+    if (profileContext.name) prompt += `\n- ชื่อ: ${profileContext.name}`;
+    if (profileContext.building) prompt += `\n- อาคาร: ${profileContext.building}`;
+    if (profileContext.room) prompt += `\n- ห้อง: ${profileContext.room}`;
+  }
+
+  if (profileContext.summary) {
+    prompt += `\n\nสรุปบทสนทนาก่อนหน้า: ${profileContext.summary}`;
+  }
+
+  return prompt;
+}
 
 export const RAG_ANSWER_PROMPT = `คุณคือ "น้องซีมะโด่ง" แชทบอทหอพัก จุฬาลงกรณ์มหาวิทยาลัย
 ตอบคำถามโดยใช้ข้อมูลที่ให้มาเท่านั้น ถ้าไม่มีข้อมูลเพียงพอ ให้บอกตรงๆ ว่าไม่แน่ใจ
