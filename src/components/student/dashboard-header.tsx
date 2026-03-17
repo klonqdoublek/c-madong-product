@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useNotificationStore } from "@/stores/notification-store";
 import { Bell, Search } from "lucide-react";
@@ -10,6 +9,7 @@ export function DashboardHeader() {
   const t = useTranslations("dashboard");
   const { profile, isLoading } = useUser();
   const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const setOpen = useNotificationStore((s) => s.setOpen);
 
   const displayName = profile?.display_name || profile?.full_name_th || t("greeting");
   const initials = displayName?.charAt(0)?.toUpperCase() || "?";
@@ -43,9 +43,9 @@ export function DashboardHeader() {
           </p>
         </div>
 
-        {/* Notification bell */}
-        <Link
-          href="/notifications"
+        {/* Notification bell — opens modal */}
+        <button
+          onClick={() => setOpen(true)}
           className="relative flex size-10 shrink-0 items-center justify-center rounded-full bg-cu-light-pink transition-colors hover:bg-cu-light-pink/80"
         >
           <Bell className="size-5 text-primary" />
@@ -54,7 +54,7 @@ export function DashboardHeader() {
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
-        </Link>
+        </button>
       </div>
 
       {/* Search bar */}

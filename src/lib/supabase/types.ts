@@ -48,6 +48,10 @@ export type TechnicianSpecialty =
   | "internet"
   | "door_lock";
 
+// Phase 4: Parcel Management
+export type ParcelStatus = "pending" | "notified" | "picked_up" | "returned" | "cancelled";
+export type ParcelType = "box" | "envelope" | "bag" | "oversized" | "other";
+
 export type BillStatus = "pending" | "paid" | "overdue" | "cancelled";
 
 export type BillCategory = "room" | "electricity" | "water" | "deposit" | "fine" | "other";
@@ -60,11 +64,16 @@ export type MaintenanceStatus =
   | "cancelled";
 
 export type NotificationType =
-  | "maintenance"
+  | "maintenance_update"
+  | "bill_due"
+  | "bill_overdue"
+  | "score_added"
+  | "event_new"
+  | "event_reminder"
+  | "parcel_arrived"
+  | "parcel_reminder"
   | "announcement"
-  | "bill"
-  | "parcel"
-  | "general";
+  | "system";
 
 // Phase 5: Dorm Score & Activities
 export type EventType =
@@ -528,8 +537,10 @@ export type Database = {
           title_en: string;
           body_th: string;
           body_en: string;
-          data: Record<string, unknown> | null;
-          is_read: boolean;
+          action_url: string | null;
+          priority: number;
+          metadata: Record<string, unknown>;
+          read_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -537,15 +548,102 @@ export type Database = {
           user_id: string;
           type: NotificationType;
           title_th: string;
-          title_en: string;
-          body_th: string;
-          body_en: string;
-          data?: Record<string, unknown> | null;
-          is_read?: boolean;
+          title_en?: string;
+          body_th?: string;
+          body_en?: string;
+          action_url?: string | null;
+          priority?: number;
+          metadata?: Record<string, unknown>;
+          read_at?: string | null;
           created_at?: string;
         };
         Update: {
-          is_read?: boolean;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
+      parcels: {
+        Row: {
+          id: string;
+          student_id: string;
+          tracking_number: string | null;
+          courier: string | null;
+          parcel_type: ParcelType;
+          description: string | null;
+          status: ParcelStatus;
+          pickup_location: string;
+          pickup_code: string | null;
+          registered_by: string | null;
+          notified_at: string | null;
+          picked_up_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          tracking_number?: string | null;
+          courier?: string | null;
+          parcel_type?: ParcelType;
+          description?: string | null;
+          status?: ParcelStatus;
+          pickup_location?: string;
+          pickup_code?: string | null;
+          registered_by?: string | null;
+          notified_at?: string | null;
+          picked_up_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          status?: ParcelStatus;
+          pickup_code?: string | null;
+          notified_at?: string | null;
+          picked_up_at?: string | null;
+          description?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      ai_insights: {
+        Row: {
+          id: string;
+          user_id: string;
+          insight_type: string;
+          title_th: string;
+          title_en: string;
+          description_th: string;
+          description_en: string;
+          action_url: string | null;
+          priority: number;
+          variant: "featured" | "default";
+          icon_name: string | null;
+          urgency_label: string | null;
+          deadline: string | null;
+          expires_at: string | null;
+          dismissed_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          insight_type: string;
+          title_th: string;
+          title_en?: string;
+          description_th?: string;
+          description_en?: string;
+          action_url?: string | null;
+          priority?: number;
+          variant?: "featured" | "default";
+          icon_name?: string | null;
+          urgency_label?: string | null;
+          deadline?: string | null;
+          expires_at?: string | null;
+          dismissed_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          dismissed_at?: string | null;
         };
         Relationships: [];
       };
@@ -583,6 +681,8 @@ export type Database = {
           line_uid: string;
           state: string;
           state_data: Record<string, unknown>;
+          context_summary: string | null;
+          message_count: number;
           updated_at: string;
           created_at: string;
         };
@@ -591,12 +691,16 @@ export type Database = {
           line_uid: string;
           state?: string;
           state_data?: Record<string, unknown>;
+          context_summary?: string | null;
+          message_count?: number;
           updated_at?: string;
           created_at?: string;
         };
         Update: {
           state?: string;
           state_data?: Record<string, unknown>;
+          context_summary?: string | null;
+          message_count?: number;
           updated_at?: string;
         };
         Relationships: [];
@@ -1058,6 +1162,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: void;
       };
+      get_unread_notification_count: {
+        Args: { p_user_id: string };
+        Returns: number;
+      };
     };
     Enums: {
       bill_status: BillStatus;
@@ -1068,6 +1176,8 @@ export type Database = {
       building_scope: BuildingScope;
       maintenance_status: MaintenanceStatus;
       notification_type: NotificationType;
+      parcel_status: ParcelStatus;
+      parcel_type: ParcelType;
       technician_specialty: TechnicianSpecialty;
       event_type: EventType;
       event_status: EventStatus;

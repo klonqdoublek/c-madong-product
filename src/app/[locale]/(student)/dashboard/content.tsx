@@ -6,6 +6,7 @@ import { DashboardHeader } from "@/components/student/dashboard-header";
 import { DashboardActionCards } from "@/components/student/dashboard-action-cards";
 import { DashboardStatusCard } from "@/components/student/dashboard-status-card";
 import { DashboardAnnouncements } from "@/components/student/dashboard-announcements";
+import { NotificationModal } from "@/components/student/notification-modal";
 import {
   Banknote,
   Wrench,
@@ -20,7 +21,7 @@ import {
 const menuItems = [
   { icon: Banknote, labelKey: "menuBilling" as const, href: "/billing" },
   { icon: Wrench, labelKey: "menuRepair" as const, href: "/maintenance" },
-  { icon: Package, labelKey: "menuParcel" as const, href: "#" },
+  { icon: Package, labelKey: "menuParcel" as const, href: "/parcels" },
   { icon: Megaphone, labelKey: "menuNews" as const, href: "/announcements" },
   { icon: ShieldAlert, labelKey: "menuEmergency" as const, href: "#" },
   { icon: Info, labelKey: "menuInfo" as const, href: "#" },
@@ -33,6 +34,9 @@ export function DashboardPageContent() {
 
   return (
     <div className="space-y-5 pb-8">
+      {/* Notification Modal (sheet) */}
+      <NotificationModal />
+
       {/* 1. Dashboard Header */}
       <DashboardHeader />
 

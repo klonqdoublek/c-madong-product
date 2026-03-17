@@ -415,7 +415,7 @@ C-Madong Platform
 - Parcel pickup tracking
 - LINE notification on arrival
 
-### Phase 5: Dorm Score & Activities ✅ UI COMPLETE (2026-03-12)
+### Phase 5: Dorm Score & Activities ✅ DEPLOYED (2026-03-16)
 
 > Reference: [`docs/dorm-score-activities.md`](dorm-score-activities.md) — Full activity impact matrix, scoring rules, and DB schema.
 
@@ -443,6 +443,8 @@ C-Madong Platform
 **Hooks:**
 - `use-score.ts`: useMyScore (RPC), useMyScoreHistory, useScoreCategories, useStudentScores, useAddScoreEntry
 - `use-events.ts`: useUpcomingEvents, usePastEvents, useEventDetail, useMyAttendance, useRegisterEvent, useUnregisterEvent, useAdminEvents, useCreateEvent, useUpdateEvent, useDeleteEvent, useEventAttendees, useUpdateAttendance
+
+**Status:** US-5.1 through US-5.4: COMPLETE (RLS fix migration 20260316 + LINE push notification on admin score entry deployed 2026-03-16). US-5.5: Deferred.
 
 **Not yet implemented (US-5.5):**
 - Obligation deadline tracking + LINE push reminders (needs LINE scheduling, separate concern)

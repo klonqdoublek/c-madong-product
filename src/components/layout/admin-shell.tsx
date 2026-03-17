@@ -28,6 +28,7 @@ import {
   Banknote,
   CalendarDays,
   Trophy,
+  Package,
 } from "lucide-react";
 
 interface NavItem {
@@ -124,6 +125,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const billingItem: NavItem = {
     href: "/admin/billing",
     label: t("navBilling"),
+  };
+
+  // Parcels standalone item
+  const parcelsItem: NavItem = {
+    href: "/admin/parcels",
+    label: t("parcels"),
   };
 
   // Knowledge base standalone item
@@ -249,6 +256,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         >
           <Banknote className="h-4 w-4" />
           {billingItem.label}
+        </Link>
+
+        {/* Parcels */}
+        <Link
+          href={parcelsItem.href}
+          className={linkClasses(parcelsItem.href)}
+          onClick={() => setSidebarOpen(false)}
+        >
+          <Package className="h-4 w-4" />
+          {parcelsItem.label}
         </Link>
 
         {/* Knowledge Base */}

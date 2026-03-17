@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { buildScoreAddedFlex } from "@/lib/line/flex-builders/score-added";
 import { pushFlexMessage } from "@/lib/line/client";
 import { formatThaiDate } from "@/lib/utils/date";
+import { notifyScoreAdded } from "@/lib/notifications/triggers";
 
 export const maxDuration = 30;
 
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
     const category = categoryRes.data;
     const lineUid = profile?.line_uid;
 
-    // Send LINE push (non-blocking — don't fail if LINE push fails)
+    // Send LINE Flex push (non-blocking — don't fail if LINE push fails)
     if (lineUid) {
       try {
         const flexPayload = buildScoreAddedFlex({
@@ -91,6 +92,15 @@ export async function POST(request: NextRequest) {
         console.error("LINE push failed (non-blocking):", lineError);
       }
     }
+
+    // Create in-app notification (non-blocking)
+    notifyScoreAdded({
+      studentUserId: student_id,
+      lineUid: null, // LINE push already handled above via Flex
+      points,
+      categoryName: category?.name_th || category?.name || "คะแนนหอพัก",
+      reason: description_th || reason || undefined,
+    }).catch((err) => console.error("Notification failed:", err));
 
     return NextResponse.json({ success: true, data: entry });
   } catch (error) {
