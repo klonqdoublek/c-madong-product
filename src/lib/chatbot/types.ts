@@ -101,7 +101,9 @@ export interface RepairDetection {
   category: string
   title: string
   description: string
-  urgency: "low" | "medium" | "high"
+  urgency: "low" | "medium" | "high" | "urgent"
+  damage_details?: string // AI vision analysis details
+  ai_confidence?: number // 0.0-1.0 confidence score
 }
 
 /** Quick Reply item for LINE messages */

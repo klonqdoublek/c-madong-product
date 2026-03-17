@@ -61,18 +61,29 @@ async function handleRepairConfirm(
   params: URLSearchParams,
   lineUid: string
 ): Promise<void> {
-  const detection: RepairDetection = {
-    category: params.get("category") ?? "other",
-    title: decodeURIComponent(params.get("title") ?? ""),
-    description: decodeURIComponent(params.get("description") ?? ""),
-    urgency: (params.get("urgency") as RepairDetection["urgency"]) ?? "medium",
+  // Get detection, photos, and vision metadata from session state
+  const session = await getOrCreateSession(lineUid)
+  const detection = session.state_data?.detection as RepairDetection | undefined
+  const photos = (session.state_data?.photos as string[]) ?? []
+  const provider = session.state_data?.provider as string | undefined
+  const template_id = session.state_data?.template_id as string | undefined
+  const ai_confidence = detection?.ai_confidence as number | undefined
+
+  // Fallback if session is missing detection (shouldn't happen)
+  if (!detection) {
+    await replyTextMessage(
+      replyToken,
+      "อุ๊ปส์! ข้อมูลหายไปแล้วน้า 😅 ลองแจ้งซ่อมใหม่อีกทีนะ"
+    )
+    await resetSession(lineUid)
+    return
   }
 
-  // Get photos from session state
-  const session = await getOrCreateSession(lineUid)
-  const photos = (session.state_data?.photos as string[]) ?? []
-
-  const ticket = await createRepairTicket(lineUid, detection, photos)
+  const ticket = await createRepairTicket(lineUid, detection, photos, {
+    provider,
+    template_id,
+    ai_confidence,
+  })
 
   if (ticket) {
     await replyFlexMessage(

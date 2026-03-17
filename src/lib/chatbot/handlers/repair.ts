@@ -5,8 +5,10 @@ import { detectRepairCategory, AI_TIMEOUT_MS, CATEGORY_NAMES_TH } from "../const
 import { updateSessionState } from "../session-manager"
 import { buildRepairConfirmFlex, type RepairConfirmContext } from "../flex-builders/repair-confirm"
 import type { HandlerResponse, RepairDetection } from "../types"
+import { repairOrchestrator } from "@/lib/ai/orchestrator"
 
 const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
+const ENABLE_VISION_ANALYSIS = process.env.ENABLE_VISION_ANALYSIS === "true"
 
 /** Handle repair intent: detect category/urgency, show confirmation Flex */
 export async function handleRepair(
@@ -18,6 +20,56 @@ export async function handleRepair(
   const session = await getOrCreateSession(lineUid)
   const photos = (session.state_data?.photos as string[]) ?? []
 
+  // Use orchestrator for vision analysis if enabled and photos exist
+  if (ENABLE_VISION_ANALYSIS && photos.length > 0) {
+    try {
+      // Get user ID from line_uid
+      const supabase = createAdminClient()
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("line_uid", lineUid)
+        .single()
+
+      if (profile) {
+        const result = await repairOrchestrator.handleRepairRequest(
+          profile.id,
+          message,
+          photos
+        )
+
+        console.log(
+          `[Repair] Vision analysis: ${result.provider}, confidence: ${result.detection.ai_confidence}`
+        )
+
+        // Save detection to session with vision metadata
+        await updateSessionState(lineUid, "repair_confirming", {
+          detection: result.detection,
+          originalMessage: message,
+          photos,
+          provider: result.provider,
+          template_id: result.template_id,
+        })
+
+        return {
+          type: "flex",
+          flex: buildRepairConfirmFlex(
+            result.detection,
+            {
+              reporterName: result.reporterContext.name,
+              roomInfo: `${result.reporterContext.building} ห้อง ${result.reporterContext.room}`,
+            },
+            photos.length
+          ),
+        }
+      }
+    } catch (error) {
+      console.error("[Repair] Vision analysis failed, falling back to text-only:", error)
+      // Fall through to text-only detection
+    }
+  }
+
+  // Text-only detection (no vision analysis)
   const detection = await detectRepairDetails(message)
 
   // Fetch reporter profile for the Flex card context
@@ -40,7 +92,12 @@ export async function handleRepair(
 export async function createRepairTicket(
   lineUid: string,
   detection: RepairDetection,
-  photos: string[] = []
+  photos: string[] = [],
+  metadata?: {
+    provider?: string
+    template_id?: string
+    ai_confidence?: number
+  }
 ): Promise<{ id: string } | null> {
   if (IS_DEMO) {
     return { id: "demo-ticket-" + Date.now() }
@@ -68,6 +125,11 @@ export async function createRepairTicket(
       status: "pending",
       ai_category: detection.category,
       ai_priority: detection.urgency,
+      // Vision analysis metadata
+      ai_confidence: metadata?.ai_confidence || detection.ai_confidence,
+      ai_provider: metadata?.provider as any,
+      template_id: metadata?.template_id as any,
+      damage_details: detection.damage_details,
     })
     .select("id")
     .single()
@@ -91,35 +153,74 @@ async function getReporterContext(lineUid: string): Promise<RepairConfirmContext
 
   try {
     const supabase = createAdminClient()
-    const { data: profile } = await supabase
+
+    // First get profile with direct columns
+    const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("full_name_th, display_name, buildings(name_th), rooms(room_number), beds(label)")
+      .select("full_name_th, display_name, building_id, room_id, bed_id")
       .eq("line_uid", lineUid)
       .single()
 
+    if (profileError) {
+      console.error("[Repair] getReporterContext profile error:", profileError)
+      return fallback
+    }
     if (!profile) return fallback
 
     const name = profile.display_name || profile.full_name_th || "ผู้แจ้ง"
-    const building = (profile.buildings as { name_th?: string } | null)?.name_th
-    const room = (profile.rooms as { room_number?: string } | null)?.room_number
-    const bed = (profile.beds as { label?: string } | null)?.label
+
+    // Fetch building, room, bed separately to avoid join issues
+    let buildingName: string | null = null
+    let roomNumber: string | null = null
+    let bedLabel: string | null = null
+
+    if (profile.building_id) {
+      const { data: b } = await supabase
+        .from("buildings")
+        .select("name_th")
+        .eq("id", profile.building_id)
+        .single()
+      buildingName = b?.name_th ?? null
+    }
+
+    if (profile.room_id) {
+      const { data: r } = await supabase
+        .from("rooms")
+        .select("room_number")
+        .eq("id", profile.room_id)
+        .single()
+      roomNumber = r?.room_number ?? null
+    }
+
+    if (profile.bed_id) {
+      const { data: bd } = await supabase
+        .from("beds")
+        .select("bed_label")
+        .eq("id", profile.bed_id)
+        .single()
+      bedLabel = bd?.bed_label ?? null
+    }
+
     const roomParts = [
-      building,
-      room,
-      bed ? `เตียง ${bed}` : null,
+      buildingName,
+      roomNumber ? `ห้อง ${roomNumber}` : null,
+      bedLabel ? `เตียง ${bedLabel}` : null,
     ].filter(Boolean)
+
+    console.log("[Repair] Reporter context:", { name, roomParts, buildingId: profile.building_id, roomId: profile.room_id })
 
     return {
       reporterName: name,
       roomInfo: roomParts.length > 0 ? roomParts.join(" ") : "-",
     }
-  } catch {
+  } catch (err) {
+    console.error("[Repair] getReporterContext error:", err)
     return fallback
   }
 }
 
 /** Detect repair details using OpenAI gpt-4o-mini, with keyword fallback */
-async function detectRepairDetails(message: string): Promise<RepairDetection> {
+export async function detectRepairDetails(message: string): Promise<RepairDetection> {
   try {
     const openai = getOpenAIClient()
     const controller = new AbortController()
@@ -145,7 +246,7 @@ async function detectRepairDetails(message: string): Promise<RepairDetection> {
       return {
         category: data.category,
         title: data.title,
-        description: data.description ?? message,
+        description: message,
         urgency: data.urgency ?? "medium",
       }
     }

@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.5
-> **Last Updated**: 2026-03-12
+> **Version**: 1.7
+> **Last Updated**: 2026-03-18
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -65,10 +65,17 @@ C-Madong Platform
 │   ├── LINE Login (OAuth) ✅
 │   ├── Flex Message Broadcasting ✅
 │   ├── Webhook (events & messaging) ✅
-│   └── Chatbot น้องซีมะโด่ง (intent router, RAG, chitchat) ✅
+│   └── Chatbot น้องซีมะโด่ง (intent router, RAG, vision AI, chitchat) ✅
+│
+├── AI Layer ✅
+│   ├── RepairOrchestrator (multi-agent coordination)
+│   ├── VisionAgent (template matching → Gemini → GPT-4o fallback)
+│   ├── Gemini 2.0 Flash (image analysis, free tier 1500 req/day)
+│   ├── OpenAI GPT-4o (fallback, gpt-4o-mini for text)
+│   └── pgvector Template Library (repair image embeddings)
 │
 └── Backend (Supabase)
-    ├── PostgreSQL Database + pgvector (RAG embeddings)
+    ├── PostgreSQL Database + pgvector (RAG embeddings + repair templates)
     ├── Authentication (LINE OAuth + synthetic email)
     ├── Real-time Subscriptions ✅
     ├── Edge Functions
@@ -294,7 +301,7 @@ C-Madong Platform
 | Feature | Description | Priority |
 |---------|-------------|----------|
 | ค่าน้ำค่าไฟ (Utility Bills) | ดูยอดค่าน้ำค่าไฟ, QR payment | Medium |
-| พัสดุ (Parcels) | แจ้งเตือนพัสดุ, รับพัสดุ | Medium |
+| พัสดุ (Parcels) | แจ้งเตือนพัสดุ, รับพัสดุ | ✅ Done (Phase 4) |
 | Check-in/Check-out | QR-based entry/exit logging | Low |
 | Roommate Matching | จับคู่รูมเมท (preferences) | Low |
 | Feedback & Rating | ให้คะแนนการซ่อม | Low |
@@ -346,7 +353,7 @@ C-Madong Platform
 - Knowledge Base (RAG): document upload (txt/md/PDF) → drag & drop → OpenAI embeddings → gpt-4o-mini Q&A playground ✅
 - Settings: LINE OA info, AI API keys (localStorage), app info
 
-**Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-03):**
+**Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-18):**
 - LINE webhook handler (`/api/webhooks/line`)
 - Intent router (OpenAI gpt-4o-mini classification)
 - Session management + chat history
@@ -354,6 +361,7 @@ C-Madong Platform
 - Quick Reply menu (trigger: "น้องซีมะโด่ง", "เมนู", "help") with 4 action buttons ✅
 - Image support
 - All AI: OpenAI gpt-4o-mini (switched from Gemini — free tier quota exhausted)
+- **Repair flow fix (2026-03-18):** Postback reads detection from session (not params), description=original message, reporter context queries tables separately, CU Pink Flex design
 
 **LINE Messaging Pipeline ✅ (2026-02-21):**
 - `@line/bot-sdk` integration
@@ -371,7 +379,9 @@ C-Madong Platform
 - ai_chat_messages, chatbot_sessions
 - score_categories, score_entries, dorm_events, event_attendance (Phase 5)
 - bills, bill_items (new — Phase 3)
+- parcels (new — Phase 4)
 - user_roles, role_permissions (RBAC — cross-phase)
+- FK fix: `maintenance_requests.requester_id` → `profiles(id)` for PostgREST joins (2026-03-18)
 
 **RBAC System ✅ (2026-03-05):**
 - 13 roles (super_admin, head, registrar, finance, parcel, admin_staff, service, activity, technician_head, technician, technician_it, committee, student)
@@ -410,10 +420,118 @@ C-Madong Platform
 **Not yet implemented:**
 - QR payment integration (requires PromptPay/bank API)
 
-### Phase 4: Parcel Management
-- Parcel notification system
-- Parcel pickup tracking
-- LINE notification on arrival
+### Phase 4: Parcel Management ✅ DEPLOYED (2026-03-17)
+
+**Database (migrations `20260317_phase4_parcels.sql` + `20260320_notification_type_parcels.sql`):**
+- `parcels` table: student_id, tracking_number, parcel_type (box/envelope/bag/oversized/other), status (pending/notified/picked_up/returned), pickup_location, notes, timestamps
+- RLS policies for student read + admin full access
+- Notification type `parcels` added to enum
+
+**Admin pages:**
+- `/admin/parcels`: Register parcels, list with filters, notify students (single + bulk LINE push)
+- API routes: `GET/POST /api/admin/parcels`, `PATCH/DELETE /api/admin/parcels/[id]`, `POST /api/admin/parcels/[id]/notify`, `POST /api/admin/parcels/notify-bulk`
+
+**Student pages:**
+- `/parcels`: Pending parcels list with tracking info + pickup history
+- API route: `GET /api/student/parcels`
+
+**Chatbot Flex cards (Figma-based):**
+- `buildParcelStatusFlex`: Pink header "📦 รายการพัสดุ" — single bubble for 1 parcel, carousel (swipeable) for 2+, each showing tracking/type/date + pickup location + LIFF CTA
+- `buildParcelAllReceivedFlex`: Green "📦 รับพัสดุทั้งหมดแล้ว! ✅" compact card + LIFF CTA
+- Handler: `src/lib/chatbot/handlers/parcel.ts` — intent `parcel` triggers Flex response
+
+**Not yet implemented:**
+- QR code for parcel pickup confirmation
+- Parcel photo upload on registration
+- Auto-return workflow after X days uncollected
+
+### Phase 4.5: AI Vision Analysis for Repair Reporting ⚙️ IN PROGRESS (2026-03-18)
+
+> **Goal:** Enable AI-powered image analysis for maintenance requests to automatically categorize damage, assess urgency, and improve ticket quality — reducing manual categorization and speeding up technician assignment.
+
+**Problem:**
+- Existing chatbot receives photos but doesn't analyze them (images stored but not processed)
+- Manual categorization prone to errors
+- No automatic urgency assessment from visual damage
+- Students struggle to describe technical issues accurately
+
+**Solution:** Multi-provider AI vision analysis with cost optimization
+
+**Architecture:**
+```
+LINE Webhook → RepairOrchestrator
+    ↓
+VisionAgent (photo analysis)
+    ↓
+1. Template Matching (pgvector embedding search) — 70% cases, <1s, FREE
+2. Gemini 2.0 Flash (primary AI) — 25% cases, <3s, FREE (1500 req/day tier)
+3. GPT-4o (fallback) — 5% cases, <5s, ฿0.30/ticket
+4. Keyword Detection (last resort) — instant, FREE
+```
+
+**Database (migration `20260318_repair_templates.sql`):**
+- `repair_templates` table: category, title, description, image_url, embedding vector(1536), usage_count, accuracy_score
+- Vector similarity search function: `match_repair_templates(embedding, threshold, count)` using IVFFlat index
+- Added to `maintenance_requests`: ai_confidence (0.0-1.0), ai_provider (template/gemini/openai/text-only/keyword), template_id (FK), damage_details
+- RPC functions: `increase_template_usage()`, `decrease_template_accuracy()` for feedback loop
+
+**AI Components:**
+
+1. **Gemini Client** (`src/lib/ai/gemini.ts`):
+   - Gemini 2.0 Flash integration for vision analysis (30x cheaper than GPT-4o)
+   - Thai-optimized repair analysis prompt (7 categories, 4 urgency levels)
+   - Multi-image support with confidence aggregation
+   - JSON response parsing with validation
+
+2. **VisionAgent** (`src/lib/ai/agents/vision-agent.ts`):
+   - Multi-provider fallback chain with confidence thresholds
+   - Template matching via embedding similarity (cost optimization)
+   - Provider selection based on confidence scores
+   - Graceful degradation to keyword detection
+
+3. **RepairOrchestrator** (`src/lib/ai/orchestrator.ts`):
+   - Coordinates vision analysis + user context lookup (parallel execution)
+   - Handles both photo-based and text-only repair requests
+   - Multi-image analysis support (future Phase 4.5D)
+
+**Updated Handlers:**
+- `handleRepair()`: Uses orchestrator when `ENABLE_VISION_ANALYSIS=true` and photos exist
+- `createRepairTicket()`: Stores vision metadata (provider, confidence, template_id, damage_details)
+- `handleRepairConfirm()`: Passes vision metadata from session to ticket creation
+
+**Seed Data:**
+- Initial 20 template images across 7 categories (plumbing: 6, electrical: 5, aircon: 4, furniture: 3, pest: 2)
+- Script: `scripts/seed-repair-templates.ts` — generates embeddings and populates DB
+- Usage: `bun run scripts/seed-repair-templates.ts`
+
+**Cost Analysis (50 tickets/month):**
+- Template matching: ฿0.02 (70% of requests)
+- Gemini Flash: FREE or ฿0.01 if exceed tier (25% of requests)
+- GPT-4o fallback: ฿0.90 (5% of requests)
+- **Total: ~฿1/month** (93% cheaper than GPT-4o-only approach)
+
+**Rollout Plan:**
+- **Week 1 (Current)**: Foundation — migrations, agents, orchestrator, seed templates
+- **Week 2**: MVP — enable for 10 beta users, monitor accuracy/cost, iterate on prompts
+- **Week 3**: Full rollout — all users, expand template library to 50+, GPT-4o fallback active
+- **Week 4-6**: Enhancements — multi-photo analysis, admin feedback loop, template optimization
+
+**Feature Flag:**
+- `ENABLE_VISION_ANALYSIS=false` (default off for gradual rollout)
+- Set to `true` to enable vision analysis for repair requests with photos
+
+**Success Metrics:**
+- 85%+ categorization accuracy (admin validation)
+- <3s average response time (P95)
+- <฿5/month API costs for 50 tickets
+- 70%+ template match rate (no API cost)
+
+**Not yet implemented:**
+- Admin re-analyze tool (re-run vision AI on existing tickets)
+- Incorrect categorization feedback loop (admin flags wrong category → adds to training data)
+- Photo gallery in admin ticket detail
+- Multi-photo aggregation (analyze all photos, not just first)
+- Content moderation (NSFW/inappropriate image filtering)
 
 ### Phase 5: Dorm Score & Activities ✅ DEPLOYED (2026-03-16)
 
@@ -485,11 +603,33 @@ Two Flex Message builders from Figma designs (file `zepMkYbO2pzKy9lhya4sVW`):
 - Quick reply "📊 คะแนนหอ" and typed "คะแนนหอ" both trigger score Flex response
 - Tested end-to-end on LINE (2026-03-16)
 
-### Phase 6: AI Adaptive UX Layer (Plan drafted)
-- Dashboard insights (personalized for each student)
-- Smart notifications (AI-prioritized)
+### Phase 6: AI Adaptive UX Layer ✅ DEPLOYED (2026-03-17)
+
+**Database (migration `20260318_phase6_ai_ux.sql`):**
+- Notification priority system + AI insight tables
+
+**Notification system (`src/lib/notifications/`):**
+- `create.ts`: Create notifications with type/priority
+- `triggers.ts`: Auto-trigger notifications on key events
+- `priority.ts`: AI-based priority scoring
+- `line-push.ts`: Push critical notifications via LINE
+- Student UI: `notification-item.tsx`, `notification-modal.tsx`, `notification-store.ts`
+
+**AI Insights (`src/lib/insights/`):**
+- `generate.ts`: Personalized insights via OpenAI gpt-4o-mini
+- `prompts.ts`: Prompt templates for student context
+- API: `GET /api/student/insights`
+
+**Chatbot enhancements:**
+- Context manager (`context-manager.ts`): Multi-turn conversation awareness
+- Suggestions (`suggestions.ts`): Proactive quick reply suggestions
+- Enhanced postback handler, intent router, system prompts
+- Parcel intent + handler integration
+
+**Not yet implemented:**
 - Adaptive UX (usage-based interface optimization)
-- Chatbot enhancement (multi-turn, proactive suggestions)
+- Dashboard insight cards (API ready, UI pending)
+- Notification preferences per student
 
 ### Phase 7: LINE LIFF Integration
 - LIFF mini app setup

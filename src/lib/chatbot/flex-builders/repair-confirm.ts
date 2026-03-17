@@ -2,12 +2,14 @@ import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder"
 import { CATEGORY_NAMES_TH } from "../constants"
 import type { RepairDetection } from "../types"
 
-const HEADER_BG = "#FFBF00"
+// CU Pink design tokens
+const CU_PINK = "#FF90DC"
 const CONFIRM_GREEN = "#23BE47"
 const EDIT_BLUE = "#0059FF"
 const CANCEL_RED = "#E44548"
-const LABEL_COLOR = "#00000099"
-const TEXT_COLOR = "#000000"
+const TEXT_PRIMARY = "#000000"
+const TEXT_SECONDARY = "#00000099"
+const DIVIDER = "#E5E7EB"
 
 const URGENCY_COLORS: Record<string, string> = {
   low: "#10B981",
@@ -15,9 +17,9 @@ const URGENCY_COLORS: Record<string, string> = {
   high: "#E44548",
 }
 const URGENCY_LABELS: Record<string, string> = {
-  low: "ปกติ",
-  medium: "⚡️ ค่อนข้างด่วน",
-  high: "⚡️ ด่วนมาก",
+  low: "🟢 ปกติ",
+  medium: "🟡 ค่อนข้างด่วน",
+  high: "🔴 ด่วนมาก",
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -53,43 +55,26 @@ export function buildRepairConfirmFlex(
 
   return {
     type: "flex",
-    altText: `🔧 แจ้งซ่อม: ${detection.title}`,
+    altText: `🔧 ยืนยันแจ้งซ่อม: ${detection.title}`,
     contents: {
       type: "bubble",
       size: "mega",
 
-      // ── Yellow header with badge + title + mascot ──
+      // ── Pink header with confirmation message ──
       header: {
         type: "box",
         layout: "vertical",
         contents: [
-          // "แจ้งซ่อม" badge (white pill)
           {
             type: "box",
             layout: "horizontal",
             contents: [
               {
-                type: "box",
-                layout: "vertical",
-                contents: [
-                  {
-                    type: "text",
-                    text: "แจ้งซ่อม",
-                    size: "xxs",
-                    color: "#565655",
-                    weight: "bold",
-                    align: "center",
-                  },
-                ],
-                backgroundColor: "#FFFFFF",
-                cornerRadius: "xxl",
-                paddingStart: "md",
-                paddingEnd: "md",
-                paddingTop: "xs",
-                paddingBottom: "xs",
+                type: "text",
+                text: "🔧",
+                size: "3xl",
                 flex: 0,
               },
-              // Spacer + mascot emoji
               { type: "filler" },
               {
                 type: "text",
@@ -99,56 +84,94 @@ export function buildRepairConfirmFlex(
                 flex: 0,
               },
             ],
-            alignItems: "center",
           },
-          // Title
           {
             type: "text",
-            text: "การแจ้งซ่อมใหม่",
+            text: "ยืนยันการแจ้งซ่อม",
             size: "xxl",
             color: "#FFFFFF",
             weight: "bold",
             margin: "sm",
           },
-          // Reporter name
           {
             type: "text",
-            text: `@${context.reporterName}`,
-            size: "md",
+            text: "กรุณาตรวจสอบข้อมูลก่อนยืนยัน",
+            size: "sm",
             color: "#FFFFFF",
             wrap: true,
             margin: "xs",
           },
         ],
-        backgroundColor: HEADER_BG,
+        backgroundColor: CU_PINK,
         paddingAll: "xl",
         paddingBottom: "lg",
       },
 
-      // ── Body: detail rows ──
+      // ── Body: detail rows with better hierarchy ──
       body: {
         type: "box",
         layout: "vertical",
-        spacing: "sm",
+        spacing: "md",
         contents: [
-          // Ticket number
-          buildDetailRow("หมายเลข:", ticketNumber, true),
-          // Category
-          buildDetailRow("ประเภท:", `${categoryEmoji} ${categoryName}`),
-          // Description
-          buildDetailRow("รายละเอียด:", detection.description),
-          // Urgency
+          // Title highlight
           {
             type: "box",
-            layout: "horizontal",
-            spacing: "lg",
+            layout: "vertical",
             contents: [
               {
                 type: "text",
-                text: "ความเร่งด่วน:",
+                text: detection.title,
+                size: "lg",
+                color: TEXT_PRIMARY,
+                weight: "bold",
+                wrap: true,
+              },
+              {
+                type: "text",
+                text: `${categoryEmoji} ${categoryName}`,
                 size: "sm",
-                color: LABEL_COLOR,
-                flex: 3,
+                color: TEXT_SECONDARY,
+                margin: "xs",
+              },
+            ],
+          },
+
+          { type: "separator", color: DIVIDER },
+
+          // Description
+          {
+            type: "box",
+            layout: "vertical",
+            contents: [
+              {
+                type: "text",
+                text: "รายละเอียด",
+                size: "xs",
+                color: TEXT_SECONDARY,
+              },
+              {
+                type: "text",
+                text: detection.description,
+                size: "sm",
+                color: TEXT_PRIMARY,
+                wrap: true,
+                margin: "xs",
+              },
+            ],
+          },
+
+          // Urgency badge
+          {
+            type: "box",
+            layout: "horizontal",
+            spacing: "md",
+            contents: [
+              {
+                type: "text",
+                text: "ความเร่งด่วน",
+                size: "xs",
+                color: TEXT_SECONDARY,
+                flex: 0,
               },
               {
                 type: "text",
@@ -156,40 +179,31 @@ export function buildRepairConfirmFlex(
                 size: "sm",
                 color: urgencyColor,
                 weight: "bold",
-                flex: 5,
-                wrap: true,
+                flex: 0,
               },
             ],
+            alignItems: "center",
           },
-          // Room info
-          buildDetailRow("ห้องพัก:", context.roomInfo),
-          // Reporter
-          buildDetailRow("ผู้แจ้ง:", context.reporterName),
-          // Photos (if any)
+
+          { type: "separator", color: DIVIDER },
+
+          // Location & Reporter
+          buildDetailRow("ห้องพัก", context.roomInfo),
+          buildDetailRow("ผู้แจ้ง", context.reporterName),
           ...(photoCount > 0
-            ? [buildDetailRow("รูปภาพ:", `📸 ${photoCount} รูป`)]
+            ? [buildDetailRow("รูปภาพ", `📸 ${photoCount} รูป`)]
             : []),
         ],
         paddingAll: "xl",
       },
 
-      // ── Footer: warning + action buttons ──
+      // ── Footer: action buttons ──
       footer: {
         type: "box",
         layout: "vertical",
-        spacing: "md",
+        spacing: "sm",
         contents: [
-          // Warning text
-          {
-            type: "text",
-            text: "⚠️ โปรดตรวจสอบความถูกต้องก่อนยืนยันนะ ⚠️",
-            size: "xxs",
-            color: "#000000",
-            align: "center",
-            wrap: true,
-          },
-          { type: "separator", color: "#E5E7EB" },
-          // Confirm button (green)
+          // Primary action: Confirm
           {
             type: "button",
             style: "primary",
@@ -198,35 +212,53 @@ export function buildRepairConfirmFlex(
             action: {
               type: "postback",
               label: "✅ ยืนยันการแจ้งซ่อม",
-              data: `action=repair_confirm&category=${detection.category}&urgency=${detection.urgency}`,
+              data: "action=repair_confirm",
               displayText: "ยืนยันการแจ้งซ่อม ✅",
             },
           },
-          // Edit button (blue link)
+          // Secondary actions
           {
-            type: "button",
-            style: "link",
-            height: "sm",
-            color: EDIT_BLUE,
-            action: {
-              type: "postback",
-              label: "✏️ แก้ไขรายละเอียด",
-              data: "action=repair_edit",
-              displayText: "ขอแก้ไขรายละเอียด",
-            },
+            type: "box",
+            layout: "horizontal",
+            spacing: "sm",
+            contents: [
+              {
+                type: "button",
+                style: "link",
+                height: "sm",
+                color: EDIT_BLUE,
+                action: {
+                  type: "postback",
+                  label: "✏️ แก้ไข",
+                  data: "action=repair_edit",
+                  displayText: "ขอแก้ไขรายละเอียด",
+                },
+                flex: 1,
+              },
+              {
+                type: "button",
+                style: "link",
+                height: "sm",
+                color: CANCEL_RED,
+                action: {
+                  type: "postback",
+                  label: "❌ ยกเลิก",
+                  data: "action=repair_cancel",
+                  displayText: "ยกเลิกแจ้งซ่อม",
+                },
+                flex: 1,
+              },
+            ],
           },
-          // Cancel button (red link)
+          // Info text
           {
-            type: "button",
-            style: "link",
-            height: "sm",
-            color: CANCEL_RED,
-            action: {
-              type: "postback",
-              label: "❌ ยกเลิก",
-              data: "action=repair_cancel",
-              displayText: "ยกเลิกแจ้งซ่อม",
-            },
+            type: "text",
+            text: "💡 ตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยันนะ",
+            size: "xxs",
+            color: TEXT_SECONDARY,
+            align: "center",
+            wrap: true,
+            margin: "sm",
           },
         ],
         paddingAll: "lg",
@@ -236,27 +268,26 @@ export function buildRepairConfirmFlex(
   }
 }
 
-function buildDetailRow(label: string, value: string, bold: boolean = false) {
+function buildDetailRow(label: string, value: string) {
   return {
     type: "box",
     layout: "horizontal",
-    spacing: "lg",
+    spacing: "md",
     contents: [
       {
         type: "text",
         text: label,
-        size: "sm",
-        color: LABEL_COLOR,
-        flex: 3,
+        size: "xs",
+        color: TEXT_SECONDARY,
+        flex: 2,
       },
       {
         type: "text",
         text: value,
         size: "sm",
-        color: TEXT_COLOR,
-        weight: bold ? "bold" : "regular",
+        color: TEXT_PRIMARY,
         wrap: true,
-        flex: 5,
+        flex: 3,
       },
     ],
   }
