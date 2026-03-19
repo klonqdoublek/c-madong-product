@@ -65,7 +65,6 @@ export function useMaintenanceTicket(id: string | null) {
 }
 
 export function useUpdateTicketStatus() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -78,26 +77,21 @@ export function useUpdateTicketStatus() {
       status: MaintenanceStatus;
       failure_reason?: string;
     }) => {
-      const updates: Record<string, unknown> = {
-        status,
-        updated_at: new Date().toISOString(),
-      };
+      const body: Record<string, unknown> = { status };
+      if (failure_reason) body.failure_reason = failure_reason;
 
-      if (status === "acknowledged") {
-        updates.accepted_at = new Date().toISOString();
-      }
-      if (status === "completed" || status === "cancelled") {
-        updates.resolved_at = new Date().toISOString();
-      }
-      if (failure_reason) {
-        updates.failure_reason = failure_reason;
+      const res = await fetch(`/api/admin/maintenance/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update ticket");
       }
 
-      const { error } = await supabase
-        .from("maintenance_requests")
-        .update(updates)
-        .eq("id", id);
-      if (error) throw error;
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_KEY] });
