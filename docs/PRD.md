@@ -355,10 +355,13 @@ C-Madong Platform
 - Settings: LINE OA info, AI API keys (localStorage), app info
 
 **Maintenance Feature Completion ✅ (2026-03-19):**
-- Auto LINE Flex notification on admin status change (fire-and-forget, skips if status unchanged)
-- Student cancel request: `POST /api/student/maintenance/[id]/cancel` + `useCancelTicket` hook + cancel button/dialog in ticket-detail
+- Auto LINE Flex notification on admin status change — awaits in-app + LINE Flex push, uses admin client for lookups, independent error handling
+- Admin status update routes through API (`PATCH /api/admin/maintenance/[id]`) to trigger notifications
+- Student cancel request: `POST /api/student/maintenance/[id]/cancel` + `useCancelTicket` hook + cancel button/dialog in ticket-detail + RLS UPDATE policy
 - Appointment booking UI in new-request-form: toggle + Calendar date picker + time select (08:00-17:00), shown in review step
+- Chatbot repair ticket insert: type-safe with optional vision metadata fields
 - i18n strings for cancel + appointment in th.json/en.json
+- Migrations: `20260322_repair_templates.sql` (pgvector + vision analysis), `20260323_student_update_policy.sql` (student UPDATE RLS)
 
 **Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-18):**
 - LINE webhook handler (`/api/webhooks/line`)
