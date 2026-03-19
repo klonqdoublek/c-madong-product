@@ -87,12 +87,13 @@ export async function PATCH(
       cancelled: "ยกเลิก",
     };
 
-    // Use admin client for lookups — the server client's cookie context
-    // becomes invalid after the response is sent
     const adminDb = createAdminClient();
 
+    // Lookup requester LINE UID + technician name
+    let lineUid: string | null = null;
+    let technicianName: string | undefined;
+
     try {
-      // Lookup requester LINE UID + technician name in parallel
       const [requesterResult, techResult] = await Promise.all([
         adminDb
           .from("profiles")
@@ -108,20 +109,34 @@ export async function PATCH(
           : Promise.resolve({ data: null }),
       ]);
 
-      const lineUid = requesterResult.data?.line_uid ?? null;
-      const technicianName = techResult.data?.display_name ?? undefined;
+      lineUid = requesterResult.data?.line_uid ?? null;
+      technicianName = techResult.data?.display_name ?? undefined;
+      console.log("[Auto-notify] Lookup result:", {
+        requesterId: currentTicket.requester_id,
+        lineUid,
+        technicianName,
+        requesterError: requesterResult.error?.message,
+      });
+    } catch (err) {
+      console.error("[Auto-notify] Lookup failed:", err);
+    }
 
-      // 1) In-app notification
+    // 1) In-app notification (independent — don't let it block LINE push)
+    try {
       await notifyMaintenanceUpdate({
         requesterId: currentTicket.requester_id,
-        lineUid: null, // Skip LINE text push — we send Flex below instead
+        lineUid: null,
         ticketId: id,
         ticketTitle: currentTicket.title,
         newStatus,
       });
+    } catch (err) {
+      console.error("[Auto-notify] In-app notification failed:", err);
+    }
 
-      // 2) LINE Flex message (richer than plain text)
-      if (lineUid) {
+    // 2) LINE Flex message
+    if (lineUid) {
+      try {
         const flex = buildRepairNotificationFlex({
           ticketTitle: currentTicket.title,
           category: currentTicket.category,
@@ -132,9 +147,12 @@ export async function PATCH(
           failureReason: parsed.data.failure_reason ?? undefined,
         });
         await pushFlexMessage(lineUid, flex);
+        console.log("[Auto-notify] LINE Flex sent to:", lineUid);
+      } catch (err) {
+        console.error("[Auto-notify] LINE Flex push failed:", err);
       }
-    } catch (err) {
-      console.error("[Auto-notify] Failed to send maintenance notification:", err);
+    } else {
+      console.warn("[Auto-notify] No line_uid found — skipping LINE push");
     }
   }
 
