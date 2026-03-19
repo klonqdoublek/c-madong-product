@@ -12,6 +12,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  console.log("[Maintenance PATCH] Called for ticket:", id);
 
   const supabase = await createClient();
   const {
@@ -79,6 +80,14 @@ export async function PATCH(
 
   // Send notifications if status changed
   const newStatus = parsed.data.status;
+  console.log("[Maintenance PATCH] Notification check:", {
+    id,
+    newStatus,
+    hasCurrentTicket: !!currentTicket,
+    oldStatus: currentTicket?.status,
+    statusChanged: newStatus !== currentTicket?.status,
+    body: JSON.stringify(parsed.data),
+  });
   if (newStatus && currentTicket && newStatus !== currentTicket.status) {
     const STATUS_LABELS: Record<string, string> = {
       acknowledged: "รับเรื่องแล้ว",
