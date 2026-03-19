@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.7
-> **Last Updated**: 2026-03-18
+> **Version**: 1.8
+> **Last Updated**: 2026-03-19
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -153,20 +153,21 @@ C-Madong Platform
 > **As a** student, **I want to** report maintenance issues, **so that** they get fixed.
 
 **Features:**
-- [ ] เลือกประเภท: ไฟฟ้า, ประปา, เฟอร์นิเจอร์, แอร์, อินเทอร์เน็ต, กุญแจ, แมลง, ทำความสะอาด, อื่นๆ
-- [ ] กรอกรายละเอียดปัญหา (10-2000 ตัวอักษร)
-- [ ] แนบรูปภาพ (สูงสุด 5 รูป)
-- [ ] เลือกวัน-เวลานัดหมายช่าง (09:00-18:00)
+- [x] เลือกประเภท: ไฟฟ้า, ประปา, เฟอร์นิเจอร์, แอร์, อินเทอร์เน็ต, กุญแจ, แมลง, ทำความสะอาด, อื่นๆ
+- [x] กรอกรายละเอียดปัญหา (10-2000 ตัวอักษร)
+- [x] แนบรูปภาพ (สูงสุด 5 รูป)
+- [x] เลือกวัน-เวลานัดหมายช่าง (08:00-17:00, ทุก 30 นาที) — toggle "ต้องการนัดวันซ่อม?" + Calendar date picker + time select dropdown ✅ (2026-03-19)
 - [ ] AI auto-categorize & priority (optional)
 
 #### US-3.2: Track Request (Student)
 > **As a** student, **I want to** track my maintenance requests, **so that** I know when they'll be fixed.
 
 **Features:**
-- [ ] ดูรายการแจ้งซ่อมทั้งหมดของตัวเอง
-- [ ] สถานะ: รอดำเนินการ → รับเรื่องแล้ว → กำลังดำเนินการ → เสร็จสิ้น/ยกเลิก
-- [ ] Real-time status updates via notification
-- [ ] รายละเอียดการซ่อม, หมายเหตุจากช่าง
+- [x] ดูรายการแจ้งซ่อมทั้งหมดของตัวเอง
+- [x] สถานะ: รอดำเนินการ → รับเรื่องแล้ว → กำลังดำเนินการ → เสร็จสิ้น/ยกเลิก
+- [x] Real-time status updates via notification
+- [x] รายละเอียดการซ่อม, หมายเหตุจากช่าง
+- [x] นิสิตสามารถยกเลิกคำขอซ่อมได้เอง (เฉพาะ pending/acknowledged) พร้อมกรอกเหตุผล ✅ (2026-03-19)
 
 #### US-3.3: Manage Tickets (Admin)
 > **As a** staff member, **I want to** manage maintenance tickets, **so that** I can track and resolve issues.
@@ -177,7 +178,7 @@ C-Madong Platform
 - [ ] Ticket detail: change status, add notes, assign technician
 - [ ] Status: new → received → in_progress → completed/failed
 - [ ] Failure reason (required if marking as failed)
-- [ ] Send LINE notification to student on status change
+- [x] Send LINE notification to student on status change — Auto Flex message + in-app notification on status change ✅ (2026-03-19)
 - [ ] Filter by category, status, building, floor
 
 ---
@@ -352,6 +353,12 @@ C-Madong Platform
 - LINE Broadcast: quick send with template shortcuts + tag targeting
 - Knowledge Base (RAG): document upload (txt/md/PDF) → drag & drop → OpenAI embeddings → gpt-4o-mini Q&A playground ✅
 - Settings: LINE OA info, AI API keys (localStorage), app info
+
+**Maintenance Feature Completion ✅ (2026-03-19):**
+- Auto LINE Flex notification on admin status change (fire-and-forget, skips if status unchanged)
+- Student cancel request: `POST /api/student/maintenance/[id]/cancel` + `useCancelTicket` hook + cancel button/dialog in ticket-detail
+- Appointment booking UI in new-request-form: toggle + Calendar date picker + time select (08:00-17:00), shown in review step
+- i18n strings for cancel + appointment in th.json/en.json
 
 **Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-18):**
 - LINE webhook handler (`/api/webhooks/line`)

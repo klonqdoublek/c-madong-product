@@ -1,20 +1,32 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { useTicketDetail } from "@/hooks/use-my-tickets";
+import { useTicketDetail, useCancelTicket } from "@/hooks/use-my-tickets";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useQueryClient } from "@tanstack/react-query";
 import { CategoryIcon } from "@/components/admin/maintenance/category-icon";
 import { StatusBadge } from "@/components/admin/maintenance/status-badge";
 import { PhotoGallery } from "@/components/admin/maintenance/photo-gallery";
 import { formatDistanceToNow } from "@/lib/utils/date";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Clock,
   CheckCircle2,
   CircleDot,
   User,
   CalendarDays,
+  XCircle,
+  Loader2,
 } from "lucide-react";
 import type { MaintenanceStatus } from "@/lib/supabase/types";
 
@@ -34,6 +46,10 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
   const tCommon = useTranslations("common");
   const queryClient = useQueryClient();
   const { data: ticket, isLoading } = useTicketDetail(ticketId);
+  const cancelMutation = useCancelTicket();
+
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   // Realtime updates
   const onPayload = useCallback(() => {
@@ -47,6 +63,22 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
     filter: `id=eq.${ticketId}`,
     onPayload,
   });
+
+  const canCancel =
+    ticket &&
+    ["pending", "acknowledged"].includes(ticket.status);
+
+  const handleCancel = () => {
+    cancelMutation.mutate(
+      { ticketId, reason: cancelReason || undefined },
+      {
+        onSuccess: () => {
+          setCancelOpen(false);
+          setCancelReason("");
+        },
+      }
+    );
+  };
 
   if (isLoading) {
     return (
@@ -187,6 +219,60 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
           </h3>
           <p className="text-sm">{ticket.failure_reason}</p>
         </div>
+      )}
+
+      {/* Cancel button for student */}
+      {canCancel && (
+        <>
+          <Button
+            variant="outline"
+            className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 gap-1.5"
+            onClick={() => setCancelOpen(true)}
+          >
+            <XCircle size={16} />
+            {t("detail.cancelRequest")}
+          </Button>
+
+          <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("detail.cancelDialogTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("detail.cancelDialogDesc")}
+                </DialogDescription>
+              </DialogHeader>
+              <Textarea
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder={t("detail.cancelReasonPlaceholder")}
+                rows={3}
+                maxLength={500}
+              />
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setCancelOpen(false)}
+                  disabled={cancelMutation.isPending}
+                >
+                  {tCommon("back")}
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleCancel}
+                  disabled={cancelMutation.isPending}
+                  className="gap-1.5"
+                >
+                  {cancelMutation.isPending ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <XCircle size={16} />
+                  )}
+                  {tCommon("confirm")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </>
       )}
     </div>
   );

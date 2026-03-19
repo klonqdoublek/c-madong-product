@@ -3,11 +3,25 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Loader2,
+  CalendarDays,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CategoryPicker } from "./category-picker";
 import { PhotoUploader } from "./photo-uploader";
 import { CategoryIcon } from "@/components/admin/maintenance/category-icon";
@@ -29,9 +43,16 @@ const TITLE_SUGGESTIONS: Record<string, string> = {
   other: "ปัญหาอื่นๆ",
 };
 
+const TIME_SLOTS: string[] = [];
+for (let h = 8; h <= 17; h++) {
+  TIME_SLOTS.push(`${String(h).padStart(2, "0")}:00`);
+  if (h < 17) TIME_SLOTS.push(`${String(h).padStart(2, "0")}:30`);
+}
+
 export function NewRequestForm() {
   const t = useTranslations("maintenance.form");
   const tc = useTranslations("maintenance.categories");
+  const tb = useTranslations("booking");
   const tCommon = useTranslations("common");
   const router = useRouter();
 
@@ -43,6 +64,9 @@ export function NewRequestForm() {
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wantAppointment, setWantAppointment] = useState(false);
+  const [appointmentDate, setAppointmentDate] = useState<Date | undefined>();
+  const [appointmentTime, setAppointmentTime] = useState<string>("");
 
   const stepIndex = STEPS.indexOf(step);
 
@@ -111,15 +135,24 @@ export function NewRequestForm() {
     setError(null);
 
     try {
+      const payload: Record<string, unknown> = {
+        category,
+        title: title.trim(),
+        description: description.trim(),
+        photos,
+      };
+
+      if (wantAppointment && appointmentDate) {
+        payload.appointmentDate = format(appointmentDate, "yyyy-MM-dd");
+        if (appointmentTime) {
+          payload.appointmentTime = appointmentTime;
+        }
+      }
+
       const res = await fetch("/api/maintenance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category,
-          title: title.trim(),
-          description: description.trim(),
-          photos,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -213,6 +246,81 @@ export function NewRequestForm() {
                 {t("descriptionHint", { min: 10, max: 2000 })}
               </p>
             </div>
+
+            {/* Appointment booking toggle */}
+            <div className="rounded-xl border bg-card p-4 space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={wantAppointment}
+                  onChange={(e) => {
+                    setWantAppointment(e.target.checked);
+                    if (!e.target.checked) {
+                      setAppointmentDate(undefined);
+                      setAppointmentTime("");
+                    }
+                  }}
+                  className="size-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm font-medium">
+                  {t("wantAppointment")}
+                </span>
+              </label>
+
+              {wantAppointment && (
+                <div className="space-y-3 pt-1">
+                  {/* Date picker */}
+                  <div className="space-y-1.5">
+                    <Label>{tb("selectDate")}</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal gap-2",
+                            !appointmentDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarDays size={16} />
+                          {appointmentDate
+                            ? format(appointmentDate, "PPP", { locale: th })
+                            : tb("selectDate")}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={appointmentDate}
+                          onSelect={setAppointmentDate}
+                          disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Time select */}
+                  <div className="space-y-1.5">
+                    <Label>{tb("selectTime")}</Label>
+                    <select
+                      value={appointmentTime}
+                      onChange={(e) => setAppointmentTime(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="">{tb("selectTime")}</option>
+                      {TIME_SLOTS.map((slot) => (
+                        <option key={slot} value={slot}>
+                          {slot}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    {t("appointmentNote")}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -287,6 +395,19 @@ export function NewRequestForm() {
                         />
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+              {/* Appointment */}
+              {wantAppointment && appointmentDate && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {tb("title")}
+                  </span>
+                  <div className="flex items-center gap-1.5 text-sm font-medium">
+                    <CalendarDays size={14} />
+                    {format(appointmentDate, "PPP", { locale: th })}
+                    {appointmentTime && ` ${appointmentTime}`}
                   </div>
                 </div>
               )}

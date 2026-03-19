@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/providers/supabase-provider";
 import { useUser } from "./use-user";
 
@@ -22,6 +22,37 @@ export function useMyTickets() {
       return data ?? [];
     },
     enabled: !!user?.id,
+  });
+}
+
+export function useCancelTicket() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      ticketId,
+      reason,
+    }: {
+      ticketId: string;
+      reason?: string;
+    }) => {
+      const res = await fetch(`/api/student/maintenance/${ticketId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to cancel ticket");
+      }
+
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["ticket-detail", variables.ticketId] });
+      queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
+    },
   });
 }
 

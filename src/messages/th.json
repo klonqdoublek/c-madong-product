@@ -194,7 +194,9 @@
       "takePhoto": "ถ่ายรูป/เลือกรูป",
       "maxPhotos": "แนบได้สูงสุด {count} รูปนะ",
       "photoTooLarge": "รูปใหญ่เกิน {size}MB ลองรูปอื่นนะ",
-      "photoHint": "สูงสุด {count} รูป ขนาดไม่เกิน {size}MB ต่อรูป"
+      "photoHint": "สูงสุด {count} รูป ขนาดไม่เกิน {size}MB ต่อรูป",
+      "wantAppointment": "ต้องการนัดวันซ่อม?",
+      "appointmentNote": "ช่างจะติดต่อยืนยันนัดหมายอีกครั้งนะ"
     },
     "detail": {
       "title": "รายละเอียดแจ้งซ่อม",
@@ -204,7 +206,11 @@
       "assigned": "มอบหมายแล้ว",
       "noTickets": "ยังไม่มีรายการแจ้งซ่อม",
       "notFound": "ไม่พบรายการนี้",
-      "cancelReason": "เหตุผลที่ยกเลิก"
+      "cancelReason": "เหตุผลที่ยกเลิก",
+      "cancelRequest": "ยกเลิกคำขอซ่อม",
+      "cancelDialogTitle": "ยกเลิกคำขอซ่อมนี้?",
+      "cancelDialogDesc": "เมื่อยกเลิกแล้วจะไม่สามารถย้อนกลับได้นะ",
+      "cancelReasonPlaceholder": "เหตุผลที่ยกเลิก (ไม่บังคับ)"
     },
     "success": {
       "title": "แจ้งซ่อมสำเร็จ!",

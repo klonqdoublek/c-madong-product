@@ -194,7 +194,9 @@
       "takePhoto": "Take/Choose photo",
       "maxPhotos": "Maximum {count} photos allowed",
       "photoTooLarge": "File too large (max {size}MB)",
-      "photoHint": "Up to {count} photos, max {size}MB each"
+      "photoHint": "Up to {count} photos, max {size}MB each",
+      "wantAppointment": "Want to schedule an appointment?",
+      "appointmentNote": "The technician will confirm the appointment with you."
     },
     "detail": {
       "title": "Request Details",
@@ -204,7 +206,11 @@
       "assigned": "Assigned",
       "noTickets": "No maintenance requests yet",
       "notFound": "Request not found",
-      "cancelReason": "Cancellation Reason"
+      "cancelReason": "Cancellation Reason",
+      "cancelRequest": "Cancel Request",
+      "cancelDialogTitle": "Cancel this request?",
+      "cancelDialogDesc": "This action cannot be undone.",
+      "cancelReasonPlaceholder": "Reason for cancellation (optional)"
     },
     "success": {
       "title": "Request Submitted!",
