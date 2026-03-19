@@ -7,6 +7,35 @@
 
 ## Recent Changes (2026-03-19)
 
+### LINE Flex Messages — Repair Feature (3 Figma Designs)
+
+**Design 1: แจ้งซ่อมแล้ว (Ticket Created)** — `src/lib/chatbot/flex-builders/repair-status.ts`
+- Green header "✅ แจ้งซ่อมแล้ว" + `@displayName`
+- Pink highlight ticket number box (`#RRGGBBAA` hex, NOT `rgba()`)
+- Detail rows: category, description, urgency (color-coded), room, reporter
+- 3 postback actions: ติดตามสถานะ, ยกเลิก, ดูประวัติ
+
+**Design 2: ติดตามสถานะ (Status Tracking)** — `src/lib/line/flex-builders/repair-tracking.ts` *(new)*
+- Green header + ticket number, vertical timeline with dots + connecting lines
+- Steps built from `created_at`, `accepted_at`, `resolved_at` timestamps + technician info
+- Helper `buildTrackingSteps()` for converting DB rows → timeline
+- Postback handler: `action=repair_track` in `postback.ts`
+
+**Design 3: ซ่อมสำเร็จ (Repair Done)** — `src/lib/line/flex-builders/repair-notification.ts`
+- Branches on status: `completed` → Figma design (green header, badge, review CTA); others → standard notification
+- Added `ticketId` to `RepairNotificationData` interface
+
+**New Postback Handlers** in `src/lib/chatbot/handlers/postback.ts`:
+- `repair_track` — Fetches ticket from DB, builds timeline flex, replies
+- `repair_cancel_ticket` — Cancels ticket (pending/acknowledged only)
+- `repair_history` — Shows 5 most recent tickets as text list
+- `getReporterContext` exported from `repair.ts` for reuse
+
+**Gotchas Found**:
+- LINE Flex `backgroundColor` only accepts hex (`#RRGGBB`/`#RRGGBBAA`), NOT `rgba()` — silently rejects entire message
+- `ilike` on UUID columns fails in Postgres — fetch rows then `startsWith()` in JS
+- Postback buttons in chatbot replies should always use postback action, not URI (LIFF env var causes URI redirect)
+
 ### Bug Fixes & Infrastructure
 
 **Fix: Student Cancel Ticket (500 error)**

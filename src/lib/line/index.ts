@@ -26,3 +26,11 @@ export {
   buildScoreAddedFlex,
   DEMO_SCORE_ADDED,
 } from "./flex-builders/score-added"
+export type { RepairTrackingData, RepairTimelineStep } from "./flex-builders/repair-tracking"
+export {
+  buildRepairTrackingFlex,
+  buildTrackingSteps,
+  DEMO_TRACKING_DATA,
+} from "./flex-builders/repair-tracking"
+export type { RepairNotificationData } from "./flex-builders/repair-notification"
+export { buildRepairNotificationFlex } from "./flex-builders/repair-notification"

@@ -166,6 +166,7 @@ C-Madong Platform
 - [x] ดูรายการแจ้งซ่อมทั้งหมดของตัวเอง
 - [x] สถานะ: รอดำเนินการ → รับเรื่องแล้ว → กำลังดำเนินการ → เสร็จสิ้น/ยกเลิก
 - [x] Real-time status updates via notification
+- [x] LINE Flex timeline card (ติดตามสถานะ) — vertical timeline with steps, technician info, postback button ✅ (2026-03-19)
 - [x] รายละเอียดการซ่อม, หมายเหตุจากช่าง
 - [x] นิสิตสามารถยกเลิกคำขอซ่อมได้เอง (เฉพาะ pending/acknowledged) พร้อมกรอกเหตุผล ✅ (2026-03-19)
 
@@ -362,6 +363,15 @@ C-Madong Platform
 - Chatbot repair ticket insert: type-safe with optional vision metadata fields
 - i18n strings for cancel + appointment in th.json/en.json
 - Migrations: `20260322_repair_templates.sql` (pgvector + vision analysis), `20260323_student_update_policy.sql` (student UPDATE RLS)
+
+**LINE Flex Messages — Repair Feature ✅ (2026-03-19):**
+- 3 Figma designs implemented as LINE Flex JSON builders:
+  1. **แจ้งซ่อมแล้ว** (Ticket Created) — `chatbot/flex-builders/repair-status.ts`: green header, pink ticket number box, detail rows, 3 postback actions (track/cancel/history)
+  2. **ติดตามสถานะ** (Status Tracking) — `line/flex-builders/repair-tracking.ts`: vertical timeline with dots+lines, technician info, "วันนี้" marker, built from DB timestamps
+  3. **ซ่อมสำเร็จ** (Repair Done) — `line/flex-builders/repair-notification.ts`: branches on status, completed shows green header + badge + review CTA
+- New postback handlers: `repair_track` (timeline flex), `repair_cancel_ticket` (cancel via chatbot), `repair_history` (text list of 5 recent)
+- `getReporterContext` exported from repair handler for reuse
+- Exports added to `src/lib/line/index.ts`
 
 **Chatbot น้องซีมะโด่ง ✅ FULLY WORKING (2026-03-18):**
 - LINE webhook handler (`/api/webhooks/line`)

@@ -4,8 +4,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { updateTicketSchema } from "@/lib/validators/admin-maintenance";
 import { notifyMaintenanceUpdate } from "@/lib/notifications/triggers";
 import { pushFlexMessage } from "@/lib/line/client";
-import { buildRepairNotificationFlex } from "@/lib/line/flex-builders/repair-notification";
-import type { MaintenanceStatus } from "@/lib/supabase/types";
+import { buildRepairTrackingFlex } from "@/lib/line/flex-builders/repair-tracking";
+import type { RepairTimelineStep } from "@/lib/line/flex-builders/repair-tracking";
 
 export async function PATCH(
   request: NextRequest,
@@ -63,7 +63,7 @@ export async function PATCH(
   // Fetch current ticket to check if status actually changed
   const { data: currentTicket } = await supabase
     .from("maintenance_requests")
-    .select("status, requester_id, title, category, technician_id")
+    .select("status, requester_id, title, category, technician_id, created_at, accepted_at, resolved_at, updated_at")
     .eq("id", id)
     .single();
 
@@ -89,40 +89,51 @@ export async function PATCH(
     body: JSON.stringify(parsed.data),
   });
   if (newStatus && currentTicket && newStatus !== currentTicket.status) {
-    const STATUS_LABELS: Record<string, string> = {
-      acknowledged: "รับเรื่องแล้ว",
-      in_progress: "กำลังดำเนินการ",
-      completed: "เสร็จสิ้น",
-      cancelled: "ยกเลิก",
-    };
-
     const adminDb = createAdminClient();
 
-    // Lookup requester LINE UID + technician name
+    // Lookup requester LINE UID + display name + technician info
     let lineUid: string | null = null;
+    let displayName = "คุณ";
     let technicianName: string | undefined;
+    let technicianRole: string | undefined;
+
+    const SPECIALTY_LABELS: Record<string, string> = {
+      electrical: "ช่างไฟฟ้า",
+      plumbing: "ช่างประปา",
+      air_conditioning: "ช่างแอร์",
+      general: "ช่างทั่วไป",
+      furniture: "ช่างเฟอร์นิเจอร์",
+      internet: "ช่างอินเทอร์เน็ต",
+      door_lock: "ช่างกุญแจ",
+    };
 
     try {
+      const techId = parsed.data.technician_id ?? currentTicket.technician_id;
       const [requesterResult, techResult] = await Promise.all([
         adminDb
           .from("profiles")
-          .select("line_uid")
+          .select("line_uid, display_name")
           .eq("id", currentTicket.requester_id)
           .single(),
-        currentTicket.technician_id
+        techId
           ? adminDb
               .from("technicians")
-              .select("display_name")
-              .eq("id", currentTicket.technician_id)
+              .select("display_name, specialty")
+              .eq("id", techId)
               .single()
           : Promise.resolve({ data: null }),
       ]);
 
       lineUid = requesterResult.data?.line_uid ?? null;
+      displayName = requesterResult.data?.display_name ?? "คุณ";
       technicianName = techResult.data?.display_name ?? undefined;
+      technicianRole = techResult.data?.specialty
+        ? SPECIALTY_LABELS[techResult.data.specialty] ?? techResult.data.specialty
+        : undefined;
       console.log("[Auto-notify] Lookup result:", {
         requesterId: currentTicket.requester_id,
         lineUid,
+        displayName,
         technicianName,
         requesterError: requesterResult.error?.message,
       });
@@ -143,20 +154,109 @@ export async function PATCH(
       console.error("[Auto-notify] In-app notification failed:", err);
     }
 
-    // 2) LINE Flex message
+    // 2) LINE Flex — tracking timeline design (matches Figma "ติดตามสถานะ")
     if (lineUid) {
       try {
-        const flex = buildRepairNotificationFlex({
-          ticketTitle: currentTicket.title,
-          category: currentTicket.category,
-          status: newStatus as MaintenanceStatus,
-          statusLabel: STATUS_LABELS[newStatus] ?? newStatus,
-          technicianName,
-          adminNotes: parsed.data.admin_notes ?? undefined,
-          failureReason: parsed.data.failure_reason ?? undefined,
+        // Use updated timestamps from the DB response (data = updated ticket)
+        const updatedTicket = data;
+        const now = new Date();
+        const todayStr = now.toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+
+        const steps: RepairTimelineStep[] = [];
+
+        // Step 1: Created (always exists)
+        const createdDate = new Date(currentTicket.created_at);
+        const createdDateStr = createdDate.toLocaleDateString("th-TH", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        steps.push({
+          label: "ส่งคำขอไปยังเจ้าหน้าที่แล้ว",
+          subLabel: id.slice(0, 11).toUpperCase(),
+          date: createdDateStr,
+          time: formatTime(createdDate),
+          isActive: newStatus === "pending",
+          isToday: createdDateStr === todayStr,
+        });
+
+        // Step 2: Acknowledged
+        if (
+          newStatus === "acknowledged" ||
+          newStatus === "in_progress" ||
+          newStatus === "completed"
+        ) {
+          const acceptedAt =
+            updatedTicket.accepted_at ?? currentTicket.accepted_at;
+          const acceptedDate = acceptedAt
+            ? new Date(acceptedAt)
+            : new Date(updatedTicket.updated_at);
+          const acceptedDateStr = acceptedDate.toLocaleDateString("th-TH", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          steps.push({
+            label: "ช่างได้รับคำขอแล้ว",
+            date: acceptedDateStr,
+            time: formatTime(acceptedDate),
+            isActive: newStatus === "acknowledged",
+            isToday: acceptedDateStr === todayStr,
+            details: {
+              technicianName,
+              technicianRole,
+            },
+          });
+        }
+
+        // Step 3: In Progress
+        if (newStatus === "in_progress" || newStatus === "completed") {
+          const inProgressDate = new Date(updatedTicket.updated_at);
+          const inProgressDateStr = inProgressDate.toLocaleDateString("th-TH", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          steps.push({
+            label:
+              newStatus === "completed"
+                ? "ซ่อมเสร็จเรียบร้อยแล้ว!"
+                : "ช่างกำลังดำเนินการเข้าซ่อม",
+            date: inProgressDateStr,
+            time: formatTime(inProgressDate),
+            isActive: true,
+            isToday: inProgressDateStr === todayStr,
+          });
+        }
+
+        // Step for cancelled
+        if (newStatus === "cancelled") {
+          const cancelDate = new Date(updatedTicket.updated_at);
+          const cancelDateStr = cancelDate.toLocaleDateString("th-TH", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+          steps.push({
+            label: "ยกเลิกคำขอแล้ว",
+            date: cancelDateStr,
+            time: formatTime(cancelDate),
+            isActive: true,
+            isToday: cancelDateStr === todayStr,
+          });
+        }
+
+        const flex = buildRepairTrackingFlex({
+          displayName,
+          ticketId: id,
+          steps,
         });
         await pushFlexMessage(lineUid, flex);
-        console.log("[Auto-notify] LINE Flex sent to:", lineUid);
+        console.log("[Auto-notify] LINE Tracking Flex sent to:", lineUid);
       } catch (err) {
         console.error("[Auto-notify] LINE Flex push failed:", err);
       }
@@ -166,4 +266,8 @@ export async function PATCH(
   }
 
   return NextResponse.json(data);
+}
+
+function formatTime(date: Date): string {
+  return `${date.getHours().toString().padStart(2, "0")}.${date.getMinutes().toString().padStart(2, "0")} น.`;
 }

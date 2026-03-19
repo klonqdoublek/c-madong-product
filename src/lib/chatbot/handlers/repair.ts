@@ -144,7 +144,7 @@ export async function createRepairTicket(
 }
 
 /** Fetch reporter profile + room info for the Flex card */
-async function getReporterContext(lineUid: string): Promise<RepairConfirmContext> {
+export async function getReporterContext(lineUid: string): Promise<RepairConfirmContext> {
   const fallback: RepairConfirmContext = {
     reporterName: "ผู้แจ้ง",
     roomInfo: "-",
