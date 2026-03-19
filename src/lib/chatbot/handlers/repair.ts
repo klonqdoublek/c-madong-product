@@ -114,28 +114,32 @@ export async function createRepairTicket(
 
   if (!profile) return null
 
+  const insertData: Record<string, unknown> = {
+    requester_id: profile.id,
+    category: detection.category,
+    title: detection.title,
+    description: detection.description,
+    photos,
+    status: "pending",
+    ai_category: detection.category,
+    ai_priority: detection.urgency,
+  }
+
+  // Only include vision metadata fields when they have values
+  const confidence = metadata?.ai_confidence ?? detection.ai_confidence
+  if (confidence != null) insertData.ai_confidence = confidence
+  if (metadata?.provider) insertData.ai_provider = metadata.provider
+  if (metadata?.template_id) insertData.template_id = metadata.template_id
+  if (detection.damage_details) insertData.damage_details = detection.damage_details
+
   const { data, error } = await supabase
     .from("maintenance_requests")
-    .insert({
-      requester_id: profile.id,
-      category: detection.category,
-      title: detection.title,
-      description: detection.description,
-      photos,
-      status: "pending",
-      ai_category: detection.category,
-      ai_priority: detection.urgency,
-      // Vision analysis metadata
-      ai_confidence: metadata?.ai_confidence || detection.ai_confidence,
-      ai_provider: metadata?.provider as any,
-      template_id: metadata?.template_id as any,
-      damage_details: detection.damage_details,
-    })
+    .insert(insertData)
     .select("id")
     .single()
 
   if (error) {
-    console.error("[Repair] Failed to create ticket:", error)
+    console.error("[Repair] Failed to create ticket:", error.message, error.details, error.hint)
     return null
   }
 
