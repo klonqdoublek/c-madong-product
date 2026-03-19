@@ -114,23 +114,20 @@ export async function createRepairTicket(
 
   if (!profile) return null
 
-  const insertData: Record<string, unknown> = {
+  const insertData = {
     requester_id: profile.id,
     category: detection.category,
     title: detection.title,
     description: detection.description,
     photos,
-    status: "pending",
+    status: "pending" as const,
     ai_category: detection.category,
     ai_priority: detection.urgency,
+    ai_confidence: (metadata?.ai_confidence ?? detection.ai_confidence) || undefined,
+    ai_provider: (metadata?.provider as "template" | "gemini" | "openai" | "text-only" | "keyword" | "fallback") || undefined,
+    template_id: metadata?.template_id || undefined,
+    damage_details: detection.damage_details || undefined,
   }
-
-  // Only include vision metadata fields when they have values
-  const confidence = metadata?.ai_confidence ?? detection.ai_confidence
-  if (confidence != null) insertData.ai_confidence = confidence
-  if (metadata?.provider) insertData.ai_provider = metadata.provider
-  if (metadata?.template_id) insertData.template_id = metadata.template_id
-  if (detection.damage_details) insertData.damage_details = detection.damage_details
 
   const { data, error } = await supabase
     .from("maintenance_requests")
