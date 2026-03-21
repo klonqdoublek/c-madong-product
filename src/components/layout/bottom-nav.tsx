@@ -123,10 +123,15 @@ function NavItem({
 export function BottomNav() {
   const t = useTranslations("nav");
   const pathname = usePathname();
-  const setOpen = useChatStore((s) => s.setOpen);
+  const { setOpen, isOpen: chatOpen } = useChatStore();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 px-3 pb-2 pt-1 md:hidden">
+    <nav
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-50 px-3 pb-2 pt-1 transition-transform duration-300 md:hidden",
+        chatOpen && "translate-y-full"
+      )}
+    >
       <div className="relative flex items-center justify-around rounded-full bg-primary px-2 py-2 shadow-lg">
         {/* Left items */}
         {leftNavItems.map((item) => (

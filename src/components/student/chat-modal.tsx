@@ -78,6 +78,12 @@ export function ChatModal() {
   useEffect(() => {
     if (!isOpen) return;
 
+    // Scroll-lock that preserves position (prevents layout shift)
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
     document.body.style.overflow = "hidden";
 
     const vv = window.visualViewport;
@@ -89,7 +95,12 @@ export function ChatModal() {
 
     vv?.addEventListener("resize", onResize);
     return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
       document.body.style.overflow = "";
+      window.scrollTo(0, scrollY);
       vv?.removeEventListener("resize", onResize);
     };
   }, [isOpen]);
@@ -198,7 +209,7 @@ export function ChatModal() {
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-50 bg-black/50 transition-opacity duration-300",
+          "fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300",
           isOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
@@ -213,7 +224,7 @@ export function ChatModal() {
       <div
         ref={sheetRef}
         className={cn(
-          "fixed inset-x-0 bottom-0 z-50 flex flex-col rounded-t-2xl bg-background shadow-2xl",
+          "fixed inset-x-0 bottom-0 z-[60] flex flex-col rounded-t-2xl bg-background shadow-2xl",
           !isDragging && "transition-all duration-300 ease-out",
           !isOpen && !isDragging && "translate-y-full"
         )}
