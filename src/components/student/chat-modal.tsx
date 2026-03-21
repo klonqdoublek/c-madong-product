@@ -78,10 +78,6 @@ export function ChatModal() {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Simple scroll-lock (mobile has no scrollbar, so no layout shift)
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-
     const vv = window.visualViewport;
     setViewportHeight(vv ? vv.height : window.innerHeight);
 
@@ -91,8 +87,6 @@ export function ChatModal() {
 
     vv?.addEventListener("resize", onResize);
     return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
       vv?.removeEventListener("resize", onResize);
     };
   }, [isOpen]);
@@ -201,7 +195,7 @@ export function ChatModal() {
       {/* Backdrop */}
       <div
         className={cn(
-          "fixed inset-0 z-[60] bg-black/50 transition-opacity duration-300",
+          "fixed inset-0 z-[60] touch-none bg-black/50 transition-opacity duration-300",
           isOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0"
