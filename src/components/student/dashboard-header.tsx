@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useUser } from "@/hooks/use-user";
 import { useNotificationStore } from "@/stores/notification-store";
 import { Bell, Search } from "lucide-react";
@@ -18,8 +19,11 @@ export function DashboardHeader() {
     <div className="space-y-3 px-4 pt-4">
       {/* Top row: avatar + greeting + bell */}
       <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <div className="flex size-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-cu-light-pink">
+        {/* Avatar — links to profile/account page */}
+        <Link
+          href="/profile"
+          className="flex size-[42px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-cu-light-pink"
+        >
           {profile?.avatar_url ? (
             <img
               src={profile.avatar_url}
@@ -31,7 +35,7 @@ export function DashboardHeader() {
               {isLoading ? "..." : initials}
             </span>
           )}
-        </div>
+        </Link>
 
         {/* Greeting */}
         <div className="min-w-0 flex-1">
