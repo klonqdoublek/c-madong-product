@@ -10,6 +10,7 @@ import {
   formatScoreChange,
 } from "@/lib/utils/score-constants";
 import { Trophy, History, TrendingUp, TrendingDown } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 
 export function ScorePageContent() {
   const t = useTranslations("score");
@@ -38,9 +39,9 @@ export function ScorePageContent() {
   const displayHistory = showAll ? history : (history ?? []).slice(0, 10);
 
   return (
-    <div className="space-y-6 p-4">
-      {/* Header */}
-      <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
+    <>
+      <PageHeader title={t("title")} />
+      <div className="space-y-6 p-4">
 
       {/* Composite Score Card */}
       <div className={`rounded-xl border p-6 ${tier.bgColor}`}>
@@ -195,6 +196,7 @@ export function ScorePageContent() {
           </>
         )}
       </section>
-    </div>
+      </div>
+    </>
   );
 }

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { CalendarDays, Check, X, AlertCircle } from "lucide-react";
 import type { EventType, AttendanceStatus } from "@/lib/supabase/types";
+import { PageHeader } from "@/components/layout/page-header";
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -58,8 +59,9 @@ export function EventsPageContent() {
   };
 
   return (
-    <div className="space-y-4 p-4">
-      <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
+    <>
+      <PageHeader title={t("title")} />
+      <div className="space-y-4 p-4">
 
       {/* Type filter */}
       <Select value={typeFilter} onValueChange={setTypeFilter}>
@@ -128,7 +130,8 @@ export function EventsPageContent() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </>
   );
 }
 

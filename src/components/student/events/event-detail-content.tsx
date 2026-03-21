@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import {
   useEventDetail,
   useMyEventAttendance,
@@ -10,7 +9,6 @@ import {
 } from "@/hooks/use-events";
 import { EVENT_TYPE_CONFIG, ATTENDANCE_STATUS_CONFIG } from "@/lib/utils/score-constants";
 import {
-  ArrowLeft,
   CalendarDays,
   MapPin,
   Users,
@@ -18,12 +16,12 @@ import {
   AlertTriangle,
   Check,
 } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 import type { EventType } from "@/lib/supabase/types";
 
 export function EventDetailContent({ eventId }: { eventId: string }) {
   const t = useTranslations("events");
   const tDetail = useTranslations("events.detail");
-  const router = useRouter();
 
   const { data: event, isLoading } = useEventDetail(eventId);
   const { data: myAttendance } = useMyEventAttendance(eventId);
@@ -75,15 +73,9 @@ export function EventDetailContent({ eventId }: { eventId: string }) {
   };
 
   return (
-    <div className="space-y-4 p-4">
-      {/* Back button */}
-      <button
-        onClick={() => router.push("/events")}
-        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("title")}
-      </button>
+    <>
+      <PageHeader title={t("title")} backHref="/events" />
+      <div className="space-y-4 p-4">
 
       {/* Cover image */}
       {event.cover_image && (
@@ -226,7 +218,8 @@ export function EventDetailContent({ eventId }: { eventId: string }) {
             )}
           </div>
         )}
-    </div>
+      </div>
+    </>
   );
 }
 

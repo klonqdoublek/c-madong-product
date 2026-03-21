@@ -1,7 +1,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { useMyBill } from "@/hooks/use-bills";
 import { formatCurrency, BILL_STATUS_COLORS, THAI_MONTHS, BILL_CATEGORIES } from "@/lib/utils";
 import type { BillStatus } from "@/lib/supabase/types";
@@ -11,15 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Building2, DoorOpen, Bed } from "lucide-react";
+import { Building2, DoorOpen, Bed } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 
 export function BillDetailContent({ billId }: { billId: string }) {
   const t = useTranslations("billing");
   const tStatus = useTranslations("billing.status");
-  const router = useRouter();
   const { data: bill, isLoading } = useMyBill(billId);
 
   if (isLoading) {
@@ -53,27 +51,14 @@ export function BillDetailContent({ billId }: { billId: string }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const bed = bill.bed as any;
 
+  const billTitle = t("billMonth", {
+    month: THAI_MONTHS[bill.billing_month - 1],
+  });
+
   return (
-    <div className="space-y-4 p-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="font-heading text-xl font-bold">
-            {t("billMonth", {
-              month: THAI_MONTHS[bill.billing_month - 1],
-            })}
-          </h1>
-          <Badge
-            variant="secondary"
-            className={`mt-0.5 ${BILL_STATUS_COLORS[bill.status as BillStatus]}`}
-          >
-            {tStatus(bill.status)}
-          </Badge>
-        </div>
-      </div>
+    <>
+      <PageHeader title={billTitle} backHref="/billing" />
+      <div className="space-y-4 p-4">
 
       {/* Total Amount Card */}
       <Card className="shadow-card border-l-4 border-l-primary">
@@ -157,6 +142,7 @@ export function BillDetailContent({ billId }: { billId: string }) {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </>
   );
 }

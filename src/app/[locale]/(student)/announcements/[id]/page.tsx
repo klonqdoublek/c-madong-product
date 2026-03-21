@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { PageHeader } from "@/components/layout/page-header";
 
 export default async function AnnouncementDetailPage({
   params,
@@ -9,11 +10,13 @@ export default async function AnnouncementDetailPage({
   setRequestLocale(locale);
 
   return (
-    <div className="space-y-4 p-4">
-      <h1 className="text-2xl font-bold">Announcement #{id}</h1>
-      <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-        Announcement detail — Coming in Phase 4
+    <>
+      <PageHeader title="Announcement" backHref="/announcements" />
+      <div className="space-y-4 p-4">
+        <div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
+          Announcement detail — Coming in Phase 4
+        </div>
       </div>
-    </div>
+    </>
   );
 }

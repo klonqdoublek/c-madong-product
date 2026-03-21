@@ -1,7 +1,7 @@
 import { replyTextMessage, replyFlexMessage } from "@/lib/line/client"
 import { getOrCreateSession, resetSession } from "../session-manager"
 import { createRepairTicket, getReporterContext } from "./repair"
-import { buildRepairStatusFlex } from "../flex-builders/repair-status"
+import { buildTicketCreatingFlex } from "../flex-builders/repair-status"
 import { buildRepairTrackingFlex } from "@/lib/line/flex-builders/repair-tracking"
 import type { RepairDetection } from "../types"
 import type { RepairTimelineStep } from "@/lib/line/flex-builders/repair-tracking"
@@ -47,6 +47,10 @@ export async function handlePostback(
         replyToken,
         "ลงทะเบียนกิจกรรมเรียบร้อยจ้า! 🎉 เจอกันวันงานน้า"
       )
+      break
+
+    case "repair_book":
+      await handleRepairBook(replyToken, params, lineUid)
       break
 
     case "repair_track":
@@ -103,9 +107,10 @@ async function handleRepairConfirm(
     try {
       // Fetch reporter context for the Flex card
       const context = await getReporterContext(lineUid)
+      // Show "สร้างใบแจ้งซ่อมใหม่" flex with booking CTA (Design 28:370)
       await replyFlexMessage(
         replyToken,
-        buildRepairStatusFlex(
+        buildTicketCreatingFlex(
           {
             id: ticket.id,
             category: detection.category,
@@ -123,7 +128,7 @@ async function handleRepairConfirm(
       console.error("[Postback] Flex reply failed:", err)
       await replyTextMessage(
         replyToken,
-        `✅ แจ้งซ่อมสำเร็จแล้วจ้า! หมายเลข #${ticket.id.slice(0, 8).toUpperCase()}`
+        `📝 สร้างใบแจ้งซ่อมแล้วจ้า! หมายเลข #${ticket.id.slice(0, 8).toUpperCase()}\nนัดหมายกับช่างได้ในแอปนะ`
       )
     }
   } else {
@@ -175,6 +180,50 @@ const SPECIALTY_LABELS: Record<string, string> = {
   furniture: "ช่างเฟอร์นิเจอร์",
   internet: "ช่างอินเทอร์เน็ต",
   door_lock: "ช่างกุญแจ",
+}
+
+async function handleRepairBook(
+  replyToken: string,
+  params: URLSearchParams,
+  lineUid: string
+): Promise<void> {
+  const shortId = params.get("id") ?? ""
+  const WEB_BASE = "https://c-madong-product.vercel.app/th"
+
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const adminDb = createAdminClient()
+    const { data: profile } = await adminDb
+      .from("profiles")
+      .select("id")
+      .eq("line_uid", lineUid)
+      .single()
+
+    if (profile) {
+      const { data: tickets } = await adminDb
+        .from("maintenance_requests")
+        .select("id")
+        .eq("requester_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(10)
+
+      const ticket = tickets?.find((t) => t.id.startsWith(shortId.toLowerCase()))
+      if (ticket) {
+        await replyTextMessage(
+          replyToken,
+          `🗓️ เลือกวันเวลานัดหมายได้เลยจ้า!\n\n${WEB_BASE}/booking/${ticket.id}`
+        )
+        return
+      }
+    }
+  } catch (err) {
+    console.error("[Postback] Repair book lookup error:", err)
+  }
+
+  await replyTextMessage(
+    replyToken,
+    "🗓️ นัดหมายวันเวลาซ่อมได้ในแอปเลยนะจ้า!\nเปิดแอปหอพัก > แจ้งซ่อม > เลือกใบแจ้งซ่อม > นัดหมาย"
+  )
 }
 
 async function handleRepairTrack(

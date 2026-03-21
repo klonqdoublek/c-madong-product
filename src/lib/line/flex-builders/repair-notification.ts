@@ -223,7 +223,10 @@ function buildStatusUpdateFlex(
   const statusColor = STATUS_COLORS[data.status]
   const statusLabel = data.statusLabel ?? STATUS_LABELS[data.status]
 
+  const shortId = `#${data.ticketId.slice(0, 8).toUpperCase()}`
+
   const detailRows: Record<string, unknown>[] = [
+    buildRow("หมายเลข", shortId),
     buildRow("หัวข้อ", data.ticketTitle),
     buildRow("ประเภท", data.category),
     {

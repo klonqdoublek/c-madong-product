@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useMyParcels, useMarkParcelPickedUp } from "@/hooks/use-parcels";
 import { Package, Check, Clock, Bell, RotateCcw, XCircle, Truck } from "lucide-react";
 import type { ParcelStatus } from "@/lib/supabase/types";
+import { PageHeader } from "@/components/layout/page-header";
 
 const STATUS_CONFIG: Record<ParcelStatus, { label: string; labelEn: string; color: string; icon: typeof Clock }> = {
   pending: { label: "รอแจ้ง", labelEn: "Pending", color: "bg-yellow-100 text-yellow-800", icon: Clock },
@@ -34,12 +35,9 @@ export function ParcelsPageContent() {
   );
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Header */}
-      <div>
-        <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t("subtitle")}</p>
-      </div>
+    <>
+      <PageHeader title={t("title")} />
+      <div className="space-y-6 p-4 pb-24">
 
       {/* Active Parcels */}
       {isLoading ? (
@@ -170,6 +168,7 @@ export function ParcelsPageContent() {
           })}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

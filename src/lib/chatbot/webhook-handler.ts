@@ -24,6 +24,48 @@ import type {
   ChatIntent,
 } from "./types"
 
+/** Short trigger phrases that mean "I want to report a repair" but have no details yet */
+const REPAIR_TRIGGER_PHRASES = [
+  "แจ้งซ่อม",
+  "แจ้งซ่อมห้อง",
+  "แจ้งซ่อมหน่อย",
+  "อยากแจ้งซ่อม",
+  "ขอแจ้งซ่อม",
+  "จะแจ้งซ่อม",
+  "ซ่อม",
+  "repair",
+]
+
+/** Keywords that mean "check repair status" — should NOT create a new ticket */
+const REPAIR_STATUS_KEYWORDS = [
+  "สถานะแจ้งซ่อม",
+  "สถานะการซ่อม",
+  "สถานะงานซ่อม",
+  "ติดตามสถานะ",
+  "ติดตามการซ่อม",
+  "ติดตามสถานะซ่อม",
+  "เช็คสถานะ",
+  "เช็คสถานะซ่อม",
+  "ดูสถานะ",
+  "ดูสถานะซ่อม",
+  "ประวัติแจ้งซ่อม",
+  "ประวัติการซ่อม",
+  "ดูประวัติซ่อม",
+  "งานซ่อม",
+  "track",
+  "status",
+]
+
+function isRepairTriggerOnly(message: string): boolean {
+  const trimmed = message.trim().toLowerCase()
+  return REPAIR_TRIGGER_PHRASES.some((phrase) => trimmed === phrase.toLowerCase())
+}
+
+function isRepairStatusCheck(message: string): boolean {
+  const lower = message.trim().toLowerCase()
+  return REPAIR_STATUS_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
+}
+
 const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
 const LIFF_URL = process.env.NEXT_PUBLIC_LINE_LIFF_ID
   ? `https://liff.line.me/${process.env.NEXT_PUBLIC_LINE_LIFF_ID}`
@@ -121,6 +163,20 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   // Get session
   const session = await getOrCreateSession(lineUid)
 
+  // If user asks about repair status, always route to history — even mid-flow
+  if (isRepairStatusCheck(message)) {
+    try {
+      await handlePostback(event.replyToken, "action=repair_history", lineUid)
+      await saveMessages(lineUid, session.id, message, {
+        type: "text",
+        text: "ดูประวัติแจ้งซ่อม",
+      })
+      return
+    } catch {
+      // Fallback below
+    }
+  }
+
   // If in active flow (repair confirming/editing/collecting photos), route to repair handler
   if (
     session.state === "repair_confirming" ||
@@ -145,6 +201,31 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
 
   switch (intent) {
     case "repair":
+      // Check if user is asking about repair STATUS (not creating a new one)
+      if (isRepairStatusCheck(message)) {
+        response = {
+          type: "text",
+          text: "📋 ดูสถานะแจ้งซ่อมได้เลยจ้า!\n\nกดปุ่ม \"🔍 ติดตามสถานะ\" ในการ์ดแจ้งซ่อม หรือพิมพ์ \"ประวัติแจ้งซ่อม\" เพื่อดูรายการทั้งหมดนะ",
+        }
+        // Also trigger repair history as a helpful follow-up
+        try {
+          const { handlePostback } = await import("./handlers")
+          await handlePostback(event.replyToken, "action=repair_history", lineUid)
+          await saveMessages(lineUid, session.id, message, response)
+          return
+        } catch {
+          // Fallback to text response
+        }
+        break
+      }
+      // If message is just a short trigger like "แจ้งซ่อม" without details, guide the user
+      if (isRepairTriggerOnly(message)) {
+        response = {
+          type: "text",
+          text: "🔧 พร้อมแจ้งซ่อมแล้วใช่มั้ย!\nพิมพ์รายละเอียดปัญหามาได้เลยจ้า เช่น \"ก๊อกน้ำรั่ว\" หรือ \"แอร์ไม่เย็น\"\n\n💡 บอกความเร่งด่วนได้ด้วยนะ เช่น \"ด่วนมาก\" หรือ \"ไม่เร่ง\"\n📸 ถ้ามีรูปก็ส่งมาเลย ช่วยให้ช่างเห็นปัญหาชัดขึ้นจ้า",
+        }
+        break
+      }
       response = await handleRepair(message, lineUid)
       break
     case "knowledge":

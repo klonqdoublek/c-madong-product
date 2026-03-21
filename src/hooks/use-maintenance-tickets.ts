@@ -100,7 +100,6 @@ export function useUpdateTicketStatus() {
 }
 
 export function useAssignTechnician() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -111,14 +110,18 @@ export function useAssignTechnician() {
       ticketId: string;
       technicianId: string | null;
     }) => {
-      const { error } = await supabase
-        .from("maintenance_requests")
-        .update({
-          technician_id: technicianId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", ticketId);
-      if (error) throw error;
+      const res = await fetch(`/api/admin/maintenance/${ticketId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ technician_id: technicianId }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to assign technician");
+      }
+
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_KEY] });
@@ -127,7 +130,6 @@ export function useAssignTechnician() {
 }
 
 export function useUpdateTicketNotes() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -138,14 +140,18 @@ export function useUpdateTicketNotes() {
       id: string;
       admin_notes: string;
     }) => {
-      const { error } = await supabase
-        .from("maintenance_requests")
-        .update({
-          admin_notes,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      if (error) throw error;
+      const res = await fetch(`/api/admin/maintenance/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ admin_notes }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update notes");
+      }
+
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [TICKETS_KEY] });

@@ -1,5 +1,7 @@
 import type { FlexMessagePayload } from "./bill-reminder"
 
+const BANNER_URL = "https://i.postimg.cc/3NZ7xRnP/Inbox.jpg"
+
 export interface ParcelNotificationData {
   recipientName: string // "@ข้าวกล้อง :)"
   parcelCount: number // 2
@@ -46,84 +48,103 @@ export function buildParcelNotificationFlex(
   const bubble = {
     type: "bubble",
     size: "mega",
-    header: {
+    hero: {
       type: "box",
       layout: "vertical",
       contents: [
-        // Top row: badge + mascot emoji
+        {
+          type: "image",
+          url: BANNER_URL,
+          size: "full",
+          aspectRatio: "16:9",
+          aspectMode: "cover",
+        },
         {
           type: "box",
-          layout: "horizontal",
+          layout: "vertical",
           contents: [
-            // "แจ้งเตือน" pill badge
+            // Top row: badge + mascot emoji
             {
               type: "box",
-              layout: "vertical",
+              layout: "horizontal",
               contents: [
+                // "แจ้งเตือน" pill badge
                 {
-                  type: "text",
-                  text: "แจ้งเตือน",
-                  size: "xxs",
-                  color: "#DD598B",
-                  weight: "bold",
-                  align: "center",
+                  type: "box",
+                  layout: "vertical",
+                  contents: [
+                    {
+                      type: "text",
+                      text: "แจ้งเตือน",
+                      size: "xxs",
+                      color: "#DD598B",
+                      weight: "bold",
+                      align: "center",
+                    },
+                  ],
+                  backgroundColor: "#FFFFFF",
+                  cornerRadius: "xl",
+                  paddingAll: "xs",
+                  paddingStart: "md",
+                  paddingEnd: "md",
+                  flex: 0,
+                  height: "22px",
+                  justifyContent: "center",
+                },
+                { type: "filler" },
+                // Mascot emoji in white circle
+                {
+                  type: "box",
+                  layout: "vertical",
+                  contents: [
+                    {
+                      type: "text",
+                      text: "📦",
+                      size: "xl",
+                      align: "center",
+                    },
+                  ],
+                  backgroundColor: "#FFFFFF",
+                  cornerRadius: "xxl",
+                  width: "40px",
+                  height: "40px",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  flex: 0,
                 },
               ],
-              backgroundColor: "#FFFFFF",
-              cornerRadius: "xl",
-              paddingAll: "xs",
-              paddingStart: "md",
-              paddingEnd: "md",
-              flex: 0,
-              height: "22px",
-              justifyContent: "center",
-            },
-            { type: "filler" },
-            // Mascot emoji in white circle
-            {
-              type: "box",
-              layout: "vertical",
-              contents: [
-                {
-                  type: "text",
-                  text: "📦",
-                  size: "xl",
-                  align: "center",
-                },
-              ],
-              backgroundColor: "#FFFFFF",
-              cornerRadius: "xxl",
-              width: "40px",
-              height: "40px",
-              justifyContent: "center",
               alignItems: "center",
-              flex: 0,
+            },
+            // Title
+            {
+              type: "text",
+              text: "มีพัสดุมาส่ง!",
+              size: "xl",
+              color: "#FFFFFF",
+              weight: "bold",
+              wrap: true,
+              margin: "lg",
+            },
+            // Subtitle (recipient name)
+            {
+              type: "text",
+              text: data.recipientName,
+              size: "sm",
+              color: "#FFFFFF",
+              wrap: true,
+              margin: "sm",
             },
           ],
-          alignItems: "center",
-        },
-        // Title
-        {
-          type: "text",
-          text: "มีพัสดุมาส่ง!",
-          size: "xl",
-          color: "#FFFFFF",
-          weight: "bold",
-          wrap: true,
-          margin: "lg",
-        },
-        // Subtitle (recipient name)
-        {
-          type: "text",
-          text: data.recipientName,
-          size: "sm",
-          color: "#FFFFFF",
-          wrap: true,
-          margin: "sm",
+          position: "absolute",
+          offsetTop: "0px",
+          offsetStart: "0px",
+          width: "100%",
+          height: "100%",
+          paddingAll: "xl",
+          justifyContent: "center",
         },
       ],
-      backgroundColor: "#DD598B",
-      paddingAll: "xl",
+      paddingAll: "0px",
     },
     body: {
       type: "box",

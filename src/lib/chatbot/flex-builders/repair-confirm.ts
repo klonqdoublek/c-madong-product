@@ -2,11 +2,11 @@ import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder"
 import { CATEGORY_NAMES_TH } from "../constants"
 import type { RepairDetection } from "../types"
 
-// CU Pink design tokens
-const CU_PINK = "#FF90DC"
+// Design tokens
 const CONFIRM_GREEN = "#23BE47"
 const EDIT_BLUE = "#0059FF"
 const CANCEL_RED = "#E44548"
+const BANNER_URL = "https://i.postimg.cc/QCqsdt0v/New_Request.jpg"
 const TEXT_PRIMARY = "#000000"
 const TEXT_SECONDARY = "#00000099"
 const DIVIDER = "#E5E7EB"
@@ -60,51 +60,69 @@ export function buildRepairConfirmFlex(
       type: "bubble",
       size: "mega",
 
-      // ── Pink header with confirmation message ──
-      header: {
+      // ── Hero banner with confirmation message overlay ──
+      hero: {
         type: "box",
         layout: "vertical",
         contents: [
           {
+            type: "image",
+            url: BANNER_URL,
+            size: "full",
+            aspectRatio: "16:9",
+            aspectMode: "cover",
+          },
+          {
             type: "box",
-            layout: "horizontal",
+            layout: "vertical",
             contents: [
               {
-                type: "text",
-                text: "🔧",
-                size: "3xl",
-                flex: 0,
+                type: "box",
+                layout: "horizontal",
+                contents: [
+                  {
+                    type: "text",
+                    text: "🔧",
+                    size: "3xl",
+                    flex: 0,
+                  },
+                  { type: "filler" },
+                  {
+                    type: "text",
+                    text: "👩🏻‍🔧",
+                    size: "3xl",
+                    align: "end",
+                    flex: 0,
+                  },
+                ],
               },
-              { type: "filler" },
               {
                 type: "text",
-                text: "👩🏻‍🔧",
-                size: "3xl",
-                align: "end",
-                flex: 0,
+                text: "ยืนยันการแจ้งซ่อม",
+                size: "xxl",
+                color: "#FFFFFF",
+                weight: "bold",
+                margin: "sm",
+              },
+              {
+                type: "text",
+                text: "กรุณาตรวจสอบข้อมูลก่อนยืนยัน",
+                size: "sm",
+                color: "#FFFFFF",
+                wrap: true,
+                margin: "xs",
               },
             ],
-          },
-          {
-            type: "text",
-            text: "ยืนยันการแจ้งซ่อม",
-            size: "xxl",
-            color: "#FFFFFF",
-            weight: "bold",
-            margin: "sm",
-          },
-          {
-            type: "text",
-            text: "กรุณาตรวจสอบข้อมูลก่อนยืนยัน",
-            size: "sm",
-            color: "#FFFFFF",
-            wrap: true,
-            margin: "xs",
+            position: "absolute",
+            offsetTop: "0px",
+            offsetStart: "0px",
+            width: "100%",
+            height: "100%",
+            paddingAll: "xl",
+            justifyContent: "center",
           },
         ],
-        backgroundColor: CU_PINK,
-        paddingAll: "xl",
-        paddingBottom: "lg",
+        paddingAll: "0px",
       },
 
       // ── Body: detail rows with better hierarchy ──
