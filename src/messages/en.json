@@ -769,5 +769,23 @@
     "confirm": "Confirm Booking",
     "success": "Booking Confirmed!",
     "successDescription": "Your appointment has been recorded. You'll receive a LINE notification as a reminder."
+  },
+  "chat": {
+    "title": "Nong C Madong",
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "greeting": "Hi there! I'm Nong C Madong!",
+    "greetingSub": "Ask me anything about the dorm. Let's chat~",
+    "suggestions": {
+      "askDorm": "Ask about dorm",
+      "checkScore": "Check score",
+      "events": "Upcoming events",
+      "parcel": "Check parcels"
+    },
+    "repairRedirect": "Maintenance requests need to be made via LINE. Type \"แจ้งซ่อม\" in LINE @c-madong.",
+    "clearSession": "New chat",
+    "historyTitle": "Chat history",
+    "historyEmpty": "No chat history yet",
+    "historyEmptySub": "Say hi to Nong C!"
   }
 }

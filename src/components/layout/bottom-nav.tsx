@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { useChatStore } from "@/stores/chat-store";
 import Image from "next/image";
 
 const leftNavItems = [
@@ -122,6 +123,7 @@ function NavItem({
 export function BottomNav() {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const setOpen = useChatStore((s) => s.setOpen);
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 px-3 pb-2 pt-1 md:hidden">
@@ -138,7 +140,11 @@ export function BottomNav() {
         ))}
 
         {/* Center chatbot button — mascot */}
-        <Link href="/dashboard" className="-mt-5 flex flex-col items-center">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="-mt-5 flex flex-col items-center"
+        >
           <div className="flex size-14 items-center justify-center overflow-hidden rounded-full bg-white shadow-md ring-4 ring-primary">
             <Image
               src="/images/mascot.svg"
@@ -151,7 +157,7 @@ export function BottomNav() {
           <span className="mt-0.5 font-heading text-[10px] font-bold text-white">
             {t("askNongC")}
           </span>
-        </Link>
+        </button>
 
         {/* Right items */}
         {rightNavItems.map((item) => (
