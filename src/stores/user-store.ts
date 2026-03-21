@@ -18,6 +18,15 @@ export const useUserStore = create<UserState>((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
   isAdmin: () => {
     const role = get().profile?.role;
-    return role === "admin" || role === "head";
+    if (!role) return false;
+    // Legacy + RBAC roles that should access admin dashboard
+    const adminRoles = [
+      "admin", "staff",  // legacy
+      "super_admin", "head", "registrar", "finance", "parcel",
+      "admin_staff", "service", "activity",
+      "technician_head", "technician", "technician_it",
+      "committee",
+    ];
+    return adminRoles.includes(role);
   },
 }));

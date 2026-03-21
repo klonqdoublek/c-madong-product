@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RoleSelector, BuildingScopeSelector } from "@/components/rbac/role-badge";
 import { useUserSearch, useAssignRole } from "@/hooks/use-role-management";
-import { Search, Loader2, CheckCircle2 } from "lucide-react";
+import { Search, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import type { AppRole, BuildingScope } from "@/lib/supabase/types";
 
 interface AssignRoleDialogProps {
@@ -31,6 +31,7 @@ export function AssignRoleDialog({ open, onOpenChange }: AssignRoleDialogProps) 
   const [buildingScope, setBuildingScope] = useState<BuildingScope | null>(null);
   const [step, setStep] = useState<"search" | "select">("search");
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { data: users, isLoading: searching } = useUserSearch(searchQuery);
 
@@ -44,11 +45,11 @@ export function AssignRoleDialog({ open, onOpenChange }: AssignRoleDialogProps) 
   const handleAssign = async () => {
     if (!selectedUserId || !selectedRole) return;
 
-    // Check if building scope is required for registrar
     if (selectedRole === "registrar" && !buildingScope) {
       return;
     }
 
+    setErrorMsg(null);
     try {
       await assignRole.mutateAsync({
         userId: selectedUserId,
@@ -61,6 +62,8 @@ export function AssignRoleDialog({ open, onOpenChange }: AssignRoleDialogProps) 
         handleClose();
       }, 1500);
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "เกิดข้อผิดพลาด";
+      setErrorMsg(msg);
       console.error("Failed to assign role:", error);
     }
   };
@@ -72,6 +75,7 @@ export function AssignRoleDialog({ open, onOpenChange }: AssignRoleDialogProps) 
     setSelectedRole(null);
     setBuildingScope(null);
     setSuccess(false);
+    setErrorMsg(null);
     onOpenChange(false);
   };
 
@@ -163,6 +167,13 @@ export function AssignRoleDialog({ open, onOpenChange }: AssignRoleDialogProps) 
                 value={buildingScope ?? undefined}
                 onChange={(s) => setBuildingScope(s as BuildingScope)}
               />
+            )}
+
+            {errorMsg && (
+              <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                {errorMsg}
+              </div>
             )}
 
             <div className="flex gap-2">

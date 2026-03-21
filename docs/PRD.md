@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.8
-> **Last Updated**: 2026-03-19
+> **Version**: 1.9
+> **Last Updated**: 2026-03-21
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -403,10 +403,14 @@ C-Madong Platform
 - user_roles, role_permissions (RBAC — cross-phase)
 - FK fix: `maintenance_requests.requester_id` → `profiles(id)` for PostgREST joins (2026-03-18)
 
-**RBAC System ✅ (2026-03-05):**
+**RBAC System ✅ WIRED UP (2026-03-21):**
 - 13 roles (super_admin, head, registrar, finance, parcel, admin_staff, service, activity, technician_head, technician, technician_it, committee, student)
 - 80+ permissions, building scopes for registrars
-- Role Management UI at `/admin/roles`
+- Role Management UI at `/admin/roles` — assign/revoke working (via `createAdminClient()`)
+- Legacy role mapping: `profiles.role` ("admin"→"super_admin", "staff"→"admin_staff")
+- Admin sidebar filtered by permissions per nav item/group
+- Middleware allows all staff roles (not just admin/head)
+- Admin API routes use `createAdminClient()` to bypass RLS
 - PermissionGuard component for conditional rendering
 
 ### Phase 3: Billing & Payments ✅ DEPLOYED (2026-03-09)

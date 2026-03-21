@@ -5,7 +5,78 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-03-19)
+## Recent Changes (2026-03-21)
+
+### RBAC Wired Up + Admin Fixes
+
+**Admin Sidebar — Permission-based Filtering**
+- `admin-shell.tsx`: Each nav item/group gated by permission (e.g. `announcements:view`, `bills:view`, `tickets:view_all`)
+- Maintenance group uses `canAny([tickets:view_all, tickets:view_assigned])` for technicians
+- Settings sub-items: `students:view`, `technicians:view`, `students:tags`, `system:roles`, `system:settings`
+- Empty groups auto-hidden; standalone items (events, scores, billing, parcels, knowledge) filtered
+
+**Legacy Role Mapping in usePermissions**
+- `use-permissions.ts`: Maps `profiles.role` legacy values → RBAC: `"admin"` → `"super_admin"`, `"staff"` → `"admin_staff"`
+- Applied in both `usePermissions()` and `useRoles()` hooks
+
+**Middleware & User Store — All Staff Roles Allowed**
+- `middleware.ts`: Expanded admin route check from `["admin", "head"]` → 13 staff roles (legacy + RBAC)
+- `user-store.ts`: `isAdmin()` recognizes all staff-level roles
+
+**Admin Logout Button Fixed**
+- `admin-shell.tsx`: Logout button now calls `POST /api/auth/logout` → redirect `/th/login`
+
+**Admin API Routes — RLS Bypass Pattern**
+- `api/admin/maintenance/[id]/route.ts`: Changed from `supabase` (user client) → `createAdminClient()` for read+update (RLS was silently blocking)
+- `api/admin/roles/route.ts`: All 3 handlers (GET/POST/DELETE) use `createAdminClient()`, expanded role check to `["admin", "super_admin", "head"]`
+- Removed broken PostgREST joins on `user_roles` (FK→`auth.users` not `profiles`) → query separately + enrich in JS
+- Fixed `building_scope` null vs "all" mismatch in existing-role check (`.is(null)` not `.eq("all")`)
+
+**Role Assignment — Auth Verification**
+- POST `/api/admin/roles`: Verifies target user exists in `auth.users` before insert (seeded profiles without auth records get clear error message)
+- Also updates `profiles.role` on assignment for legacy compatibility
+- UI: Error message shown in dialog (red alert) instead of silent failure
+
+**Hooks Migrated to API Routes**
+- `useAssignTechnician()` + `useUpdateTicketNotes()`: Changed from direct Supabase → `PATCH /api/admin/maintenance/[id]`
+- `useRoles()` + `useUserRoles()`: Changed from direct Supabase → `GET /api/admin/roles`
+
+---
+
+## Changes (2026-03-20)
+
+### Chatbot UX Improvements
+
+**Banner Images on Flex Messages**
+- Parcel notification: hero banner with `Inbox.jpg` (hosted on postimg.cc)
+- Repair confirm (ยืนยันการแจ้งซ่อม): hero banner with `New_Request.jpg`
+- Pattern: hero section with 16:9 cover image + absolute overlay text (from bill-reminder)
+
+**Booking Flow After Repair Confirm**
+- `repair-status.ts` rewritten with 2 Figma designs:
+  - `buildTicketCreatingFlex()` (28:370) — shown after confirm, green header + booking CTA → `https://c-madong-product.vercel.app/th/booking/{ticketId}`
+  - `buildRepairStatusFlex()` (53:336) — shown after booking, with optional `AppointmentInfo`
+- `postback.ts`: `repair_book` handler sends web booking URL
+- Uses `WEB_BASE` constant (not LIFF) for all URLs
+
+**"แจ้งซ่อม" Guide Message**
+- Short trigger phrases ("แจ้งซ่อม", "ซ่อม", etc.) → guide message instead of creating ticket
+- `isRepairTriggerOnly()` exact-match check in `webhook-handler.ts`
+
+**Status Check Keywords (Bug Fix)**
+- "ติดตามสถานะ", "สถานะแจ้งซ่อม", etc. now route to `repair_history` instead of creating ticket
+- `isRepairStatusCheck()` runs BEFORE session state routing (fixes mid-flow bypass bug)
+- Added keywords: "เช็คสถานะ", "ดูสถานะ", "track", "status"
+
+**Ticket Number in Push Notification**
+- `buildStatusUpdateFlex()` in `repair-notification.ts` now shows `#shortId` as first detail row
+
+**Middleware Fix**
+- Removed `/booking` from `PUBLIC_ROUTES` — was causing redirect-to-dashboard for logged-in users
+
+---
+
+## Changes (2026-03-19)
 
 ### LINE Flex Messages — Repair Feature (3 Figma Designs)
 
@@ -35,6 +106,7 @@
 - LINE Flex `backgroundColor` only accepts hex (`#RRGGBB`/`#RRGGBBAA`), NOT `rgba()` — silently rejects entire message
 - `ilike` on UUID columns fails in Postgres — fetch rows then `startsWith()` in JS
 - Postback buttons in chatbot replies should always use postback action, not URI (LIFF env var causes URI redirect)
+- Session state bypass: when user is mid-repair-flow (session state = `repair_confirming`/`repair_editing`/`repair_collecting_photos`), all text routes to `handleRepair()` — must check status keywords BEFORE session state routing in `webhook-handler.ts`
 
 ### Bug Fixes & Infrastructure
 

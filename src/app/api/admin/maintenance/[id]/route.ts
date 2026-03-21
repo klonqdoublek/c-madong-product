@@ -30,7 +30,13 @@ export async function PATCH(
     .eq("id", user.id)
     .single();
 
-  if (!profile || !["admin", "head"].includes(profile.role)) {
+  const STAFF_ROLES = [
+    "admin", "staff",  // legacy
+    "super_admin", "head", "registrar", "finance", "parcel",
+    "admin_staff", "service", "activity",
+    "technician_head", "technician", "technician_it",
+  ];
+  if (!profile || !STAFF_ROLES.includes(profile.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -60,14 +66,17 @@ export async function PATCH(
     updates.resolved_at = new Date().toISOString();
   }
 
+  // Use adminClient to bypass RLS (auth already verified above)
+  const adminDb = createAdminClient();
+
   // Fetch current ticket to check if status actually changed
-  const { data: currentTicket } = await supabase
+  const { data: currentTicket } = await adminDb
     .from("maintenance_requests")
     .select("status, requester_id, title, category, technician_id, created_at, accepted_at, resolved_at, updated_at")
     .eq("id", id)
     .single();
 
-  const { data, error } = await supabase
+  const { data, error } = await adminDb
     .from("maintenance_requests")
     .update(updates)
     .eq("id", id)
@@ -89,8 +98,6 @@ export async function PATCH(
     body: JSON.stringify(parsed.data),
   });
   if (newStatus && currentTicket && newStatus !== currentTicket.status) {
-    const adminDb = createAdminClient();
-
     // Lookup requester LINE UID + display name + technician info
     let lineUid: string | null = null;
     let displayName = "คุณ";

@@ -52,75 +52,38 @@ const assignRoleSchema = z.object({
 // ============================================================================
 
 /**
- * Fetch all roles (or filter by user_id)
+ * Fetch all roles (or filter by user_id) via API route (bypasses RLS)
  */
 export function useRoles(userId?: string) {
-  const supabase = useSupabase();
-
   return useQuery({
     queryKey: ["admin", "roles", userId],
     queryFn: async () => {
       const params = userId ? `?userId=${userId}` : "";
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(
-          `
-          id,
-          role,
-          building_scope,
-          granted_at,
-          is_active,
-          metadata,
-          user_id,
-          user:profiles!user_roles_user_id_fkey (
-            id,
-            full_name_th,
-            full_name_en,
-            student_id,
-            email
-          ),
-          granted_by_user:profiles!user_roles_granted_by_fkey (
-            id,
-            full_name_th,
-            full_name_en
-          )
-        `
-        )
-        .eq("is_active", true)
-        .order("granted_at", { ascending: false });
-
-      if (error) throw error;
-      return (data ?? []) as UserRoleAssignment[];
+      const res = await fetch(`/api/admin/roles${params}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed to fetch roles");
+      }
+      const { roles } = await res.json();
+      return (roles ?? []) as UserRoleAssignment[];
     },
   });
 }
 
 /**
- * Fetch roles for a specific user
+ * Fetch roles for a specific user via API route
  */
 export function useUserRoles(userId: string) {
-  const supabase = useSupabase();
-
   return useQuery({
     queryKey: ["admin", "roles", "user", userId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select(
-          `
-          id,
-          role,
-          building_scope,
-          granted_at,
-          is_active
-        `
-        )
-        .eq("user_id", userId)
-        .eq("is_active", true)
-        .order("granted_at", { ascending: false });
-
-      if (error) throw error;
-      return (data ?? []) as UserRoleAssignment[];
+      const res = await fetch(`/api/admin/roles?userId=${userId}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Failed to fetch user roles");
+      }
+      const { roles } = await res.json();
+      return (roles ?? []) as UserRoleAssignment[];
     },
     enabled: !!userId,
   });

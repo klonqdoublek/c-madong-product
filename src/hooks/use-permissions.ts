@@ -25,16 +25,22 @@ import { useUser } from "./use-user";
 import { createPermissionChecker, UsePermissionsReturn } from "@/lib/rbac";
 import type { AppRole } from "@/lib/supabase/types";
 
+// Map legacy profiles.role values to RBAC AppRole
+const LEGACY_ROLE_MAP: Record<string, AppRole> = {
+  admin: "super_admin",
+  staff: "admin_staff",
+};
+
+function mapLegacyRole(role: string): AppRole {
+  return LEGACY_ROLE_MAP[role] ?? (role as AppRole);
+}
+
 export function usePermissions(): UsePermissionsReturn {
   const { profile } = useUser();
 
-  // Get user roles from profile
-  // TODO: After RBAC migration, fetch from user_roles table via API
   const userRoles = useMemo(() => {
     if (!profile) return [];
-    // Use the single role from profile for now
-    // After migration: fetch({ query: getUserRoles, variables: { userId } })
-    return [profile.role as AppRole];
+    return [mapLegacyRole(profile.role)];
   }, [profile]);
 
   // Create permission checker
@@ -53,8 +59,7 @@ export function useRoles(): AppRole[] {
 
   return useMemo(() => {
     if (!profile) return [];
-    // TODO: After RBAC migration, fetch from user_roles table
-    return [profile.role as AppRole];
+    return [mapLegacyRole(profile.role)];
   }, [profile]);
 }
 

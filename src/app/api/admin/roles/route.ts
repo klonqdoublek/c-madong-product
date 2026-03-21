@@ -8,7 +8,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { z } from "zod/v4";
+
+// Roles allowed to manage role assignments
+const ROLE_MANAGER_ROLES = ["admin", "super_admin", "head"];
 
 // ============================================================================
 // Schemas
@@ -57,7 +61,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
-    // Check if user is admin/head
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -65,55 +68,49 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const adminDb = createAdminClient();
+    const { data: profile } = await adminDb
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head"].includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Build query
-    let query = supabase
+    // Query user_roles without PostgREST join (FK points to auth.users, not profiles)
+    let query = adminDb
       .from("user_roles")
-      .select(
-        `
-        id,
-        role,
-        building_scope,
-        granted_at,
-        is_active,
-        metadata,
-        user_id,
-        user:profiles!user_roles_user_id_fkey (
-          id,
-          full_name_th,
-          full_name_en,
-          student_id,
-          email
-        ),
-        granted_by_user:profiles!user_roles_granted_by_fkey (
-          id,
-          full_name_th,
-          full_name_en
-        )
-      `
-      )
+      .select("id, role, building_scope, granted_at, is_active, metadata, user_id, granted_by")
       .eq("is_active", true)
       .order("granted_at", { ascending: false });
 
-    // Filter by user if specified
     if (userId) {
       query = query.eq("user_id", userId);
     }
 
     const { data: roles, error } = await query;
-
     if (error) throw error;
 
-    return NextResponse.json({ roles });
+    // Enrich with profile data via separate query
+    const userIds = [...new Set((roles ?? []).flatMap((r) => [r.user_id, r.granted_by].filter((id): id is string => !!id)))];
+    const { data: profiles } = userIds.length > 0
+      ? await adminDb
+          .from("profiles")
+          .select("id, full_name_th, full_name_en, student_id, email")
+          .in("id", userIds)
+      : { data: [] };
+
+    const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+    const enrichedRoles = (roles ?? []).map((r) => ({
+      ...r,
+      user: profileMap.get(r.user_id) ?? null,
+      granted_by_user: r.granted_by ? profileMap.get(r.granted_by) ?? null : null,
+    }));
+
+    return NextResponse.json({ roles: enrichedRoles });
   } catch (error) {
     console.error("Error fetching roles:", error);
     return NextResponse.json(
@@ -132,10 +129,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const body = await request.json();
 
-    // Validate input
     const validatedData = assignRoleSchema.parse(body);
 
-    // Check if user is admin/head
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -143,17 +138,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const adminDb = createAdminClient();
+    const { data: profile } = await adminDb
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head"].includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Check if building_scope is provided for registrar role
     if (
       validatedData.role === "registrar" &&
       !validatedData.buildingScope
@@ -164,17 +159,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if role already exists
-    const { data: existing } = await supabase
+    // Verify target user exists in auth.users (seeded profiles may not have auth records)
+    const { data: authUser } = await adminDb.auth.admin.getUserById(validatedData.userId);
+    if (!authUser?.user) {
+      return NextResponse.json(
+        { error: "ผู้ใช้นี้ยังไม่ได้ลงทะเบียนในระบบ (ไม่มี auth record)" },
+        { status: 400 }
+      );
+    }
+
+    // Check if role already exists — handle null vs "all" for building_scope
+    let existingQuery = adminDb
       .from("user_roles")
       .select("id, is_active")
       .eq("user_id", validatedData.userId)
-      .eq("role", validatedData.role)
-      .eq(
-        "building_scope",
-        validatedData.buildingScope ?? "all"
-      )
-      .maybeSingle();
+      .eq("role", validatedData.role);
+
+    if (validatedData.buildingScope) {
+      existingQuery = existingQuery.eq("building_scope", validatedData.buildingScope);
+    } else {
+      existingQuery = existingQuery.is("building_scope", null);
+    }
+
+    const { data: existing } = await existingQuery.maybeSingle();
 
     if (existing) {
       if (existing.is_active) {
@@ -184,53 +191,38 @@ export async function POST(request: NextRequest) {
         );
       }
       // Reactivate existing role
-      const { data: updated, error: updateError } = await supabase
+      const { error: updateError } = await adminDb
         .from("user_roles")
         .update({ is_active: true, granted_at: new Date().toISOString() })
-        .eq("id", existing.id)
-        .select(
-          `
-          id,
-          role,
-          building_scope,
-          granted_at,
-          user:profiles!user_roles_user_id_fkey (
-            id,
-            full_name_th
-          )
-        `
-        )
-        .single();
+        .eq("id", existing.id);
 
       if (updateError) throw updateError;
 
-      return NextResponse.json({ role: updated });
+      return NextResponse.json({ success: true, reactivated: true });
     }
 
     // Assign new role
-    const { data: newRole, error } = await supabase
+    const { data: newRole, error } = await adminDb
       .from("user_roles")
       .insert({
         user_id: validatedData.userId,
         role: validatedData.role,
-        building_scope: validatedData.buildingScope,
+        building_scope: validatedData.buildingScope ?? null,
         granted_by: user.id,
       })
-      .select(
-        `
-        id,
-        role,
-        building_scope,
-        granted_at,
-        user:profiles!user_roles_user_id_fkey (
-          id,
-          full_name_th
-        )
-        `
-      )
+      .select("id, role, building_scope, granted_at")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Insert user_roles error:", error);
+      throw error;
+    }
+
+    // Also update the profiles.role column to match (for legacy compatibility)
+    await adminDb
+      .from("profiles")
+      .update({ role: validatedData.role })
+      .eq("id", validatedData.userId);
 
     return NextResponse.json({ role: newRole }, { status: 201 });
   } catch (error) {
@@ -241,8 +233,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    const message = error instanceof Error ? error.message : "Failed to assign role";
     return NextResponse.json(
-      { error: "Failed to assign role" },
+      { error: message },
       { status: 500 }
     );
   }
@@ -257,10 +250,8 @@ export async function DELETE(request: NextRequest) {
     const supabase = await createClient();
     const body = await request.json();
 
-    // Validate input
     const validatedData = revokeRoleSchema.parse(body);
 
-    // Check if user is admin/head
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -268,18 +259,19 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
+    const adminDb = createAdminClient();
+    const { data: profile } = await adminDb
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head"].includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Soft delete (set is_active = false)
-    const { error } = await supabase
+    const { error } = await adminDb
       .from("user_roles")
       .update({ is_active: false })
       .eq("id", validatedData.userRoleId);

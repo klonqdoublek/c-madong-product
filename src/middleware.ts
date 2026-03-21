@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createIntlMiddleware(routing);
 
 // Routes that don't require auth
-const PUBLIC_ROUTES = ["/login", "/register", "/booking"];
+const PUBLIC_ROUTES = ["/login", "/register"];
 
 // Routes only accessible to admin/head
 const ADMIN_ROUTE_PREFIX = "/admin";
@@ -118,9 +118,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(onboardingUrl);
   }
 
-  // 9. Admin route protection
+  // 9. Admin route protection — allow all staff roles (legacy + RBAC)
+  const ADMIN_ALLOWED_ROLES = [
+    // Legacy values in profiles.role
+    "admin", "staff",
+    // RBAC AppRole values
+    "super_admin", "head", "registrar", "finance", "parcel",
+    "admin_staff", "service", "activity",
+    "technician_head", "technician", "technician_it",
+    // Committee has limited admin access (view tickets/announcements)
+    "committee",
+  ];
   if (strippedPath.startsWith(ADMIN_ROUTE_PREFIX)) {
-    if (!profile || !["admin", "head"].includes(profile.role)) {
+    if (!profile || !ADMIN_ALLOWED_ROLES.includes(profile.role)) {
       const dashboardUrl = new URL(`/${locale}/dashboard`, request.url);
       return NextResponse.redirect(dashboardUrl);
     }

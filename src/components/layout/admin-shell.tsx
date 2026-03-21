@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
+import { usePermissions } from "@/hooks/use-permissions";
+import { Permission } from "@/lib/rbac/permissions";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,17 +37,25 @@ interface NavItem {
   href: string;
   label: string;
   icon?: React.ReactNode;
+  permission?: string;
 }
 
 interface NavGroup {
   label: string;
   icon: React.ReactNode;
   items: NavItem[];
+  permission?: string;
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("admin");
   const pathname = usePathname();
+  const { can, canAny } = usePermissions();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/th/login";
+  };
   const { sidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore();
 
   // Track which collapsible groups are open
@@ -74,16 +84,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     label: t("navOverview"),
   };
 
-  // Collapsible nav groups
-  const navGroups: (NavGroup & { key: string })[] = [
+  // Collapsible nav groups (with permission requirements)
+  const allNavGroups: (NavGroup & { key: string; permission?: string })[] = [
     {
       key: "announcements",
       label: t("navAnnouncementCenter"),
       icon: <Megaphone className="h-4 w-4" />,
+      permission: Permission.ANNOUNCEMENTS_VIEW,
       items: [
         { href: "/admin/announcements", label: t("navAllAnnouncements") },
-        { href: "/admin/announcements/new", label: t("navNewAnnouncement") },
-        { href: "/admin/templates", label: t("navTemplates") },
+        { href: "/admin/announcements/new", label: t("navNewAnnouncement"), permission: Permission.ANNOUNCEMENTS_CREATE },
+        { href: "/admin/templates", label: t("navTemplates"), permission: Permission.TEMPLATES_VIEW },
       ],
     },
     {
@@ -100,44 +111,47 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       label: t("navSettings"),
       icon: <Settings className="h-4 w-4" />,
       items: [
-        { href: "/admin/students", label: t("navStudents"), icon: <Users className="h-3.5 w-3.5" /> },
-        { href: "/admin/maintenance/technicians", label: t("navTechnicians"), icon: <HardHat className="h-3.5 w-3.5" /> },
-        { href: "/admin/tags", label: t("navTags"), icon: <Tag className="h-3.5 w-3.5" /> },
-        { href: "/admin/roles", label: t("navRoles"), icon: <Shield className="h-3.5 w-3.5" /> },
-        { href: "/admin/settings", label: t("navSystemSettings"), icon: <Cog className="h-3.5 w-3.5" /> },
+        { href: "/admin/students", label: t("navStudents"), icon: <Users className="h-3.5 w-3.5" />, permission: Permission.STUDENTS_VIEW },
+        { href: "/admin/maintenance/technicians", label: t("navTechnicians"), icon: <HardHat className="h-3.5 w-3.5" />, permission: Permission.TECHNICIANS_VIEW },
+        { href: "/admin/tags", label: t("navTags"), icon: <Tag className="h-3.5 w-3.5" />, permission: Permission.STUDENTS_TAGS },
+        { href: "/admin/roles", label: t("navRoles"), icon: <Shield className="h-3.5 w-3.5" />, permission: Permission.SYSTEM_ROLES },
+        { href: "/admin/settings", label: t("navSystemSettings"), icon: <Cog className="h-3.5 w-3.5" />, permission: Permission.SYSTEM_SETTINGS },
       ],
     },
   ];
 
-  // Events standalone item
-  const eventsItem: NavItem = {
-    href: "/admin/events",
-    label: t("navEvents"),
+  // Standalone nav items with permissions
+  const standaloneItems: (NavItem & { icon: React.ReactNode; permission?: string })[] = [
+    { href: "/admin/events", label: t("navEvents"), icon: <CalendarDays className="h-4 w-4" />, permission: Permission.EVENTS_VIEW },
+    { href: "/admin/scores", label: t("navScores"), icon: <Trophy className="h-4 w-4" />, permission: Permission.SCORES_VIEW },
+    { href: "/admin/billing", label: t("navBilling"), icon: <Banknote className="h-4 w-4" />, permission: Permission.BILLS_VIEW },
+    { href: "/admin/parcels", label: t("parcels"), icon: <Package className="h-4 w-4" />, permission: Permission.PARCELS_VIEW },
+    { href: "/admin/knowledge-base", label: t("navKnowledgeBase"), icon: <BookOpen className="h-4 w-4" />, permission: Permission.KNOWLEDGE_VIEW },
+  ];
+
+  // Group-level permission overrides (some groups need canAny check)
+  const groupPermissionCheck: Record<string, () => boolean> = {
+    maintenance: () => canAny([Permission.TICKETS_VIEW_ALL, Permission.TICKETS_VIEW_ASSIGNED]),
   };
 
-  // Scores standalone item
-  const scoresItem: NavItem = {
-    href: "/admin/scores",
-    label: t("navScores"),
-  };
+  // Filter items by permission
+  const navGroups = allNavGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => !item.permission || can(item.permission)),
+    }))
+    .filter((group) => {
+      // Use custom group check if defined
+      const groupCheck = groupPermissionCheck[group.key];
+      if (groupCheck) return groupCheck();
+      // Hide group if group-level permission fails, or if all items were filtered out
+      if (group.permission && !can(group.permission)) return false;
+      return group.items.length > 0;
+    });
 
-  // Billing standalone item
-  const billingItem: NavItem = {
-    href: "/admin/billing",
-    label: t("navBilling"),
-  };
-
-  // Parcels standalone item
-  const parcelsItem: NavItem = {
-    href: "/admin/parcels",
-    label: t("parcels"),
-  };
-
-  // Knowledge base standalone item
-  const knowledgeBaseItem: NavItem = {
-    href: "/admin/knowledge-base",
-    label: t("navKnowledgeBase"),
-  };
+  const visibleStandaloneItems = standaloneItems.filter(
+    (item) => !item.permission || can(item.permission)
+  );
 
   const isActive = (href: string) => {
     if (href === "/admin/dashboard") return pathname === "/admin/dashboard" || pathname === "/admin";
@@ -228,60 +242,26 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Collapsible>
         ))}
 
-        {/* Events */}
-        <Link
-          href={eventsItem.href}
-          className={linkClasses(eventsItem.href)}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <CalendarDays className="h-4 w-4" />
-          {eventsItem.label}
-        </Link>
-
-        {/* Scores */}
-        <Link
-          href={scoresItem.href}
-          className={linkClasses(scoresItem.href)}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <Trophy className="h-4 w-4" />
-          {scoresItem.label}
-        </Link>
-
-        {/* Billing */}
-        <Link
-          href={billingItem.href}
-          className={linkClasses(billingItem.href)}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <Banknote className="h-4 w-4" />
-          {billingItem.label}
-        </Link>
-
-        {/* Parcels */}
-        <Link
-          href={parcelsItem.href}
-          className={linkClasses(parcelsItem.href)}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <Package className="h-4 w-4" />
-          {parcelsItem.label}
-        </Link>
-
-        {/* Knowledge Base */}
-        <Link
-          href={knowledgeBaseItem.href}
-          className={linkClasses(knowledgeBaseItem.href)}
-          onClick={() => setSidebarOpen(false)}
-        >
-          <BookOpen className="h-4 w-4" />
-          {knowledgeBaseItem.label}
-        </Link>
+        {/* Standalone items (filtered by permission) */}
+        {visibleStandaloneItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={linkClasses(item.href)}
+            onClick={() => setSidebarOpen(false)}
+          >
+            {item.icon}
+            {item.label}
+          </Link>
+        ))}
       </nav>
 
       {/* User section */}
       <div className="border-t border-white/10 px-3 py-3">
-        <button className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        >
           <LogOut className="h-4 w-4" />
           ออกจากระบบ
         </button>
