@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useUIStore } from "@/stores/ui-store";
+import { useUserStore } from "@/stores/user-store";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Permission } from "@/lib/rbac/permissions";
+import { ROLE_INFO, type AppRole } from "@/lib/rbac/roles";
 import {
   Collapsible,
   CollapsibleContent,
@@ -33,6 +35,11 @@ import {
   Package,
 } from "lucide-react";
 
+const LEGACY_ROLE_MAP: Record<string, AppRole> = {
+  admin: "super_admin",
+  staff: "admin_staff",
+};
+
 interface NavItem {
   href: string;
   label: string;
@@ -51,6 +58,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("admin");
   const pathname = usePathname();
   const { can, canAny } = usePermissions();
+  const profile = useUserStore((s) => s.profile);
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -257,7 +265,45 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-white/10 px-3 py-3">
+      <div className="border-t border-white/10 px-3 py-4 space-y-3">
+        {/* Admin profile */}
+        {profile && (
+          <Link
+            href="/admin/profile"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-start gap-2.5 rounded-lg px-1 py-1.5 transition-colors hover:bg-white/10"
+          >
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="h-10 w-10 shrink-0 rounded-full object-cover"
+              />
+            ) : (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20 font-heading text-sm font-bold text-white">
+                {profile.full_name_th?.charAt(0) || "?"}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-heading text-sm font-bold text-white">
+                {profile.display_name || profile.full_name_th}
+              </p>
+              <div className="flex items-center gap-1 text-white/70">
+                <Shield className="h-3.5 w-3.5 shrink-0" />
+                <p className="truncate text-xs">
+                  {(() => {
+                    const role = profile.role;
+                    if (!role) return "";
+                    const mapped = LEGACY_ROLE_MAP[role] ?? (role as AppRole);
+                    return ROLE_INFO[mapped]?.nameTh ?? role;
+                  })()}
+                </p>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Logout */}
         <button
           onClick={handleLogout}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
@@ -271,8 +317,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      {/* Desktop sidebar */}
-      <aside className="gradient-primary hidden w-64 shrink-0 lg:block">
+      {/* Desktop sidebar — fixed in place */}
+      <aside className="gradient-primary fixed inset-y-0 left-0 z-30 hidden w-64 overflow-y-auto lg:block">
         {sidebar}
       </aside>
 
@@ -294,8 +340,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {sidebar}
       </aside>
 
-      {/* Main content */}
-      <div className="flex flex-1 flex-col bg-muted/30">
+      {/* Main content — offset for fixed sidebar on desktop */}
+      <div className="flex flex-1 flex-col bg-muted/30 lg:ml-64">
         {/* Mobile header */}
         <header className="sticky top-0 z-30 flex h-14 items-center border-b bg-white/80 px-4 backdrop-blur-sm lg:hidden">
           <button
