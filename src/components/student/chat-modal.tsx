@@ -78,13 +78,9 @@ export function ChatModal() {
   useEffect(() => {
     if (!isOpen) return;
 
-    // Scroll-lock that preserves position (prevents layout shift)
-    const scrollY = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
+    // Simple scroll-lock (mobile has no scrollbar, so no layout shift)
     document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
 
     const vv = window.visualViewport;
     setViewportHeight(vv ? vv.height : window.innerHeight);
@@ -95,12 +91,8 @@ export function ChatModal() {
 
     vv?.addEventListener("resize", onResize);
     return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
       document.body.style.overflow = "";
-      window.scrollTo(0, scrollY);
+      document.documentElement.style.overflow = "";
       vv?.removeEventListener("resize", onResize);
     };
   }, [isOpen]);
