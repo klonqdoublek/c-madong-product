@@ -1,241 +1,451 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslations } from "next-intl";
-import { useDocuments, useUploadDocument, useDeleteDocument, useReprocessDocument } from "@/hooks/use-documents";
+import { toast } from "sonner";
+import { useKnowledgeStore } from "@/stores/knowledge-store";
+import {
+  useFolderTree,
+  useDocumentTags,
+  useKnowledgeDocuments,
+  useCreateFolder,
+  useUpdateFolder,
+  useDeleteFolder,
+  useCreateTag,
+  useDeleteTag,
+  useUploadKnowledgeDocument,
+  useDeleteDocument,
+  useUpdateDocument,
+  useBulkDocumentAction,
+} from "@/hooks/use-knowledge";
 import { useKnowledgeQuery } from "@/hooks/use-knowledge-query";
+import type { FolderTreeNode, KnowledgeDocument } from "@/hooks/use-knowledge";
+import { KnowledgeSidebar } from "./knowledge-sidebar";
+import { FolderView } from "./folder-view";
+import { FileDetailView } from "./file-detail-view";
+import { CreateFolderDialog } from "./create-folder-dialog";
+import { UploadDocumentDialog } from "./upload-document-dialog";
+import { MoveDocumentsDialog } from "./move-documents-dialog";
+import { TagManagementDialog } from "./tag-management-dialog";
+import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 
 export function KnowledgePageContent() {
   const t = useTranslations("admin.knowledgeBase");
-  const tCommon = useTranslations("common");
-  const [tab, setTab] = useState<"documents" | "playground">("documents");
+  const store = useKnowledgeStore();
 
-  return (
-    <div className="space-y-6">
-      <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
+  // Data
+  const { data: folderTree, flatFolders, isLoading: foldersLoading } = useFolderTree();
+  const { data: tags } = useDocumentTags();
+  const { data: documents, isLoading: docsLoading } = useKnowledgeDocuments({
+    folderId: store.selectedFolderId,
+    tagId: store.filterTagId,
+    search: store.searchQuery || undefined,
+    status: store.filterStatus !== "all" ? store.filterStatus : undefined,
+    sortBy: store.sortBy,
+    sortOrder: store.sortOrder,
+  });
+  // All documents (no folder filter) for sidebar file list + counts
+  const { data: allDocuments } = useKnowledgeDocuments({
+    search: store.searchQuery || undefined,
+  });
 
-      {/* Tab selector */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1">
-        <button
-          onClick={() => setTab("documents")}
-          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            tab === "documents" ? "bg-background shadow-sm" : "text-muted-foreground"
-          }`}
-        >
-          {t("documentsTab")}
-        </button>
-        <button
-          onClick={() => setTab("playground")}
-          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            tab === "playground" ? "bg-background shadow-sm" : "text-muted-foreground"
-          }`}
-        >
-          {t("playgroundTab")}
-        </button>
-      </div>
+  // Document counts per folder
+  const documentCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const doc of allDocuments ?? []) {
+      if (doc.folder_id) {
+        counts[doc.folder_id] = (counts[doc.folder_id] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [allDocuments]);
 
-      {tab === "documents" ? <DocumentsTab /> : <PlaygroundTab />}
-    </div>
-  );
-}
-
-function DocumentsTab() {
-  const t = useTranslations("admin.knowledgeBase");
-  const tCommon = useTranslations("common");
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const { data: documents, isLoading } = useDocuments();
-  const uploadDoc = useUploadDocument();
+  // Mutations
+  const createFolder = useCreateFolder();
+  const updateFolder = useUpdateFolder();
+  const deleteFolder = useDeleteFolder();
+  const createTag = useCreateTag();
+  const deleteTag = useDeleteTag();
+  const uploadDoc = useUploadKnowledgeDocument();
   const deleteDoc = useDeleteDocument();
-  const reprocessDoc = useReprocessDocument();
+  const updateDoc = useUpdateDocument();
+  const bulkAction = useBulkDocumentAction();
 
-  async function uploadFile(file: File) {
-    const allowed = [".txt", ".md", ".pdf", ".doc", ".docx"];
-    if (!allowed.some((ext) => file.name.toLowerCase().endsWith(ext))) return;
-    await uploadDoc.mutateAsync(file);
-  }
+  // Dialog state
+  const [folderDialog, setFolderDialog] = useState<{
+    open: boolean;
+    parentId?: string;
+    editFolder?: FolderTreeNode | null;
+  }>({ open: false });
+  const [uploadDialog, setUploadDialog] = useState(false);
+  const [moveDialog, setMoveDialog] = useState(false);
+  const [tagDialog, setTagDialog] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  }>({ open: false, title: "", description: "", onConfirm: () => {} });
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    await uploadFile(file);
-    if (fileRef.current) fileRef.current.value = "";
-  }
+  // Single file move/edit state
+  const [moveDocIds, setMoveDocIds] = useState<string[]>([]);
 
-  function handleDragOver(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  }
-
-  function handleDragLeave(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-  }
-
-  async function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) await uploadFile(file);
-  }
-
-  const STATUS_COLORS: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    processing: "bg-blue-100 text-blue-700",
-    ready: "bg-green-100 text-green-700",
-    error: "bg-red-100 text-red-700",
-  };
-
-  return (
-    <div className="space-y-4">
-      {/* Upload Zone — click or drag & drop */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        onClick={() => !uploadDoc.isPending && fileRef.current?.click()}
-        className={`cursor-pointer rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-primary/50"
-        }`}
-      >
-        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {isDragging ? t("dropHere") : t("uploadDescription")}
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground/60">.txt, .md, .pdf, .doc, .docx</p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".txt,.md,.pdf,.doc,.docx"
-          onChange={handleUpload}
-          className="hidden"
-        />
-        <button
-          onClick={(e) => { e.stopPropagation(); fileRef.current?.click(); }}
-          disabled={uploadDoc.isPending}
-          className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {uploadDoc.isPending ? t("uploading") : t("upload")}
-        </button>
-      </div>
-
-      {/* Document List */}
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-14 animate-pulse rounded-lg border bg-muted" />
-          ))}
-        </div>
-      ) : documents && documents.length > 0 ? (
-        <div className="space-y-2">
-          {documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="flex items-center justify-between rounded-lg border p-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium">{doc.title}</p>
-                <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                  <span
-                    className={`rounded px-1.5 py-0.5 ${STATUS_COLORS[doc.status] ?? STATUS_COLORS.pending}`}
-                  >
-                    {t(`status${doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}`)}
-                  </span>
-                  <span>{new Date(doc.created_at).toLocaleDateString("th-TH")}</span>
-                </div>
-              </div>
-              <div className="ml-2 flex items-center gap-1">
-                {doc.status !== "ready" && (
-                  <button
-                    onClick={() => reprocessDoc.mutate(doc.id)}
-                    disabled={reprocessDoc.isPending}
-                    title={t("reprocess")}
-                    className="rounded p-1 text-muted-foreground hover:text-primary"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
-                  </button>
-                )}
-                <button
-                  onClick={() => deleteDoc.mutate(doc.id)}
-                  disabled={deleteDoc.isPending}
-                  className="rounded p-1 text-muted-foreground hover:text-destructive"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="py-8 text-center text-muted-foreground">{t("noDocuments")}</p>
-      )}
-    </div>
-  );
-}
-
-function PlaygroundTab() {
-  const t = useTranslations("admin.knowledgeBase");
+  // Playground state
   const queryKnowledge = useKnowledgeQuery();
   const [question, setQuestion] = useState("");
 
-  async function handleAsk() {
-    if (!question.trim()) return;
-    queryKnowledge.mutate(question);
-  }
+  // Handlers
+  const handleCreateFolder = useCallback(
+    (parentId?: string) => {
+      setFolderDialog({ open: true, parentId, editFolder: null });
+    },
+    []
+  );
+
+  const handleRenameFolder = useCallback(
+    (folder: FolderTreeNode) => {
+      setFolderDialog({ open: true, editFolder: folder });
+    },
+    []
+  );
+
+  const handleDeleteFolder = useCallback(
+    (folder: FolderTreeNode) => {
+      setDeleteDialog({
+        open: true,
+        title: t("folder.delete"),
+        description: t("folder.deleteConfirm"),
+        onConfirm: () => {
+          deleteFolder.mutate(folder.id, {
+            onSuccess: () => {
+              toast.success(t("toast.folderDeleted"));
+              setDeleteDialog((d) => ({ ...d, open: false }));
+              if (store.selectedFolderId === folder.id) {
+                store.setSelectedFolderId(null);
+              }
+            },
+            onError: () => toast.error(t("toast.error")),
+          });
+        },
+      });
+    },
+    [deleteFolder, store, t]
+  );
+
+  const handleFolderSubmit = useCallback(
+    (data: { name: string; parentId?: string | null }) => {
+      if (folderDialog.editFolder) {
+        updateFolder.mutate(
+          { id: folderDialog.editFolder.id, ...data },
+          {
+            onSuccess: () => {
+              toast.success(t("toast.folderRenamed"));
+              setFolderDialog({ open: false });
+            },
+            onError: () => toast.error(t("toast.error")),
+          }
+        );
+      } else {
+        createFolder.mutate(data, {
+          onSuccess: () => {
+            toast.success(t("toast.folderCreated"));
+            setFolderDialog({ open: false });
+          },
+          onError: () => toast.error(t("toast.error")),
+        });
+      }
+    },
+    [folderDialog.editFolder, updateFolder, createFolder, t]
+  );
+
+  const handleUpload = useCallback(
+    (file: File, folderId: string | null, tagIds: string[]) => {
+      uploadDoc.mutate(
+        { file, folderId, tagIds },
+        {
+          onSuccess: () => {
+            toast.success(t("toast.documentUploaded"));
+            setUploadDialog(false);
+          },
+          onError: () => toast.error(t("toast.error")),
+        }
+      );
+    },
+    [uploadDoc, t]
+  );
+
+  const handleViewFile = useCallback(
+    (id: string) => {
+      store.openFile(id);
+    },
+    [store]
+  );
+
+  const handleEditFile = useCallback(
+    (_doc: KnowledgeDocument) => {
+      // For now, open in detail view
+      store.openFile(_doc.id);
+    },
+    [store]
+  );
+
+  const handleMoveFile = useCallback(
+    (doc: KnowledgeDocument) => {
+      setMoveDocIds([doc.id]);
+      setMoveDialog(true);
+    },
+    []
+  );
+
+  const handleDeleteFile = useCallback(
+    (doc: KnowledgeDocument) => {
+      setDeleteDialog({
+        open: true,
+        title: t("file.delete"),
+        description: t("file.deleteConfirm"),
+        onConfirm: () => {
+          deleteDoc.mutate(doc.id, {
+            onSuccess: () => {
+              toast.success(t("toast.documentDeleted"));
+              setDeleteDialog((d) => ({ ...d, open: false }));
+            },
+            onError: () => toast.error(t("toast.error")),
+          });
+        },
+      });
+    },
+    [deleteDoc, t]
+  );
+
+  // Bulk handlers
+  const handleBulkMove = useCallback(() => {
+    setMoveDocIds(store.selectedFileIds);
+    setMoveDialog(true);
+  }, [store.selectedFileIds]);
+
+  const handleBulkDelete = useCallback(() => {
+    setDeleteDialog({
+      open: true,
+      title: t("bulk.delete"),
+      description: t("bulk.deleteConfirm", { count: store.selectedFileIds.length }),
+      onConfirm: () => {
+        bulkAction.mutate(
+          { action: "delete", documentIds: store.selectedFileIds },
+          {
+            onSuccess: () => {
+              toast.success(t("toast.documentsDeleted"));
+              store.clearSelection();
+              setDeleteDialog((d) => ({ ...d, open: false }));
+            },
+            onError: () => toast.error(t("toast.error")),
+          }
+        );
+      },
+    });
+  }, [bulkAction, store, t]);
+
+  const handleBulkTag = useCallback(() => {
+    setTagDialog(true);
+  }, []);
+
+  const handleBulkReprocess = useCallback(() => {
+    bulkAction.mutate(
+      { action: "reprocess", documentIds: store.selectedFileIds },
+      {
+        onSuccess: () => {
+          toast.success(t("reprocess"));
+          store.clearSelection();
+        },
+        onError: () => toast.error(t("toast.error")),
+      }
+    );
+  }, [bulkAction, store, t]);
+
+  const handleMove = useCallback(
+    (folderId: string | null) => {
+      if (moveDocIds.length === 1) {
+        updateDoc.mutate(
+          { id: moveDocIds[0], folderId },
+          {
+            onSuccess: () => {
+              toast.success(t("toast.documentsMoved"));
+              setMoveDialog(false);
+              setMoveDocIds([]);
+            },
+            onError: () => toast.error(t("toast.error")),
+          }
+        );
+      } else {
+        bulkAction.mutate(
+          { action: "move", documentIds: moveDocIds, folderId },
+          {
+            onSuccess: () => {
+              toast.success(t("toast.documentsMoved"));
+              setMoveDialog(false);
+              setMoveDocIds([]);
+              store.clearSelection();
+            },
+            onError: () => toast.error(t("toast.error")),
+          }
+        );
+      }
+    },
+    [moveDocIds, updateDoc, bulkAction, store, t]
+  );
+
+  const handlePlaygroundClick = useCallback(() => {
+    store.setView("playground");
+  }, [store]);
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">{t("playgroundDescription")}</p>
-
-      <div className="flex gap-2">
-        <input
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          placeholder={t("questionPlaceholder")}
-          onKeyDown={(e) => e.key === "Enter" && handleAsk()}
-          className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm"
+    <div className="flex h-dvh flex-col">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <KnowledgeSidebar
+          folderTree={folderTree}
+          documents={allDocuments ?? []}
+          documentCounts={documentCounts}
+          onCreateFolder={handleCreateFolder}
+          onRenameFolder={handleRenameFolder}
+          onDeleteFolder={handleDeleteFolder}
+          onUploadClick={() => setUploadDialog(true)}
+          onPlaygroundClick={handlePlaygroundClick}
         />
-        <button
-          onClick={handleAsk}
-          disabled={queryKnowledge.isPending || !question.trim()}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {queryKnowledge.isPending ? t("thinking") : t("ask")}
-        </button>
-      </div>
 
-      {queryKnowledge.data && (
-        <div className="space-y-3">
-          <div className="rounded-lg border bg-card p-4">
-            <h3 className="mb-2 font-medium">{t("answer")}</h3>
-            <p className="whitespace-pre-wrap text-sm">{queryKnowledge.data.answer}</p>
-          </div>
-          {queryKnowledge.data.sources.length > 0 && (
-            <div className="rounded-lg border bg-muted/30 p-4">
-              <h3 className="mb-2 text-sm font-medium">{t("sources")}</h3>
-              {queryKnowledge.data.sources.map((src, i) => (
-                <div key={i} className="mt-2 border-t pt-2 text-xs text-muted-foreground">
-                  <p className="line-clamp-3">{src.content}</p>
-                  <p className="mt-1 text-xs opacity-60">
-                    {t("similarity")}: {(src.similarity * 100).toFixed(1)}%
-                  </p>
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
+          {store.view === "folder" && (
+            <FolderView
+              folders={flatFolders}
+              folderTree={folderTree}
+              documents={documents ?? []}
+              documentCounts={documentCounts}
+              tags={tags ?? []}
+              isLoading={docsLoading}
+              onCreateFolder={handleCreateFolder}
+              onRenameFolder={handleRenameFolder}
+              onDeleteFolder={handleDeleteFolder}
+              onUploadClick={() => setUploadDialog(true)}
+              onViewFile={handleViewFile}
+              onEditFile={handleEditFile}
+              onMoveFile={handleMoveFile}
+              onDeleteFile={handleDeleteFile}
+              onBulkMove={handleBulkMove}
+              onBulkDelete={handleBulkDelete}
+              onBulkTag={handleBulkTag}
+              onBulkReprocess={handleBulkReprocess}
+            />
+          )}
+
+          {store.view === "file-detail" && <FileDetailView />}
+
+          {store.view === "playground" && (
+            <div className="space-y-4 p-4">
+              <p className="text-sm text-muted-foreground">{t("playgroundDescription")}</p>
+              <div className="flex gap-2">
+                <input
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder={t("questionPlaceholder")}
+                  onKeyDown={(e) => e.key === "Enter" && question.trim() && queryKnowledge.mutate(question)}
+                  className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm"
+                />
+                <button
+                  onClick={() => queryKnowledge.mutate(question)}
+                  disabled={queryKnowledge.isPending || !question.trim()}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {queryKnowledge.isPending ? t("thinking") : t("ask")}
+                </button>
+              </div>
+
+              {queryKnowledge.data && (
+                <div className="space-y-3">
+                  <div className="rounded-lg border bg-card p-4">
+                    <h3 className="mb-2 font-medium">{t("answer")}</h3>
+                    <p className="whitespace-pre-wrap text-sm">{queryKnowledge.data.answer}</p>
+                  </div>
+                  {queryKnowledge.data.sources.length > 0 && (
+                    <div className="rounded-lg border bg-muted/30 p-4">
+                      <h3 className="mb-2 text-sm font-medium">{t("sources")}</h3>
+                      {queryKnowledge.data.sources.map((src, i) => (
+                        <div key={i} className="mt-2 border-t pt-2 text-xs text-muted-foreground">
+                          <p className="line-clamp-3">{src.content}</p>
+                          <p className="mt-1 text-xs opacity-60">
+                            {t("similarity")}: {(src.similarity * 100).toFixed(1)}%
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              ))}
+              )}
+
+              {queryKnowledge.error && (
+                <p className="text-sm text-destructive">{t("queryError")}</p>
+              )}
             </div>
           )}
-        </div>
-      )}
+        </main>
+      </div>
 
-      {queryKnowledge.error && (
-        <p className="text-sm text-destructive">{t("queryError")}</p>
-      )}
+      {/* Dialogs */}
+      <CreateFolderDialog
+        open={folderDialog.open}
+        onOpenChange={(open) => setFolderDialog((d) => ({ ...d, open }))}
+        folders={flatFolders}
+        defaultParentId={folderDialog.parentId}
+        editFolder={folderDialog.editFolder}
+        onSubmit={handleFolderSubmit}
+        isPending={createFolder.isPending || updateFolder.isPending}
+      />
+
+      <UploadDocumentDialog
+        open={uploadDialog}
+        onOpenChange={setUploadDialog}
+        folders={flatFolders}
+        tags={tags ?? []}
+        defaultFolderId={store.selectedFolderId}
+        onUpload={handleUpload}
+        isPending={uploadDoc.isPending}
+      />
+
+      <MoveDocumentsDialog
+        open={moveDialog}
+        onOpenChange={setMoveDialog}
+        folders={flatFolders}
+        documentCount={moveDocIds.length}
+        onMove={handleMove}
+        isPending={updateDoc.isPending || bulkAction.isPending}
+      />
+
+      <TagManagementDialog
+        open={tagDialog}
+        onOpenChange={setTagDialog}
+        tags={tags ?? []}
+        onCreate={(data) => {
+          createTag.mutate(data, {
+            onSuccess: () => toast.success(t("toast.tagCreated")),
+            onError: () => toast.error(t("toast.error")),
+          });
+        }}
+        onDelete={(id) => {
+          deleteTag.mutate(id, {
+            onSuccess: () => toast.success(t("toast.tagDeleted")),
+            onError: () => toast.error(t("toast.error")),
+          });
+        }}
+        isCreating={createTag.isPending}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog((d) => ({ ...d, open }))}
+        title={deleteDialog.title}
+        description={deleteDialog.description}
+        onConfirm={deleteDialog.onConfirm}
+        isPending={deleteDoc.isPending || deleteFolder.isPending || bulkAction.isPending}
+      />
     </div>
   );
 }

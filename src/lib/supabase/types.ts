@@ -705,6 +705,70 @@ export type Database = {
         };
         Relationships: [];
       };
+      knowledge_folders: {
+        Row: {
+          id: string;
+          name: string;
+          parent_id: string | null;
+          description: string | null;
+          sort_order: number;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          parent_id?: string | null;
+          description?: string | null;
+          sort_order?: number;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          parent_id?: string | null;
+          description?: string | null;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      document_tags: {
+        Row: {
+          id: string;
+          name: string;
+          color: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          color?: string;
+          created_at?: string;
+        };
+        Update: {
+          name?: string;
+          color?: string;
+        };
+        Relationships: [];
+      };
+      document_tag_assignments: {
+        Row: {
+          document_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          document_id: string;
+          tag_id: string;
+        };
+        Update: {
+          document_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [];
+      };
       documents: {
         Row: {
           id: string;
@@ -717,6 +781,8 @@ export type Database = {
           file_path: string | null;
           content_type: string | null;
           created_by: string | null;
+          folder_id: string | null;
+          version: string;
           created_at: string;
           updated_at: string;
         };
@@ -731,6 +797,8 @@ export type Database = {
           file_path?: string | null;
           content_type?: string | null;
           created_by?: string | null;
+          folder_id?: string | null;
+          version?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -743,6 +811,8 @@ export type Database = {
           filename?: string | null;
           file_path?: string | null;
           content_type?: string | null;
+          folder_id?: string | null;
+          version?: string;
           updated_at?: string;
         };
         Relationships: [];

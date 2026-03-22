@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   LayoutDashboard,
   Megaphone,
@@ -40,6 +41,9 @@ const LEGACY_ROLE_MAP: Record<string, AppRole> = {
   staff: "admin_staff",
 };
 
+// Pages that should collapse the admin sidebar
+const COLLAPSED_SIDEBAR_PATHS = ["/admin/knowledge-base"];
+
 interface NavItem {
   href: string;
   label: string;
@@ -64,11 +68,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/th/login";
   };
-  const { sidebarOpen, setSidebarOpen, toggleSidebar } = useUIStore();
+  const { sidebarOpen, setSidebarOpen, toggleSidebar, adminSidebarCollapsed, setAdminSidebarCollapsed } = useUIStore();
+
+  // Auto-collapse sidebar when on knowledge base page
+  const shouldCollapse = COLLAPSED_SIDEBAR_PATHS.some((p) => pathname.startsWith(p));
+  useEffect(() => {
+    setAdminSidebarCollapsed(shouldCollapse);
+  }, [shouldCollapse, setAdminSidebarCollapsed]);
 
   // Track which collapsible groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    // Auto-open group that contains the current path
     const groups: Record<string, boolean> = {};
     if (pathname.includes("/announcements") || pathname.includes("/templates") || pathname.includes("/broadcast")) {
       groups.announcements = true;
@@ -149,10 +158,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       items: group.items.filter((item) => !item.permission || can(item.permission)),
     }))
     .filter((group) => {
-      // Use custom group check if defined
       const groupCheck = groupPermissionCheck[group.key];
       if (groupCheck) return groupCheck();
-      // Hide group if group-level permission fails, or if all items were filtered out
       if (group.permission && !can(group.permission)) return false;
       return group.items.length > 0;
     });
@@ -186,7 +193,123 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         : "text-white/60 hover:bg-white/10 hover:text-white/90"
     );
 
-  const sidebar = (
+  // ── Collapsed sidebar (icon-only) ──────────────────────────────
+  const collapsedSidebar = (
+    <TooltipProvider delayDuration={0}>
+      <div className="flex h-full flex-col items-center">
+        {/* Logo icon */}
+        <div className="flex h-16 w-full items-center justify-center">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
+            <Building2 className="h-5 w-5 text-white" />
+          </div>
+        </div>
+
+        {/* Nav icons */}
+        <nav className="flex flex-1 flex-col items-center gap-1 overflow-y-auto px-1.5 py-2">
+          {/* Overview */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href={overviewItem.href}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
+                  isActive(overviewItem.href)
+                    ? "bg-white text-primary shadow-lg"
+                    : "text-white/80 hover:bg-white/20 hover:text-white"
+                )}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="right">{overviewItem.label}</TooltipContent>
+          </Tooltip>
+
+          {/* Group icons — show first icon of group */}
+          {navGroups.map((group) => (
+            <Tooltip key={group.key}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={group.items[0]?.href ?? "#"}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
+                    isGroupActive(group)
+                      ? "bg-white text-primary shadow-lg"
+                      : "text-white/80 hover:bg-white/20 hover:text-white"
+                  )}
+                >
+                  {group.icon}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">{group.label}</TooltipContent>
+            </Tooltip>
+          ))}
+
+          {/* Standalone icons */}
+          {visibleStandaloneItems.map((item) => (
+            <Tooltip key={item.href}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={item.href}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
+                    isActive(item.href)
+                      ? "bg-white text-primary shadow-lg"
+                      : "text-white/80 hover:bg-white/20 hover:text-white"
+                  )}
+                >
+                  {item.icon}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">{item.label}</TooltipContent>
+            </Tooltip>
+          ))}
+        </nav>
+
+        {/* User avatar + logout */}
+        <div className="flex flex-col items-center gap-2 border-t border-white/10 px-1.5 py-3">
+          {profile && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  href="/admin/profile"
+                  className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-white/10"
+                >
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 font-heading text-xs font-bold text-white">
+                      {profile.full_name_th?.charAt(0) || "?"}
+                    </div>
+                  )}
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {profile.display_name || profile.full_name_th}
+              </TooltipContent>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLogout}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">ออกจากระบบ</TooltipContent>
+          </Tooltip>
+        </div>
+      </div>
+    </TooltipProvider>
+  );
+
+  // ── Full sidebar ──────────────────────────────────────────────
+  const fullSidebar = (
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-4 py-5">
@@ -315,11 +438,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 
+  const sidebarWidth = adminSidebarCollapsed ? "w-[60px]" : "w-64";
+  const sidebarMargin = adminSidebarCollapsed ? "lg:ml-[60px]" : "lg:ml-64";
+
   return (
     <div className="flex min-h-dvh">
       {/* Desktop sidebar — fixed in place */}
-      <aside className="gradient-primary fixed inset-y-0 left-0 z-30 hidden w-64 overflow-y-auto lg:block">
-        {sidebar}
+      <aside
+        className={cn(
+          "gradient-primary fixed inset-y-0 left-0 z-30 hidden overflow-y-auto transition-all duration-300 lg:block",
+          sidebarWidth
+        )}
+      >
+        {adminSidebarCollapsed ? collapsedSidebar : fullSidebar}
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -330,18 +461,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Mobile sidebar */}
+      {/* Mobile sidebar — always full width */}
       <aside
         className={cn(
           "gradient-primary fixed inset-y-0 left-0 z-50 w-64 transition-transform duration-300 lg:hidden",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {sidebar}
+        {fullSidebar}
       </aside>
 
       {/* Main content — offset for fixed sidebar on desktop */}
-      <div className="flex flex-1 flex-col bg-muted/30 lg:ml-64">
+      <div className={cn("flex flex-1 flex-col bg-muted/30 transition-all duration-300", sidebarMargin)}>
         {/* Mobile header */}
         <header className="sticky top-0 z-30 flex h-14 items-center border-b bg-white/80 px-4 backdrop-blur-sm lg:hidden">
           <button
@@ -354,7 +485,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             C-Madong Admin
           </span>
         </header>
-        <main className="flex-1 p-4 lg:p-8">{children}</main>
+        <main className={cn("flex-1", adminSidebarCollapsed ? "" : "p-4 lg:p-8")}>
+          {children}
+        </main>
       </div>
     </div>
   );

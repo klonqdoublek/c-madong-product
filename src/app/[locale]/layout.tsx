@@ -65,6 +65,7 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${chulalongkorn.variable} ${chulaCharasNew.variable} font-sans antialiased`}
+        suppressHydrationWarning
       >
         <NextIntlClientProvider>
           <Providers>{children}</Providers>

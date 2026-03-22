@@ -11,7 +11,7 @@ const SYSTEM_PROMPT = `คุณคือผู้ช่วยตอบคำถ
 
 export async function POST(request: Request) {
   try {
-    const { question } = await request.json();
+    const { question, documentId } = await request.json();
     if (!question) {
       return NextResponse.json({ error: "Question required" }, { status: 400 });
     }
@@ -47,6 +47,77 @@ export async function POST(request: Request) {
 
     // Search similar documents
     const supabase = createAdminClient();
+
+    // If documentId specified, search only within that document's sections
+    if (documentId) {
+      const { data: sections } = await supabase
+        .from("document_sections")
+        .select("id, content")
+        .eq("document_id", documentId);
+
+      if (!sections || sections.length === 0) {
+        return NextResponse.json({
+          answer: "ไม่พบเนื้อหาในเอกสารนี้",
+          sources: [],
+        });
+      }
+
+      // Use match_documents but filter results to only this document
+      const { data: allMatches } = await supabase.rpc("match_documents", {
+        query_embedding: JSON.stringify(queryEmbedding),
+        match_count: 10,
+        match_threshold: 0.3,
+      });
+
+      const sectionIds = new Set(sections.map((s) => s.id));
+      const filteredMatches = (allMatches ?? []).filter(
+        (m: { id: string }) => sectionIds.has(m.id)
+      ).slice(0, 3);
+
+      const docContext = filteredMatches.map((m: { content: string }) => m.content).join("\n\n");
+
+      if (!docContext) {
+        return NextResponse.json({
+          answer: "ไม่พบข้อมูลที่เกี่ยวข้องในเอกสารนี้",
+          sources: [],
+        });
+      }
+
+      const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: `บริบทจากเอกสาร:\n${docContext}\n\nคำถาม: ${question}`,
+            },
+          ],
+          temperature: 0.3,
+          max_tokens: 500,
+        }),
+      });
+
+      let answer = "ไม่สามารถตอบคำถามได้ในขณะนี้";
+      if (chatRes.ok) {
+        const chatData = await chatRes.json();
+        answer = chatData?.choices?.[0]?.message?.content ?? answer;
+      }
+
+      return NextResponse.json({
+        answer,
+        sources: filteredMatches.map((m: { content: string; similarity: number }) => ({
+          content: m.content,
+          similarity: m.similarity,
+        })),
+      });
+    }
+
     const { data: matches, error: matchError } = await supabase.rpc(
       "match_documents",
       {

@@ -437,8 +437,6 @@
     },
     "knowledgeBase": {
       "title": "Knowledge Base",
-      "documentsTab": "Documents",
-      "playgroundTab": "Q&A Playground",
       "uploadDescription": "Drag & drop a file here, or click to upload",
       "dropHere": "Drop file here",
       "upload": "Choose File",
@@ -456,7 +454,119 @@
       "sources": "Sources",
       "similarity": "Relevance",
       "queryError": "Unable to answer. Please try again.",
-      "reprocess": "Reprocess"
+      "reprocess": "Reprocess",
+      "subtitle": "Manage documents and dorm knowledge base here",
+      "sidebar": {
+        "search": "Search documents...",
+        "folders": "Folders",
+        "files": "Files",
+        "allFiles": "All Files",
+        "unfiled": "Unfiled",
+        "manageFiles": "Manage Files",
+        "manageFilesDesc": "Upload, move, delete",
+        "askQA": "Q&A",
+        "askQADesc": "Ask questions from documents",
+        "addDocument": "Add Document",
+        "addDocumentDesc": "Upload new file"
+      },
+      "folder": {
+        "create": "Create Folder",
+        "rename": "Rename",
+        "delete": "Delete Folder",
+        "deleteConfirm": "Delete this folder? Files will be moved to \"Unfiled\"",
+        "deleteSubConfirm": "Sub-folders will also be deleted",
+        "name": "Folder Name",
+        "namePlaceholder": "e.g. Dorm Rules",
+        "parent": "Parent Folder",
+        "parentNone": "None (top level)",
+        "description": "Description",
+        "filesCount": "{count} files",
+        "empty": "Empty folder",
+        "emptyDesc": "No files in this folder yet",
+        "uploadHere": "Upload here"
+      },
+      "file": {
+        "name": "File Name",
+        "type": "Type",
+        "version": "Version",
+        "author": "Added By",
+        "date": "Date",
+        "status": "Status",
+        "actions": "Actions",
+        "view": "View Details",
+        "edit": "Edit",
+        "move": "Move to Folder",
+        "delete": "Delete File",
+        "deleteConfirm": "Delete this file? This action cannot be undone.",
+        "selected": "{count} files selected"
+      },
+      "bulk": {
+        "move": "Move",
+        "delete": "Delete",
+        "tag": "Tag",
+        "reprocess": "Reprocess",
+        "deleteConfirm": "Delete {count} selected files?"
+      },
+      "sort": {
+        "date": "Date",
+        "name": "Name",
+        "sortBy": "Sort by"
+      },
+      "filter": {
+        "all": "All",
+        "ready": "Ready",
+        "pending": "Pending",
+        "error": "Error",
+        "status": "Status",
+        "tag": "Tag",
+        "clearFilter": "Clear filter"
+      },
+      "detail": {
+        "metadata": "Document Info",
+        "askAbout": "Ask about this document",
+        "preview": "Document Preview",
+        "noPreview": "Preview not available",
+        "back": "Back"
+      },
+      "tag": {
+        "manage": "Manage Tags",
+        "create": "Create Tag",
+        "name": "Tag Name",
+        "namePlaceholder": "e.g. Important",
+        "color": "Color",
+        "delete": "Delete Tag",
+        "deleteConfirm": "Delete this tag? It will be removed from all documents.",
+        "noTags": "No tags yet",
+        "selectTags": "Select Tags"
+      },
+      "upload": {
+        "title": "Upload Document",
+        "dragDrop": "Drag & drop a file, or click to select",
+        "selectFolder": "Select folder",
+        "selectTags": "Select tags",
+        "fileTypes": ".txt, .md, .pdf, .doc, .docx",
+        "uploading": "Uploading..."
+      },
+      "move": {
+        "title": "Move Documents",
+        "selectFolder": "Select destination folder",
+        "unfiled": "Unfiled",
+        "moving": "Moving..."
+      },
+      "toast": {
+        "folderCreated": "Folder created",
+        "folderRenamed": "Folder renamed",
+        "folderDeleted": "Folder deleted",
+        "documentUploaded": "Document uploaded",
+        "documentUpdated": "Document updated",
+        "documentDeleted": "Document deleted",
+        "documentsMoved": "Documents moved",
+        "documentsDeleted": "Documents deleted",
+        "documentsTagged": "Documents tagged",
+        "tagCreated": "Tag created",
+        "tagDeleted": "Tag deleted",
+        "error": "Something went wrong. Try again."
+      }
     },
     "broadcast": {
       "title": "Broadcast Message",

@@ -437,8 +437,6 @@
     },
     "knowledgeBase": {
       "title": "คลังความรู้",
-      "documentsTab": "เอกสาร",
-      "playgroundTab": "ถาม-ตอบ",
       "uploadDescription": "ลากไฟล์มาวาง หรือกดเพื่ออัปโหลดเอกสาร",
       "dropHere": "ปล่อยไฟล์ตรงนี้เลย",
       "upload": "เลือกไฟล์",
@@ -456,7 +454,119 @@
       "sources": "แหล่งข้อมูล",
       "similarity": "ความเกี่ยวข้อง",
       "queryError": "ไม่สามารถตอบคำถามได้ ลองใหม่อีกครั้งนะ",
-      "reprocess": "ประมวลผลใหม่"
+      "reprocess": "ประมวลผลใหม่",
+      "subtitle": "จัดการเอกสารและฐานข้อมูลหอพักนิสิตได้ที่นี่เลย",
+      "sidebar": {
+        "search": "ค้นหาเอกสาร...",
+        "folders": "โฟลเดอร์",
+        "files": "ไฟล์",
+        "allFiles": "ไฟล์ทั้งหมด",
+        "unfiled": "ยังไม่จัดหมวด",
+        "manageFiles": "จัดการไฟล์",
+        "manageFilesDesc": "อัปโหลด ย้าย ลบ",
+        "askQA": "ถาม-ตอบ",
+        "askQADesc": "ถามคำถามจากเอกสาร",
+        "addDocument": "เพิ่มเอกสาร",
+        "addDocumentDesc": "อัปโหลดไฟล์ใหม่"
+      },
+      "folder": {
+        "create": "สร้างโฟลเดอร์",
+        "rename": "เปลี่ยนชื่อ",
+        "delete": "ลบโฟลเดอร์",
+        "deleteConfirm": "ลบโฟลเดอร์นี้? ไฟล์จะถูกย้ายเป็น \"ยังไม่จัดหมวด\"",
+        "deleteSubConfirm": "โฟลเดอร์ย่อยจะถูกลบด้วย",
+        "name": "ชื่อโฟลเดอร์",
+        "namePlaceholder": "เช่น กฏหอพัก",
+        "parent": "โฟลเดอร์หลัก",
+        "parentNone": "ไม่มี (ระดับบนสุด)",
+        "description": "คำอธิบาย",
+        "filesCount": "{count} ไฟล์",
+        "empty": "โฟลเดอร์ว่าง",
+        "emptyDesc": "ยังไม่มีไฟล์ในโฟลเดอร์นี้",
+        "uploadHere": "อัปโหลดที่นี่"
+      },
+      "file": {
+        "name": "ชื่อไฟล์",
+        "type": "ประเภท",
+        "version": "เวอร์ชัน",
+        "author": "เพิ่มโดย",
+        "date": "วันที่",
+        "status": "สถานะ",
+        "actions": "จัดการ",
+        "view": "ดูรายละเอียด",
+        "edit": "แก้ไข",
+        "move": "ย้ายโฟลเดอร์",
+        "delete": "ลบไฟล์",
+        "deleteConfirm": "ลบไฟล์นี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้",
+        "selected": "เลือก {count} ไฟล์"
+      },
+      "bulk": {
+        "move": "ย้าย",
+        "delete": "ลบ",
+        "tag": "ติดแท็ก",
+        "reprocess": "ประมวลผลใหม่",
+        "deleteConfirm": "ลบ {count} ไฟล์ที่เลือก?"
+      },
+      "sort": {
+        "date": "วันที่",
+        "name": "ชื่อ",
+        "sortBy": "เรียงตาม"
+      },
+      "filter": {
+        "all": "ทั้งหมด",
+        "ready": "พร้อมใช้",
+        "pending": "รอประมวลผล",
+        "error": "ผิดพลาด",
+        "status": "สถานะ",
+        "tag": "แท็ก",
+        "clearFilter": "ล้างตัวกรอง"
+      },
+      "detail": {
+        "metadata": "ข้อมูลเอกสาร",
+        "askAbout": "ถาม-ตอบข้อมูลเอกสารนี้",
+        "preview": "ตัวอย่างเอกสาร",
+        "noPreview": "ไม่สามารถแสดงตัวอย่างได้",
+        "back": "กลับ"
+      },
+      "tag": {
+        "manage": "จัดการแท็ก",
+        "create": "สร้างแท็ก",
+        "name": "ชื่อแท็ก",
+        "namePlaceholder": "เช่น สำคัญ",
+        "color": "สี",
+        "delete": "ลบแท็ก",
+        "deleteConfirm": "ลบแท็กนี้? แท็กจะถูกถอดออกจากเอกสารทั้งหมด",
+        "noTags": "ยังไม่มีแท็ก",
+        "selectTags": "เลือกแท็ก"
+      },
+      "upload": {
+        "title": "อัปโหลดเอกสาร",
+        "dragDrop": "ลากไฟล์มาวาง หรือกดเพื่อเลือก",
+        "selectFolder": "เลือกโฟลเดอร์",
+        "selectTags": "เลือกแท็ก",
+        "fileTypes": ".txt, .md, .pdf, .doc, .docx",
+        "uploading": "กำลังอัปโหลด..."
+      },
+      "move": {
+        "title": "ย้ายเอกสาร",
+        "selectFolder": "เลือกโฟลเดอร์ปลายทาง",
+        "unfiled": "ยังไม่จัดหมวด",
+        "moving": "กำลังย้าย..."
+      },
+      "toast": {
+        "folderCreated": "สร้างโฟลเดอร์แล้ว",
+        "folderRenamed": "เปลี่ยนชื่อโฟลเดอร์แล้ว",
+        "folderDeleted": "ลบโฟลเดอร์แล้ว",
+        "documentUploaded": "อัปโหลดเอกสารแล้ว",
+        "documentUpdated": "อัปเดตเอกสารแล้ว",
+        "documentDeleted": "ลบเอกสารแล้ว",
+        "documentsMoved": "ย้ายเอกสารแล้ว",
+        "documentsDeleted": "ลบเอกสารแล้ว",
+        "documentsTagged": "ติดแท็กเอกสารแล้ว",
+        "tagCreated": "สร้างแท็กแล้ว",
+        "tagDeleted": "ลบแท็กแล้ว",
+        "error": "เกิดข้อผิดพลาด ลองอีกครั้งนะ"
+      }
     },
     "broadcast": {
       "title": "ส่งข้อความ",

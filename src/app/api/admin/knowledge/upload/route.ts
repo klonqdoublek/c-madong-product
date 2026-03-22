@@ -10,6 +10,8 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const folderId = formData.get("folderId") as string | null;
+    const tagIds = formData.get("tagIds") as string | null; // comma-separated
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -53,12 +55,23 @@ export async function POST(request: Request) {
         file_path: filePath,
         content_type: file.type,
         status: content ? "pending" : "pending",
+        folder_id: folderId || null,
       })
       .select()
       .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Assign tags if provided
+    if (tagIds) {
+      const ids = tagIds.split(",").filter(Boolean);
+      if (ids.length > 0) {
+        await supabase
+          .from("document_tag_assignments")
+          .insert(ids.map((tagId) => ({ document_id: data.id, tag_id: tagId })));
+      }
     }
 
     // Process embeddings inline (fire-and-forget gets killed on Vercel)
