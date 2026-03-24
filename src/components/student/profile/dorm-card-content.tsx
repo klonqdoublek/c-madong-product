@@ -17,6 +17,12 @@ export function DormCardContent() {
     ? `SN-${profile.student_id}-2568`
     : "SN-0000000000-2568";
 
+  // พิชญา พูลเพียร gets the real card, others get placeholder
+  const isPitchaya = profile?.full_name_th === "พิชญา พูลเพียร";
+  const cardImage = isPitchaya
+    ? "/images/id-card-pitchaya.png"
+    : "/images/id-card-example.png";
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-[#f5f2ea]">
       <PageHeader title={t("dormCardTitle")} backHref="/profile" />
@@ -34,7 +40,7 @@ export function DormCardContent() {
             <div className="absolute inset-0 translate-y-2 rounded-2xl bg-primary/20 blur-xl" />
             <div className="relative -rotate-6 overflow-hidden rounded-2xl shadow-xl">
               <Image
-                src="/images/id-card-example.png"
+                src={cardImage}
                 alt={t("dormCardTitle")}
                 width={300}
                 height={190}
@@ -92,7 +98,7 @@ export function DormCardContent() {
             <X className="h-5 w-5" />
           </button>
           <Image
-            src="/images/id-card-example.png"
+            src={cardImage}
             alt={t("dormCardTitle")}
             width={600}
             height={380}
