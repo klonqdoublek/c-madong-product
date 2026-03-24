@@ -5,7 +5,65 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-03-21)
+## Recent Changes (2026-03-24)
+
+### Student Profile Page — 3 Figma Designs
+
+- **Profile Main** (`/profile`): Avatar + name + room/building + faculty badge + stats (days in dorm, events attended) + score summary (stacked bar) + settings link
+- **Settings** (`/profile/settings`): 3 grouped sections (General, Support, Permissions) + 3 toggle switches (local state) + logout
+- **Digital ID Card** (`/profile/dorm-card`): Rotated card image + pink blur shadow + fullscreen lightbox modal + report lost/history menus
+- **Components**: 7 files in `src/components/student/profile/` — profile-content, profile-info-card, profile-stats-section, profile-score-section, settings-content, settings-menu-item, dorm-card-content
+- **Routes**: Updated `(student)/profile/page.tsx`, NEW `profile/settings/page.tsx`, NEW `profile/dorm-card/page.tsx`
+- **i18n**: 30+ new keys in `profile` namespace (th.json + en.json)
+- **Data**: Real data from `useUser()`, `useBuildings()`, `useRooms()`, `useBeds()`, `useMyScore()`, `useMyAttendance()`; mockup for faculty, stats denominators, toggle persistence
+- **Design tokens**: Gradient bg `from-white to-[#f5f2ea]`, card shadow, CU Pink palette, score bar colors (mandatory=#DD598B, external=#FFF3D2, internal=#CFFFCD)
+
+---
+
+## Changes (2026-03-22)
+
+### Knowledge Base v3 — Full Rewrite
+
+- **2-panel layout**: Collapsible nested sidebar (280px ↔ 52px icon strip) + main content area
+- **Admin sidebar auto-collapse**: pathname `/admin/knowledge-base` triggers collapsed 60px icon-only mode via `ui-store.adminSidebarCollapsed`
+- **Folder CRUD**: Hierarchical `knowledge_folders` table, tree view with context menu, 6 seed folders
+- **Document tags**: Many-to-many via `document_tag_assignments`, 10 color presets, tag management dialog
+- **File table**: Checkbox selection, type badges, version, status, sort by date/name, filter by status/tag
+- **Bulk actions**: Move, delete, tag, reprocess via `/api/admin/knowledge/documents/bulk`
+- **File detail**: Document preview + metadata + per-document Q&A (RAG scoped to single doc)
+- **Migration**: `20260324_knowledge_folders_tags.sql` — `knowledge_folders`, `document_tags`, `document_tag_assignments` + `folder_id`/`version` on `documents`
+- **API routes**: 8 new routes for folders, tags, documents (list/detail/bulk), enhanced upload + query
+- **State**: `knowledge-store.ts` (Zustand) + `use-knowledge.ts` (14 TanStack Query hooks)
+- **Components**: 14 files in `src/components/admin/knowledge/` — sidebar, folder-tree, file-list, file-table, folder-view, file-detail-view, document-preview, 5 dialogs
+- **Files removed**: `knowledge-file-manager.tsx` (v1), `knowledge-file-manager-v2.tsx` (v2)
+
+---
+
+## Changes (2026-03-21)
+
+### In-App Chat Modal with น้องซีมะโด่ง
+
+- Chat modal (bottom sheet 85vh) opens from mascot button in bottom nav
+- Reuses all chatbot handlers (chitchat, knowledge, score, events, parcel)
+- Repair intent redirects to LINE (requires photo/postback flow)
+- Drag-to-dismiss with visual handle bar + backdrop fade
+- `visualViewport` tracking for mobile keyboard avoidance
+- Chat history view with date grouping from DB (`GET /api/chat/history`)
+- Clear session button to start fresh conversation
+- Suggestion chips on empty state
+- i18n strings for th/en
+- **Files**: `chat-modal.tsx`, `use-chat.ts`, `chat-store.ts`, `api/chat/route.ts`, `api/chat/history/route.ts`
+
+### Chatbot UX Improvements + Student Page Refactor
+
+- Flex banner images: parcel notification (`Inbox.jpg`), repair confirm (`New_Request.jpg`)
+- Booking flow after repair confirm: `buildTicketCreatingFlex()` green header + booking CTA
+- Status check keywords ("ติดตามสถานะ", "เช็คสถานะ", "track") route to `repair_history` BEFORE session state
+- Short repair triggers ("แจ้งซ่อม", "ซ่อม") → guide message instead of creating ticket
+- Ticket number in push notification Flex
+- New `page-header.tsx` component replaces old `header.tsx` across all student pages
+- `logout-button.tsx` component
+- `useUpdateTicketStatus` routes through API (not direct Supabase) for LINE notification trigger
 
 ### RBAC Wired Up + Admin Fixes
 

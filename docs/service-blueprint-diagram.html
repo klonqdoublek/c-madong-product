@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C-Madong Service Blueprint - Maintenance Request Journey</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f8f9fa;
+            padding: 40px 20px;
+            overflow-x: auto;
+        }
+
+        .container {
+            min-width: 1800px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #1a1a1a;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 40px;
+        }
+
+        .blueprint {
+            position: relative;
+        }
+
+        /* Rows */
+        .row {
+            display: flex;
+            align-items: stretch;
+            margin-bottom: 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .row-label {
+            width: 180px;
+            padding: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-right: 2px solid #dee2e6;
+            flex-shrink: 0;
+        }
+
+        .row-content {
+            flex: 1;
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+            position: relative;
+        }
+
+        /* Separator Lines */
+        .separator-line {
+            height: 3px;
+            background: #1a1a1a;
+            margin: 0;
+            position: relative;
+        }
+
+        .separator-line.dashed {
+            background: repeating-linear-gradient(
+                to right,
+                #1a1a1a 0,
+                #1a1a1a 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+
+        .separator-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        /* Timeline Row */
+        .timeline {
+            background: #f0f4ff;
+        }
+
+        .timeline .row-label {
+            background: #4169E1;
+            color: white;
+        }
+
+        .time-marker {
+            flex: 1;
+            text-align: center;
+            padding: 12px 8px;
+            font-size: 11px;
+            color: #4169E1;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .time-marker::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #4169E1;
+            opacity: 0.2;
+        }
+
+        /* Evidence */
+        .evidence {
+            background: #f0f4ff;
+        }
+
+        .evidence .row-label {
+            color: #4169E1;
+        }
+
+        .evidence-item {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #4169E1;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* Customer Journey */
+        .customer-journey {
+            background: #e3f2fd;
+        }
+
+        .customer-journey .row-label {
+            color: #1976d2;
+        }
+
+        .step-box {
+            flex: 1;
+            background: #bbdefb;
+            border: 2px solid #1976d2;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #0d47a1;
+            text-align: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+        }
+
+        .step-box::after {
+            content: '→';
+            position: absolute;
+            right: -18px;
+            font-size: 20px;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .step-box:last-child::after {
+            content: '';
+        }
+
+        /* Frontstage */
+        .frontstage {
+            background: #e8f5e9;
+        }
+
+        .frontstage .row-label {
+            color: #2e7d32;
+        }
+
+        .front-box {
+            flex: 1;
+            background: #c8e6c9;
+            border: 2px solid #43a047;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #1b5e20;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tech-box {
+            background: #b2dfdb;
+            border-color: #00897b;
+            color: #004d40;
+        }
+
+        /* Backstage */
+        .backstage {
+            background: #fff3e0;
+        }
+
+        .backstage .row-label {
+            color: #e65100;
+        }
+
+        .back-box {
+            flex: 1;
+            background: #ffe0b2;
+            border: 2px solid #fb8c00;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #e65100;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Support Processes */
+        .support {
+            background: #f3e5f5;
+        }
+
+        .support .row-label {
+            color: #6a1b9a;
+        }
+
+        .support-box {
+            flex: 1;
+            background: #e1bee7;
+            border: 2px solid #8e24aa;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #4a148c;
+            text-align: center;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Vertical Arrows */
+        .arrow-connector {
+            position: absolute;
+            width: 2px;
+            background: #43a047;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .arrow-up {
+            background: #43a047;
+        }
+
+        .arrow-down {
+            background: #fb8c00;
+        }
+
+        /* Legend */
+        .legend {
+            margin-top: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            border: 2px solid currentColor;
+        }
+
+        /* Info Box */
+        .info-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e3f2fd;
+            border-left: 4px solid #1976d2;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #0d47a1;
+        }
+
+        .info-box p {
+            font-size: 14px;
+            color: #1565c0;
+            line-height: 1.6;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .info-box, .legend {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1400px) {
+            .container {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SERVICE BLUEPRINT</h1>
+        <p class="subtitle">C-Madong Maintenance Request Journey (การแจ้งซ่อม)</p>
+
+        <div class="blueprint">
+
+            <!-- TIME ROW -->
+            <div class="row timeline">
+                <div class="row-label">TIME</div>
+                <div class="row-content">
+                    <div class="time-marker">~10 secs</div>
+                    <div class="time-marker">1-3 secs</div>
+                    <div class="time-marker">Instant</div>
+                    <div class="time-marker">~5 secs</div>
+                    <div class="time-marker">5-30 mins</div>
+                    <div class="time-marker">Real-time</div>
+                    <div class="time-marker">Hours-Days</div>
+                </div>
+            </div>
+
+            <!-- EVIDENCE ROW -->
+            <div class="row evidence">
+                <div class="row-label">EVIDENCE</div>
+                <div class="row-content">
+                    <div class="evidence-item">LINE chat<br>User message</div>
+                    <div class="evidence-item">Photo upload<br>(up to 5)</div>
+                    <div class="evidence-item">AI analysis<br>result</div>
+                    <div class="evidence-item">Confirm Flex<br>card (pink)</div>
+                    <div class="evidence-item">Admin portal<br>ticket view</div>
+                    <div class="evidence-item">Status Flex<br>notification</div>
+                    <div class="evidence-item">Completion<br>receipt</div>
+                </div>
+            </div>
+
+            <!-- CUSTOMER JOURNEY ROW -->
+            <div class="row customer-journey">
+                <div class="row-label">CUSTOMER<br>JOURNEY</div>
+                <div class="row-content">
+                    <div class="step-box">Student notices<br>issue &<br>reports via<br>chatbot</div>
+                    <div class="step-box">Uploads<br>photos of<br>damage</div>
+                    <div class="step-box">Reviews<br>AI-detected<br>category &<br>urgency</div>
+                    <div class="step-box">Confirms<br>ticket<br>creation</div>
+                    <div class="step-box">Receives<br>ticket number<br>#T001</div>
+                    <div class="step-box">Tracks<br>status via<br>timeline</div>
+                    <div class="step-box">Repair<br>completed,<br>rates service</div>
+                </div>
+            </div>
+
+            <!-- LINE OF INTERACTION -->
+            <div class="separator-line dashed">
+                <span class="separator-label">LINE OF INTERACTION</span>
+            </div>
+
+            <!-- FRONTSTAGE - EMPLOYEE ACTIONS ROW -->
+            <div class="row frontstage">
+                <div class="row-label">FRONTSTAGE<br><small style="font-weight: 400; text-transform: none; font-size: 10px;">Employee Actions</small></div>
+                <div class="row-content">
+                    <div class="front-box">น้องซีมะโด่ง<br>chatbot<br>responds</div>
+                    <div class="front-box">Request<br>photo upload</div>
+                    <div class="front-box">Show<br>detection<br>result</div>
+                    <div class="front-box">Display<br>confirmation<br>card</div>
+                    <div class="front-box">Admin views<br>ticket in<br>Kanban</div>
+                    <div class="front-box">Push LINE<br>notification<br>on update</div>
+                    <div class="front-box">Technician<br>performs<br>repair</div>
+                </div>
+            </div>
+
+            <!-- FRONTSTAGE - TECHNOLOGY ROW -->
+            <div class="row frontstage">
+                <div class="row-label">FRONTSTAGE<br><small style="font-weight: 400; text-transform: none; font-size: 10px;">Technology</small></div>
+                <div class="row-content">
+                    <div class="tech-box">LINE<br>Webhook<br>Handler</div>
+                    <div class="tech-box">Supabase<br>Storage<br>(photos)</div>
+                    <div class="tech-box">Chatbot<br>Session<br>Manager</div>
+                    <div class="tech-box">Flex<br>Message<br>Builder</div>
+                    <div class="tech-box">Admin<br>Portal UI</div>
+                    <div class="tech-box">Real-time<br>Subscription</div>
+                    <div class="tech-box">Web App<br>Ticket Detail</div>
+                </div>
+            </div>
+
+            <!-- LINE OF VISIBILITY -->
+            <div class="separator-line">
+                <span class="separator-label">LINE OF VISIBILITY</span>
+            </div>
+
+            <!-- BACKSTAGE ACTIONS ROW -->
+            <div class="row backstage">
+                <div class="row-label">BACKSTAGE<br>ACTIONS</div>
+                <div class="row-content">
+                    <div class="back-box">Intent<br>classification<br>(gpt-4o-mini)</div>
+                    <div class="back-box">Vision AI<br>Orchestrator<br>triggered</div>
+                    <div class="back-box">Multi-tier<br>analysis:<br>Template →<br>Gemini →<br>GPT-4o</div>
+                    <div class="back-box">Store in<br>database with<br>metadata</div>
+                    <div class="back-box">Admin<br>assigns<br>technician</div>
+                    <div class="back-box">Status<br>change<br>triggers<br>notification</div>
+                    <div class="back-box">Mark as<br>completed,<br>add notes</div>
+                </div>
+            </div>
+
+            <!-- LINE OF INTERNAL INTERACTION -->
+            <div class="separator-line dashed">
+                <span class="separator-label">LINE OF INTERNAL INTERACTION</span>
+            </div>
+
+            <!-- SUPPORT PROCESSES ROW -->
+            <div class="row support">
+                <div class="row-label">SUPPORT<br>PROCESSES</div>
+                <div class="row-content">
+                    <div class="support-box">OpenAI API<br>(intent routing)</div>
+                    <div class="support-box">pgvector<br>template<br>matching<br>(0.85 threshold)</div>
+                    <div class="support-box">Gemini 2.0<br>Flash vision<br>(free tier)<br>+ GPT-4o<br>fallback</div>
+                    <div class="support-box">PostgreSQL<br>maintenance_<br>requests table<br>+ RLS</div>
+                    <div class="support-box">PATCH API<br>/admin/<br>maintenance/<br>[id]</div>
+                    <div class="support-box">LINE<br>Messaging API<br>push endpoint</div>
+                    <div class="support-box">Score system<br>+ feedback<br>loop [future]</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #bbdefb; border-color: #1976d2;"></div>
+                <span>Customer Journey</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #c8e6c9; border-color: #43a047;"></div>
+                <span>Frontstage (Visible)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ffe0b2; border-color: #fb8c00;"></div>
+                <span>Backstage (Invisible)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e1bee7; border-color: #8e24aa;"></div>
+                <span>Support Processes</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 40px; height: 3px; background: #1a1a1a;"></div>
+                <span>Line of Visibility</span>
+            </div>
+            <div class="legend-item">
+                <div style="width: 40px; height: 3px; background: repeating-linear-gradient(to right, #1a1a1a 0, #1a1a1a 8px, transparent 8px, transparent 16px);"></div>
+                <span>Line of Interaction</span>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3>🎯 Key Insights from this Service Blueprint:</h3>
+            <p>
+                <strong>AI Vision Multi-Tier Approach:</strong> Template matching (free, <1s) handles 70% of cases → Gemini 2.0 Flash (free tier) for 25% → GPT-4o fallback (paid) only for 5% low-confidence cases = ~฿1/month for 50 tickets (93% cost savings).
+                <br><br>
+                <strong>Touchpoint Diversity:</strong> LINE chatbot (immediate), Web app (detailed), Admin portal (management) — students can choose their preferred channel.
+                <br><br>
+                <strong>Real-time Updates:</strong> Supabase subscriptions ensure students see status changes instantly without polling.
+                <br><br>
+                <strong>Pain Points Identified:</strong> Photo quality affects AI accuracy (opportunity: smart photo guidance with real-time tips "📸 ถ่ายใกล้ขึ้น").
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        // Optional: Add interactivity for print/export
+        console.log('C-Madong Service Blueprint loaded');
+        console.log('To export as image: Right-click → Print → Save as PDF, or use browser screenshot extension');
+
+        // Add keyboard shortcut info
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'p') {
+                console.log('Printing service blueprint...');
+            }
+        });
+    </script>
+</body>
+</html>

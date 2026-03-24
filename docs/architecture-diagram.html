@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C-Madong System Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --pink-50: #FFF0F3;
+    --pink-100: #FFD6E0;
+    --pink-200: #FFB3C6;
+    --pink-400: #F06292;
+    --pink-500: #E91E63;
+    --pink-600: #C2185B;
+    --pink-700: #AD1457;
+    --pink-800: #880E4F;
+    --gray-50: #FAFAFA;
+    --gray-100: #F5F5F5;
+    --gray-200: #EEEEEE;
+    --gray-300: #E0E0E0;
+    --gray-400: #BDBDBD;
+    --gray-500: #9E9E9E;
+    --gray-600: #757575;
+    --gray-700: #616161;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    --blue-50: #E3F2FD;
+    --blue-100: #BBDEFB;
+    --blue-500: #2196F3;
+    --blue-600: #1E88E5;
+    --green-50: #E8F5E9;
+    --green-100: #C8E6C9;
+    --green-500: #4CAF50;
+    --green-600: #43A047;
+    --amber-50: #FFF8E1;
+    --amber-100: #FFECB3;
+    --amber-500: #FFC107;
+    --purple-50: #F3E5F5;
+    --purple-100: #E1BEE7;
+    --purple-500: #9C27B0;
+    --purple-600: #8E24AA;
+    --teal-50: #E0F2F1;
+    --teal-100: #B2DFDB;
+    --teal-500: #009688;
+    --orange-50: #FFF3E0;
+    --orange-100: #FFE0B2;
+    --orange-500: #FF9800;
+    --red-50: #FFEBEE;
+    --red-100: #FFCDD2;
+    --red-500: #F44336;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: #0F0F14;
+    color: #E8E8ED;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 48px 24px 32px;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pink-500), transparent);
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--pink-400), var(--pink-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .header p {
+    color: var(--gray-400);
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 400;
+  }
+  .header .badge-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: rgba(233, 30, 99, 0.12);
+    color: var(--pink-400);
+    border: 1px solid rgba(233, 30, 99, 0.2);
+  }
+
+  /* Canvas */
+  .canvas {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  /* Section title */
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+
+  /* Tier rows */
+  .tier {
+    margin-bottom: 28px;
+  }
+
+  /* Nodes grid */
+  .nodes {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  /* Node card */
+  .node {
+    background: #1A1A22;
+    border: 1px solid #2A2A35;
+    border-radius: 12px;
+    padding: 16px 18px;
+    min-width: 180px;
+    flex: 1;
+    position: relative;
+    transition: all 0.2s ease;
+    cursor: default;
+  }
+  .node:hover {
+    border-color: #3A3A48;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+
+  .node-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .node-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #F0F0F5;
+    margin-bottom: 2px;
+  }
+  .node-subtitle {
+    font-size: 11px;
+    color: var(--gray-500);
+    font-weight: 500;
+  }
+  .node-details {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .node-detail {
+    font-size: 11px;
+    color: var(--gray-400);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .node-detail .dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Color themes */
+  .theme-pink .node-icon { background: rgba(233,30,99,0.15); }
+  .theme-pink { border-left: 3px solid var(--pink-500); }
+
+  .theme-blue .node-icon { background: rgba(33,150,243,0.15); }
+  .theme-blue { border-left: 3px solid var(--blue-500); }
+
+  .theme-green .node-icon { background: rgba(76,175,80,0.15); }
+  .theme-green { border-left: 3px solid var(--green-500); }
+
+  .theme-purple .node-icon { background: rgba(156,39,176,0.15); }
+  .theme-purple { border-left: 3px solid var(--purple-500); }
+
+  .theme-teal .node-icon { background: rgba(0,150,136,0.15); }
+  .theme-teal { border-left: 3px solid var(--teal-500); }
+
+  .theme-orange .node-icon { background: rgba(255,152,0,0.15); }
+  .theme-orange { border-left: 3px solid var(--orange-500); }
+
+  .theme-amber .node-icon { background: rgba(255,193,7,0.15); }
+  .theme-amber { border-left: 3px solid var(--amber-500); }
+
+  .theme-red .node-icon { background: rgba(244,67,54,0.15); }
+  .theme-red { border-left: 3px solid var(--red-500); }
+
+  .theme-gray .node-icon { background: rgba(158,158,158,0.15); }
+  .theme-gray { border-left: 3px solid var(--gray-500); }
+
+  /* Connection arrows (between tiers) */
+  .connections {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+    position: relative;
+  }
+  .conn-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-600);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .conn-line::before,
+  .conn-line::after {
+    content: '';
+    width: 40px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gray-600), transparent);
+  }
+  .arrow-down {
+    text-align: center;
+    color: var(--gray-600);
+    font-size: 14px;
+    padding: 4px 0;
+  }
+
+  /* Wide node */
+  .node.wide { min-width: 280px; flex: 2; }
+  .node.narrow { min-width: 150px; flex: 0.8; }
+
+  /* Tags inside node */
+  .node-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .node-tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.06);
+    color: var(--gray-400);
+  }
+
+  /* Stat pill */
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.06);
+    color: var(--gray-300);
+    margin-top: 6px;
+  }
+
+  /* Flow section */
+  .flow-section {
+    background: #14141C;
+    border: 1px solid #2A2A35;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 28px;
+  }
+  .flow-section .section-label {
+    margin-bottom: 20px;
+  }
+
+  /* Sub-grid inside a node */
+  .sub-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .sub-item {
+    font-size: 10px;
+    color: var(--gray-400);
+    padding: 4px 8px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 16px 24px;
+    background: #14141C;
+    border: 1px solid #2A2A35;
+    border-radius: 12px;
+    margin-top: 20px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--gray-400);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .nodes { flex-direction: column; }
+    .node { min-width: 100% !important; }
+    .header h1 { font-size: 24px; }
+  }
+
+  /* Separator */
+  .tier-sep {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #2A2A35, transparent);
+    margin: 8px 0 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>C-Madong System Architecture</h1>
+  <p>ระบบจัดการหอพักจุฬาลงกรณ์มหาวิทยาลัย — Digital Dorm Management Platform</p>
+  <div class="badge-row">
+    <span class="badge">Next.js 16</span>
+    <span class="badge">Supabase</span>
+    <span class="badge">LINE Messaging API</span>
+    <span class="badge">OpenAI</span>
+    <span class="badge">Vercel</span>
+  </div>
+</div>
+
+<div class="canvas">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 1: CLIENT LAYER -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="tier">
+    <div class="section-label">🖥️ Client Layer — User Touchpoints</div>
+    <div class="nodes">
+
+      <div class="node theme-green">
+        <div class="node-icon">📱</div>
+        <div class="node-title">LINE App</div>
+        <div class="node-subtitle">Primary Student Interface</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>น้องซีมะโด่ง Chatbot</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Flex Message Cards</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Push Notifications</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Postback Actions</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">Webhook</span>
+          <span class="node-tag">LIFF SDK</span>
+        </div>
+      </div>
+
+      <div class="node theme-blue">
+        <div class="node-icon">🌐</div>
+        <div class="node-title">Web App — Student</div>
+        <div class="node-subtitle">Progressive Web App</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Dashboard & Announcements</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Billing & Payments</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Maintenance Requests</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Parcels, Scores, Events</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>In-App Chat (Bottom Sheet)</div>
+        </div>
+        <div class="stat-pill">10 pages</div>
+      </div>
+
+      <div class="node theme-pink">
+        <div class="node-icon">⚙️</div>
+        <div class="node-title">Web App — Admin</div>
+        <div class="node-subtitle">Staff Management Portal</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>Ticket & Technician Mgmt</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>Billing & Parcel Admin</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>Knowledge Base (2-panel)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>RBAC & Role Assignment</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>Broadcasts & Announcements</div>
+        </div>
+        <div class="stat-pill">35 pages</div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow-down">▼ HTTP / WebSocket ▼</div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 2: FRONTEND FRAMEWORK -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="flow-section">
+    <div class="section-label">⚛️ Frontend Framework — Next.js 16 App Router</div>
+    <div class="nodes">
+
+      <div class="node theme-blue">
+        <div class="node-icon">🧩</div>
+        <div class="node-title">React 19 + TypeScript</div>
+        <div class="node-subtitle">UI Component Layer</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>shadcn/ui (new-york theme)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Tailwind CSS v4</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Lucide Icons</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>Framer Motion</div>
+        </div>
+      </div>
+
+      <div class="node theme-purple">
+        <div class="node-icon">📦</div>
+        <div class="node-title">State Management</div>
+        <div class="node-subtitle">Client State + Server Cache</div>
+        <div class="sub-items">
+          <div class="sub-item">🗄️ Zustand (6 stores)</div>
+          <div class="sub-item">🔄 TanStack Query</div>
+          <div class="sub-item">📋 React Hook Form</div>
+          <div class="sub-item">✅ Zod v4 Validation</div>
+        </div>
+        <div class="stat-pill">23 hooks · 6 stores</div>
+      </div>
+
+      <div class="node theme-teal">
+        <div class="node-icon">🌍</div>
+        <div class="node-title">Internationalization</div>
+        <div class="node-subtitle">next-intl v4</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>Thai (th) — Primary</div>
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>English (en) — Secondary</div>
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>[locale] URL segment</div>
+        </div>
+      </div>
+
+      <div class="node theme-amber narrow">
+        <div class="node-icon">🔐</div>
+        <div class="node-title">Middleware</div>
+        <div class="node-subtitle">Edge Runtime</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Auth Guard</div>
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Locale Resolver</div>
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Role Check (13 roles)</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow-down">▼ API Routes (46 endpoints) ▼</div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 3: API / BUSINESS LOGIC -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="tier">
+    <div class="section-label">🔗 API Layer — Next.js Route Handlers</div>
+    <div class="nodes">
+
+      <div class="node theme-pink">
+        <div class="node-icon">🔑</div>
+        <div class="node-title">Auth API</div>
+        <div class="node-subtitle">8 endpoints</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>/api/auth/line — OAuth</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>/api/auth/callback</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>/api/auth/register</div>
+          <div class="node-detail"><span class="dot" style="background:var(--pink-500)"></span>/api/auth/liff — LIFF Bridge</div>
+        </div>
+      </div>
+
+      <div class="node theme-green wide">
+        <div class="node-icon">🏢</div>
+        <div class="node-title">Admin API</div>
+        <div class="node-subtitle">25+ endpoints</div>
+        <div class="sub-items">
+          <div class="sub-item">🔧 Maintenance CRUD</div>
+          <div class="sub-item">💰 Billing CRUD</div>
+          <div class="sub-item">📦 Parcels CRUD</div>
+          <div class="sub-item">📣 Announcements</div>
+          <div class="sub-item">📚 Knowledge Base (8)</div>
+          <div class="sub-item">🎯 Scores</div>
+          <div class="sub-item">👥 Roles (RBAC)</div>
+          <div class="sub-item">🤖 AI Copy Gen</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">createAdminClient()</span>
+          <span class="node-tag">RLS Bypass</span>
+        </div>
+      </div>
+
+      <div class="node theme-blue">
+        <div class="node-icon">👤</div>
+        <div class="node-title">Student API</div>
+        <div class="node-subtitle">5 endpoints</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>/api/student/bills</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>/api/student/parcels</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>/api/student/insights</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>/api/maintenance/*</div>
+        </div>
+      </div>
+
+      <div class="node theme-green">
+        <div class="node-icon">💬</div>
+        <div class="node-title">Chat & Webhook</div>
+        <div class="node-subtitle">4 endpoints</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>/api/webhooks/line</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>/api/chat</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>/api/chat/history</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow-down">▼ Business Logic ▼</div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 4: BACKEND SERVICES / LOGIC -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="flow-section">
+    <div class="section-label">🧠 Backend Services — /src/lib/*</div>
+    <div class="nodes">
+
+      <div class="node theme-green wide">
+        <div class="node-icon">🤖</div>
+        <div class="node-title">Chatbot Engine</div>
+        <div class="node-subtitle">น้องซีมะโด่ง — 26 modules</div>
+        <div class="sub-items">
+          <div class="sub-item">🎯 Intent Router</div>
+          <div class="sub-item">🔄 Session Manager</div>
+          <div class="sub-item">🔧 Repair Handler</div>
+          <div class="sub-item">📚 Knowledge Handler</div>
+          <div class="sub-item">📦 Parcel Handler</div>
+          <div class="sub-item">💬 Chitchat Handler</div>
+          <div class="sub-item">🎴 Flex Builders (7)</div>
+          <div class="sub-item">📮 Postback Handler</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">GPT-4o-mini</span>
+          <span class="node-tag">RAG</span>
+          <span class="node-tag">Session State</span>
+        </div>
+      </div>
+
+      <div class="node theme-purple">
+        <div class="node-icon">🧬</div>
+        <div class="node-title">RAG Pipeline</div>
+        <div class="node-subtitle">Knowledge Retrieval</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Vector Search (pgvector)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>OpenAI Embeddings</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Answer Generation</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Per-doc Q&A Scope</div>
+        </div>
+      </div>
+
+      <div class="node theme-orange">
+        <div class="node-icon">🔔</div>
+        <div class="node-title">Notifications</div>
+        <div class="node-subtitle">Multi-channel</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>In-app (Supabase)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>LINE Push (Flex)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>Priority Logic</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>Trigger Events</div>
+        </div>
+      </div>
+
+      <div class="node theme-red">
+        <div class="node-icon">🛡️</div>
+        <div class="node-title">RBAC</div>
+        <div class="node-subtitle">Access Control</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--red-500)"></span>12 Roles</div>
+          <div class="node-detail"><span class="dot" style="background:var(--red-500)"></span>80+ Permissions</div>
+          <div class="node-detail"><span class="dot" style="background:var(--red-500)"></span>Sidebar Filtering</div>
+          <div class="node-detail"><span class="dot" style="background:var(--red-500)"></span>Legacy Role Map</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="arrow-down">▼ External Integrations ▼</div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 5: EXTERNAL SERVICES -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="tier">
+    <div class="section-label">☁️ External Services & Infrastructure</div>
+    <div class="nodes">
+
+      <div class="node theme-teal wide">
+        <div class="node-icon">🗄️</div>
+        <div class="node-title">Supabase</div>
+        <div class="node-subtitle">Backend-as-a-Service</div>
+        <div class="sub-items">
+          <div class="sub-item">🔐 Auth (email + OAuth)</div>
+          <div class="sub-item">🐘 PostgreSQL DB</div>
+          <div class="sub-item">📁 Storage (files)</div>
+          <div class="sub-item">🔒 RLS Policies</div>
+          <div class="sub-item">🧮 pgvector (embeddings)</div>
+          <div class="sub-item">⚡ Realtime Subscriptions</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">@supabase/ssr</span>
+          <span class="node-tag">Service Role</span>
+          <span class="node-tag">Admin Client</span>
+        </div>
+      </div>
+
+      <div class="node theme-green">
+        <div class="node-icon">💚</div>
+        <div class="node-title">LINE Platform</div>
+        <div class="node-subtitle">2 Channels</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Login Channel (OAuth)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Messaging API</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Flex Messages (7 templates)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>LIFF SDK</div>
+          <div class="node-detail"><span class="dot" style="background:var(--green-500)"></span>Webhook Events</div>
+        </div>
+      </div>
+
+      <div class="node theme-purple">
+        <div class="node-icon">🧠</div>
+        <div class="node-title">OpenAI</div>
+        <div class="node-subtitle">GPT-4o-mini</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Chatbot Responses</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Intent Classification</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>RAG Answer Gen</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Text Embeddings</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Student Insights</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>Copy Generation</div>
+        </div>
+      </div>
+
+      <div class="node theme-amber narrow">
+        <div class="node-icon">👁️</div>
+        <div class="node-title">Google Gemini</div>
+        <div class="node-subtitle">2.0 Flash Vision</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Repair Image Analysis</div>
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Damage Detection</div>
+          <div class="node-detail"><span class="dot" style="background:var(--amber-500)"></span>Template Matching</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">Phase 4.5</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="tier-sep"></div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- TIER 6: DEPLOYMENT -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="tier">
+    <div class="section-label">🚀 Deployment & DevOps</div>
+    <div class="nodes">
+
+      <div class="node theme-gray">
+        <div class="node-icon">▲</div>
+        <div class="node-title">Vercel</div>
+        <div class="node-subtitle">Hosting & Edge</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Edge Runtime (Middleware)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Serverless Functions (API)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Static Generation (SSG)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Turbopack (Dev)</div>
+        </div>
+        <div class="node-tags">
+          <span class="node-tag">Production</span>
+          <span class="node-tag">.git workaround</span>
+        </div>
+      </div>
+
+      <div class="node theme-gray narrow">
+        <div class="node-icon">🔧</div>
+        <div class="node-title">Dev Tools</div>
+        <div class="node-subtitle">DX Stack</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>TypeScript 5.9</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Turbopack</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Supabase CLI</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Claude Code</div>
+        </div>
+      </div>
+
+      <div class="node theme-gray narrow">
+        <div class="node-icon">📊</div>
+        <div class="node-title">Monitoring</div>
+        <div class="node-subtitle">Observability</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Vercel Analytics</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>API Route Logs</div>
+          <div class="node-detail"><span class="dot" style="background:var(--gray-400)"></span>Supabase Dashboard</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="tier-sep"></div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DATA FLOW DIAGRAM -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="flow-section">
+    <div class="section-label">🔀 Key Data Flows</div>
+    <div class="nodes" style="gap: 16px;">
+
+      <div class="node theme-green" style="flex: 1; min-width: 100%;">
+        <div class="node-title" style="font-size: 13px; margin-bottom: 12px;">🔧 Repair Request Flow (LINE → Web → LINE)</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--gray-400);">
+          <span style="background: rgba(76,175,80,0.15); padding: 4px 10px; border-radius: 6px; color: var(--green-500);">Student (LINE)</span>
+          <span>→ Webhook</span>
+          <span>→ Intent Router</span>
+          <span>→ Repair Handler</span>
+          <span>→ Session State</span>
+          <span>→ Collect Info</span>
+          <span>→</span>
+          <span style="background: rgba(0,150,136,0.15); padding: 4px 10px; border-radius: 6px; color: var(--teal-500);">Supabase INSERT</span>
+          <span>→ Flex Card ✅</span>
+          <span>→</span>
+          <span style="background: rgba(233,30,99,0.15); padding: 4px 10px; border-radius: 6px; color: var(--pink-400);">Admin Reviews</span>
+          <span>→ Status Update API</span>
+          <span>→</span>
+          <span style="background: rgba(255,152,0,0.15); padding: 4px 10px; border-radius: 6px; color: var(--orange-500);">LINE Push + In-App Notif</span>
+        </div>
+      </div>
+
+      <div class="node theme-purple" style="flex: 1; min-width: 100%;">
+        <div class="node-title" style="font-size: 13px; margin-bottom: 12px;">📚 Knowledge Base RAG Flow</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--gray-400);">
+          <span style="background: rgba(233,30,99,0.15); padding: 4px 10px; border-radius: 6px; color: var(--pink-400);">Admin Upload PDF</span>
+          <span>→ unpdf Parse</span>
+          <span>→ Chunk Text</span>
+          <span>→</span>
+          <span style="background: rgba(156,39,176,0.15); padding: 4px 10px; border-radius: 6px; color: var(--purple-500);">OpenAI Embedding</span>
+          <span>→ pgvector Store</span>
+          <span>→</span>
+          <span style="background: rgba(76,175,80,0.15); padding: 4px 10px; border-radius: 6px; color: var(--green-500);">User Question</span>
+          <span>→ Vector Search (cosine)</span>
+          <span>→ GPT-4o-mini Answer</span>
+        </div>
+      </div>
+
+      <div class="node theme-blue" style="flex: 1; min-width: 100%;">
+        <div class="node-title" style="font-size: 13px; margin-bottom: 12px;">🔐 Authentication Flow</div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11px; color: var(--gray-400);">
+          <span style="background: rgba(76,175,80,0.15); padding: 4px 10px; border-radius: 6px; color: var(--green-500);">LINE Login</span>
+          <span>→ OAuth Code</span>
+          <span>→ /api/auth/callback</span>
+          <span>→ Exchange Token</span>
+          <span>→ Get LINE Profile</span>
+          <span>→</span>
+          <span style="background: rgba(0,150,136,0.15); padding: 4px 10px; border-radius: 6px; color: var(--teal-500);">Supabase signUp</span>
+          <span style="font-size: 9px;">(synthetic email)</span>
+          <span>→ Upsert Profile</span>
+          <span>→ Set Cookie</span>
+          <span>→</span>
+          <span style="background: rgba(33,150,243,0.15); padding: 4px 10px; border-radius: 6px; color: var(--blue-500);">Dashboard</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- DATABASE SCHEMA OVERVIEW -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="flow-section">
+    <div class="section-label">🗃️ Database Schema — Key Tables</div>
+    <div class="nodes">
+
+      <div class="node theme-teal">
+        <div class="node-title" style="font-size: 12px;">Core</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>profiles</div>
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>buildings</div>
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>rooms</div>
+          <div class="node-detail"><span class="dot" style="background:var(--teal-500)"></span>user_roles</div>
+        </div>
+      </div>
+
+      <div class="node theme-orange">
+        <div class="node-title" style="font-size: 12px;">Features</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>maintenance_requests</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>bills / bill_items</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>parcels</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>announcements</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>events / attendance</div>
+          <div class="node-detail"><span class="dot" style="background:var(--orange-500)"></span>scores</div>
+        </div>
+      </div>
+
+      <div class="node theme-purple">
+        <div class="node-title" style="font-size: 12px;">Knowledge & AI</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>documents</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>document_sections (pgvector)</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>knowledge_folders</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>document_tags</div>
+          <div class="node-detail"><span class="dot" style="background:var(--purple-500)"></span>repair_templates</div>
+        </div>
+      </div>
+
+      <div class="node theme-blue">
+        <div class="node-title" style="font-size: 12px;">Communication</div>
+        <div class="node-details">
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>notifications</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>chat_messages</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>chat_sessions</div>
+          <div class="node-detail"><span class="dot" style="background:var(--blue-500)"></span>insights</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- LEGEND -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green-500)"></div>LINE / Student</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue-500)"></div>Web / Frontend</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--pink-500)"></div>Admin / CU Pink</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple-500)"></div>AI / ML</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--teal-500)"></div>Database</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange-500)"></div>Notifications</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--amber-500)"></div>Vision AI</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--gray-500)"></div>Infrastructure</div>
+  </div>
+
+  <div style="text-align: center; margin-top: 32px; color: var(--gray-600); font-size: 11px;">
+    C-Madong v2.0 — Chulalongkorn University Dormitory Management System — Updated March 2026
+  </div>
+
+</div>
+
+</body>
+</html>

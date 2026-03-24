@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
-import { ProfileContent } from "@/components/student/profile/profile-content";
+import { SettingsContent } from "@/components/student/profile/settings-content";
 
-export default async function ProfilePage({
+export default async function SettingsPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -9,5 +9,5 @@ export default async function ProfilePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <ProfileContent />;
+  return <SettingsContent />;
 }

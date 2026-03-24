@@ -1,7 +1,7 @@
 import { setRequestLocale } from "next-intl/server";
-import { ProfileContent } from "@/components/student/profile/profile-content";
+import { DormCardContent } from "@/components/student/profile/dorm-card-content";
 
-export default async function ProfilePage({
+export default async function DormCardPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -9,5 +9,5 @@ export default async function ProfilePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <ProfileContent />;
+  return <DormCardContent />;
 }
