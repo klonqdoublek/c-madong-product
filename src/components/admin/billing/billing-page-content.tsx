@@ -34,6 +34,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 const currentYear = new Date().getFullYear();
 
@@ -134,6 +135,7 @@ export function BillingPageContent() {
 
   return (
     <div className="animate-fade-in space-y-6">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

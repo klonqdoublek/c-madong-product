@@ -13,6 +13,7 @@ import { TicketStatsBar } from "./ticket-stats-bar";
 import { TicketListView } from "./ticket-list-view";
 import { KanbanBoard } from "./kanban-board";
 import { TicketDetailModal } from "./ticket-detail-modal";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function MaintenancePageContent() {
   const t = useTranslations();
@@ -34,6 +35,7 @@ export function MaintenancePageContent() {
 
   return (
     <div className="space-y-4">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">

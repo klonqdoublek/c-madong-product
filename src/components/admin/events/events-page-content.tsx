@@ -20,6 +20,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import type { EventType, EventStatus } from "@/lib/supabase/types";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function AdminEventsPageContent() {
   const t = useTranslations("admin.eventsPage");
@@ -49,6 +50,7 @@ export function AdminEventsPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>

@@ -14,6 +14,7 @@ import {
   DoorOpen,
   User,
 } from "lucide-react";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 const LEGACY_ROLE_MAP: Record<string, AppRole> = {
   admin: "super_admin",
@@ -41,6 +42,7 @@ export function AdminProfileContent() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <AdminBreadcrumb />
       {/* Header card with avatar */}
       <Card>
         <CardContent className="pt-6">

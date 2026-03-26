@@ -6,6 +6,7 @@ import { useStudentScores } from "@/hooks/use-score";
 import { getScoreColor, getScoreProgressColor } from "@/lib/utils/score-constants";
 import { AddScoreDialog } from "./add-score-dialog";
 import { Trophy, AlertTriangle, TrendingUp, Hash, Plus, Search } from "lucide-react";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function AdminScoresPageContent() {
   const t = useTranslations("admin.scoresPage");
@@ -40,6 +41,7 @@ export function AdminScoresPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>

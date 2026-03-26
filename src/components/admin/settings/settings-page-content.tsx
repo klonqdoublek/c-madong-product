@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function SettingsPageContent() {
   const t = useTranslations("admin.settings");
@@ -24,6 +25,7 @@ export function SettingsPageContent() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <AdminBreadcrumb />
       <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
 
       {/* LINE OA Info */}

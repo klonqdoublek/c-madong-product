@@ -6,6 +6,7 @@ import { useParcels, useUpdateParcelStatus, useResendParcelNotification, useBulk
 import { RegisterParcelForm } from "./register-parcel-form";
 import { Package, Plus, Search, Bell, Check, Clock, Truck, XCircle, RotateCcw, Send } from "lucide-react";
 import type { ParcelStatus, Database } from "@/lib/supabase/types";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 type Parcel = Database["public"]["Tables"]["parcels"]["Row"];
 type ParcelWithProfile = Parcel & {
@@ -81,6 +82,7 @@ export function ParcelsPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

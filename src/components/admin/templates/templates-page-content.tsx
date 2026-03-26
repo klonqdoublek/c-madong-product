@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useTemplates } from "@/hooks/use-templates";
 import { TEMPLATE_CATEGORIES } from "@/types/announcements";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function TemplatesPageContent() {
   const t = useTranslations("admin.templates");
@@ -20,6 +21,7 @@ export function TemplatesPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
         <Link

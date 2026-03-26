@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useTags } from "@/hooks/use-tags";
 import { useTemplates } from "@/hooks/use-templates";
 import type { MessageTemplate } from "@/types/announcements";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function BroadcastPageContent() {
   const t = useTranslations("admin.broadcast");
@@ -45,6 +46,7 @@ export function BroadcastPageContent() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <AdminBreadcrumb />
       <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
       <p className="text-sm text-muted-foreground">{t("description")}</p>
 

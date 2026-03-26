@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useAnnouncements } from "@/hooks/use-announcements";
 import { ANNOUNCEMENT_STATUSES } from "@/types/announcements";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700",
@@ -26,6 +27,7 @@ export function AnnouncementsPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
         <Link

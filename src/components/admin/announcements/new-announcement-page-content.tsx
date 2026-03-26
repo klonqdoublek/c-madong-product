@@ -9,6 +9,7 @@ import { FlexMessageEditor } from "@/components/admin/flex-editor/flex-message-e
 import { AIWritingAssistant } from "@/components/admin/flex-editor/ai-writing-assistant";
 import { TemplateSelector } from "@/components/admin/flex-editor/template-selector";
 import type { MessageTemplate } from "@/types/announcements";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 interface Props {
   announcementId?: string;
@@ -134,6 +135,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <AdminBreadcrumb />
       <h1 className="font-heading text-2xl font-bold">
         {announcementId ? t("editTitle") : t("title")}
       </h1>

@@ -7,6 +7,7 @@ import { useBuildings } from "@/hooks/use-buildings";
 import { useTags } from "@/hooks/use-tags";
 import { StudentEditDialog } from "./student-edit-dialog";
 import type { StudentWithRelations } from "@/types/students";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function StudentsPageContent() {
   const t = useTranslations("admin.studentsPage");
@@ -27,6 +28,7 @@ export function StudentsPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
         <span className="text-sm text-muted-foreground">

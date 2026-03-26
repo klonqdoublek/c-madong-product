@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from "@/hooks/use-tags";
 import { TAG_COLORS, type Tag } from "@/types/tags";
 import { tagSchema, type TagFormData } from "@/lib/validators/tags";
+import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function TagsPageContent() {
   const t = useTranslations("admin.tags");
@@ -76,6 +77,7 @@ export function TagsPageContent() {
 
   return (
     <div className="space-y-6">
+      <AdminBreadcrumb />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
         <button
