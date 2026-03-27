@@ -530,7 +530,7 @@ Full rewrite from 4-tab mock to production 2-panel layout with real DB connectiv
 - Parcel photo upload on registration
 - Auto-return workflow after X days uncollected
 
-### Phase 4.5: AI Vision Analysis for Repair Reporting ⚙️ IN PROGRESS (2026-03-18)
+### Phase 4.5: AI Vision Analysis for Repair Reporting ✅ DEPLOYED (2026-03-28)
 
 > **Goal:** Enable AI-powered image analysis for maintenance requests to automatically categorize damage, assess urgency, and improve ticket quality — reducing manual categorization and speeding up technician assignment.
 
@@ -549,8 +549,8 @@ LINE Webhook → RepairOrchestrator
 VisionAgent (photo analysis)
     ↓
 1. Template Matching (pgvector embedding search) — 70% cases, <1s, FREE
-2. Gemini 2.0 Flash (primary AI) — 25% cases, <3s, FREE (1500 req/day tier)
-3. GPT-4o (fallback) — 5% cases, <5s, ฿0.30/ticket
+2. GPT-4o (primary AI, since 03-28) — 25% cases, <5s, ฿0.30/ticket
+3. Gemini 2.0 Flash (fallback) — 5% cases, <3s, FREE (quota limited)
 4. Keyword Detection (last resort) — instant, FREE
 ```
 
@@ -595,15 +595,15 @@ VisionAgent (photo analysis)
 - GPT-4o fallback: ฿0.90 (5% of requests)
 - **Total: ~฿1/month** (93% cheaper than GPT-4o-only approach)
 
-**Rollout Plan:**
-- **Week 1 (Current)**: Foundation — migrations, agents, orchestrator, seed templates
-- **Week 2**: MVP — enable for 10 beta users, monitor accuracy/cost, iterate on prompts
-- **Week 3**: Full rollout — all users, expand template library to 50+, GPT-4o fallback active
-- **Week 4-6**: Enhancements — multi-photo analysis, admin feedback loop, template optimization
+**Rollout Status (2026-03-28):**
+- **Foundation**: COMPLETE — migrations, agents, orchestrator, 20 seed templates with embeddings
+- **Provider**: OpenAI GPT-4o (primary), Gemini 2.0 Flash (fallback) — swapped due to Gemini quota exhaustion
+- **Production**: LIVE — `ENABLE_VISION_ANALYSIS=true` on Vercel, LINE E2E tested
+- **Next**: Monitor accuracy/cost, expand template library to 50+, multi-photo analysis
 
 **Feature Flag:**
-- `ENABLE_VISION_ANALYSIS=false` (default off for gradual rollout)
-- Set to `true` to enable vision analysis for repair requests with photos
+- `ENABLE_VISION_ANALYSIS=true` (enabled in production 2026-03-28)
+- Set to `false` to disable vision analysis and fall back to text-only detection
 
 **Success Metrics:**
 - 85%+ categorization accuracy (admin validation)
@@ -689,8 +689,8 @@ Redesigned student home page from Figma design (node 189:1102):
 
 **Design 3 — Digital ID Card (`/profile/dorm-card`):**
 - Serial number display
-- ID card image with -6deg rotation + pink blur shadow
-- "แสดงบัตรแบบเต็ม" button → fullscreen lightbox (dark backdrop, tap-to-dismiss, iOS Safari safe)
+- ID card PNG (per-user: real card for พิชญา พูลเพียร, placeholder for others) with -6deg rotation + pink blur shadow
+- "แสดงบัตรแบบเต็ม" button → fullscreen lightbox with card rotated 90deg to landscape, scaled to `w-[90vh]` (dark backdrop, tap-to-dismiss, iOS Safari safe)
 - Report lost/damaged card + card history menus (placeholders)
 
 **Components** (7 files in `src/components/student/profile/`):

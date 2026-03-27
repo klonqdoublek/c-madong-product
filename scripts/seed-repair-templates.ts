@@ -1,4 +1,3 @@
-// @ts-nocheck
 /**
  * Seed Script: Repair Templates
  * Purpose: Generate embeddings for initial template images and populate repair_templates table
@@ -224,11 +223,11 @@ async function seedTemplates() {
   }
 
   console.log("")
-  console.log("=" * 50)
+  console.log("=".repeat(50))
   console.log(`✅ Success: ${successCount}`)
   console.log(`❌ Failed: ${failCount}`)
   console.log(`📊 Total: ${INITIAL_TEMPLATES.length}`)
-  console.log("=" * 50)
+  console.log("=".repeat(50))
 
   // Verify templates
   const { count } = await supabase
@@ -251,7 +250,7 @@ async function seedTemplates() {
     console.error("❌ Vector search test failed:", error)
   } else {
     console.log(`✅ Vector search working! Found ${matches?.length || 0} matches:`)
-    matches?.forEach((match: any, i: number) => {
+    matches?.forEach((match: { title: string; similarity: number }, i: number) => {
       console.log(`  ${i + 1}. ${match.title} (similarity: ${match.similarity.toFixed(3)})`)
     })
   }

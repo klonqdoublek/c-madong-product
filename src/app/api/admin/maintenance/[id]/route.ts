@@ -50,8 +50,11 @@ export async function PATCH(
     );
   }
 
+  // Handle AI feedback separately (don't spread into updates)
+  const { ai_feedback, correct_category, ...updateFields } = parsed.data;
+
   const updates: Record<string, unknown> = {
-    ...parsed.data,
+    ...updateFields,
     updated_at: new Date().toISOString(),
   };
 
@@ -85,6 +88,30 @@ export async function PATCH(
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Handle AI feedback (mark incorrect / decrease template accuracy)
+  if (ai_feedback === "incorrect") {
+    const notePrefix = `[AI Correction] Category changed to: ${correct_category || "N/A"}`;
+    const existingNotes = data.admin_notes || "";
+    await adminDb
+      .from("maintenance_requests")
+      .update({
+        admin_notes: existingNotes
+          ? `${existingNotes}\n${notePrefix}`
+          : notePrefix,
+      })
+      .eq("id", id);
+
+    // Decrease template accuracy if template was used
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const templateId = (data as any).template_id;
+    if (templateId) {
+      // RPC may not exist yet if repair_templates migration not applied
+      await (adminDb.rpc as any)("decrease_template_accuracy", {
+        template_id: templateId,
+      });
+    }
   }
 
   // Send notifications if status changed

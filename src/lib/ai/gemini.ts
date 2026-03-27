@@ -1,11 +1,10 @@
-// @ts-nocheck — Phase 4.5 in progress, fix TS errors when vision pipeline is finalized
 /**
  * Gemini AI Client
  * Purpose: Google Gemini 2.0 Flash integration for vision analysis and chatbot
  * Provider: Google AI (cheaper alternative to OpenAI GPT-4o for vision)
  */
 
-import { GoogleGenAI } from "@google/genai"
+import { GoogleGenAI, type Part } from "@google/genai"
 
 // =====================================================
 // Singleton Client
@@ -145,7 +144,7 @@ export async function analyzeRepairImageGemini(
 
   try {
     // Build prompt parts
-    const parts: any[] = [
+    const parts: Part[] = [
       { text: REPAIR_IMAGE_ANALYSIS_PROMPT },
       { text: "\n\nข้อความจากผู้ใช้: " + (userMessage || "วิเคราะห์ความเสียหายในรูปนี้") }
     ]
@@ -178,7 +177,7 @@ export async function analyzeRepairImageGemini(
 
     // Generate content
     console.log("[Gemini] Analyzing image:", imageUrl)
-    const response = await client.generateContent({
+    const response = await client.models.generateContent({
       model: GEMINI_FLASH_MODEL,
       contents: parts,
       config: {
@@ -190,7 +189,7 @@ export async function analyzeRepairImageGemini(
       }
     })
 
-    const text = response.text
+    const text = response.text ?? ""
 
     // Parse and validate response
     const analysis = parseGeminiResponse(text)
@@ -256,7 +255,7 @@ export async function analyzeMultipleImagesGemini(
 export async function checkGeminiHealth(): Promise<boolean> {
   try {
     const client = getGeminiClient()
-    const result = await client.generateContent({
+    const result = await client.models.generateContent({
       model: GEMINI_FLASH_MODEL,
       contents: [{ text: "test" }]
     })

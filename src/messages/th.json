@@ -196,7 +196,11 @@
       "photoTooLarge": "รูปใหญ่เกิน {size}MB ลองรูปอื่นนะ",
       "photoHint": "สูงสุด {count} รูป ขนาดไม่เกิน {size}MB ต่อรูป",
       "wantAppointment": "ต้องการนัดวันซ่อม?",
-      "appointmentNote": "ช่างจะติดต่อยืนยันนัดหมายอีกครั้งนะ"
+      "appointmentNote": "ช่างจะติดต่อยืนยันนัดหมายอีกครั้งนะ",
+      "aiSuggestion": "AI วิเคราะห์รูปภาพ",
+      "analyzingPhotos": "กำลังวิเคราะห์รูปภาพ...",
+      "acceptSuggestion": "เปลี่ยนเป็น {category}",
+      "aiConfidence": "ความมั่นใจ"
     },
     "detail": {
       "title": "รายละเอียดแจ้งซ่อม",
@@ -423,7 +427,14 @@
       "cancelConfirm": "ยืนยันยกเลิกงานซ่อม?",
       "created": "สร้างเมื่อ",
       "accepted": "รับเรื่องเมื่อ",
-      "resolved": "เสร็จเมื่อ"
+      "resolved": "เสร็จเมื่อ",
+      "aiAnalysis": "AI วิเคราะห์",
+      "aiProvider": "ผู้ให้บริการ AI",
+      "aiConfidence": "ความมั่นใจ",
+      "damageDetails": "รายละเอียดความเสียหาย",
+      "markIncorrect": "ไม่ถูกต้อง",
+      "reanalyze": "วิเคราะห์ใหม่",
+      "correctCategory": "เลือกประเภทที่ถูกต้อง"
     },
     "studentsPage": {
       "title": "จัดการนิสิต",

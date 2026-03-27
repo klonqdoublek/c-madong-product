@@ -196,7 +196,11 @@
       "photoTooLarge": "File too large (max {size}MB)",
       "photoHint": "Up to {count} photos, max {size}MB each",
       "wantAppointment": "Want to schedule an appointment?",
-      "appointmentNote": "The technician will confirm the appointment with you."
+      "appointmentNote": "The technician will confirm the appointment with you.",
+      "aiSuggestion": "AI Photo Analysis",
+      "analyzingPhotos": "Analyzing photos...",
+      "acceptSuggestion": "Change to {category}",
+      "aiConfidence": "Confidence"
     },
     "detail": {
       "title": "Request Details",
@@ -423,7 +427,14 @@
       "cancelConfirm": "Cancel this ticket?",
       "created": "Created",
       "accepted": "Accepted",
-      "resolved": "Resolved"
+      "resolved": "Resolved",
+      "aiAnalysis": "AI Analysis",
+      "aiProvider": "AI Provider",
+      "aiConfidence": "Confidence",
+      "damageDetails": "Damage Details",
+      "markIncorrect": "Mark Incorrect",
+      "reanalyze": "Re-analyze",
+      "correctCategory": "Select correct category"
     },
     "studentsPage": {
       "title": "Student Management",

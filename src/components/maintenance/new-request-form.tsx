@@ -11,6 +11,7 @@ import {
   Check,
   Loader2,
   CalendarDays,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,6 +68,16 @@ export function NewRequestForm() {
   const [wantAppointment, setWantAppointment] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState<Date | undefined>();
   const [appointmentTime, setAppointmentTime] = useState<string>("");
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    category: string;
+    title: string;
+    description: string;
+    urgency: string;
+    damage_details: string;
+    confidence: number;
+    provider: string;
+  } | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   const stepIndex = STEPS.indexOf(step);
 
@@ -90,9 +101,31 @@ export function NewRequestForm() {
     }
   };
 
-  const goNext = () => {
+  const goNext = async () => {
     const idx = STEPS.indexOf(step);
-    if (idx < STEPS.length - 1) setStep(STEPS[idx + 1]);
+    if (idx >= STEPS.length - 1) return;
+
+    // When leaving photos step, trigger AI analysis if photos exist
+    if (step === "photos" && photos.length > 0 && !aiAnalysis) {
+      setAnalyzing(true);
+      try {
+        const res = await fetch("/api/maintenance/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photos, description }),
+        });
+        const data = await res.json();
+        if (data.analysis && data.analysis.confidence > 0.5) {
+          setAiAnalysis(data.analysis);
+        }
+      } catch {
+        // AI analysis is optional — don't block the form
+      } finally {
+        setAnalyzing(false);
+      }
+    }
+
+    setStep(STEPS[idx + 1]);
   };
 
   const goBack = () => {
@@ -141,6 +174,12 @@ export function NewRequestForm() {
         description: description.trim(),
         photos,
       };
+
+      if (aiAnalysis) {
+        payload.ai_confidence = aiAnalysis.confidence;
+        payload.ai_provider = aiAnalysis.provider;
+        payload.damage_details = aiAnalysis.damage_details;
+      }
 
       if (wantAppointment && appointmentDate) {
         payload.appointmentDate = format(appointmentDate, "yyyy-MM-dd");
@@ -398,6 +437,43 @@ export function NewRequestForm() {
                   </div>
                 </div>
               )}
+              {/* AI suggestion */}
+              {aiAnalysis && (
+                <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={16} className="text-primary" />
+                    <span className="text-sm font-medium text-primary">
+                      {t("aiSuggestion")}
+                    </span>
+                    <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                      {Math.round(aiAnalysis.confidence * 100)}%
+                    </span>
+                  </div>
+                  {aiAnalysis.damage_details && (
+                    <p className="text-sm text-muted-foreground">
+                      {aiAnalysis.damage_details}
+                    </p>
+                  )}
+                  {aiAnalysis.category !== category && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => {
+                        setCategory(aiAnalysis.category);
+                        if (aiAnalysis.title) setTitle(aiAnalysis.title);
+                      }}
+                    >
+                      <Sparkles size={14} />
+                      {t("acceptSuggestion", {
+                        category: tc(aiAnalysis.category),
+                      })}
+                    </Button>
+                  )}
+                </div>
+              )}
+
               {/* Appointment */}
               {wantAppointment && appointmentDate && (
                 <div className="flex items-center justify-between">
@@ -422,6 +498,16 @@ export function NewRequestForm() {
           </div>
         )}
       </div>
+
+      {/* Analyzing overlay */}
+      {analyzing && (
+        <div className="flex items-center gap-2 rounded-xl border bg-primary/5 p-3">
+          <Loader2 size={16} className="animate-spin text-primary" />
+          <span className="text-sm text-primary font-medium">
+            {t("analyzingPhotos")}
+          </span>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -455,7 +541,7 @@ export function NewRequestForm() {
         ) : (
           <Button
             onClick={goNext}
-            disabled={!canNext()}
+            disabled={!canNext() || analyzing}
             className="gap-1"
           >
             {tCommon("next")}

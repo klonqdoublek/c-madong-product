@@ -5,13 +5,30 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-03-24)
+## Recent Changes (2026-03-28)
+
+### Phase 4.5 Vision AI — DEPLOYED
+
+- **Seed script fixed**: Removed `@ts-nocheck`, fixed `"=" * 50` → `"=".repeat(50)`, typed `any` → proper types
+- **20 repair templates seeded**: 6 plumbing, 5 electrical, 4 aircon, 3 furniture, 2 pest — with text-embedding-3-small vectors
+- **Provider order swapped**: OpenAI GPT-4o primary, Gemini 2.0 Flash fallback (Gemini quota exhausted)
+- **Build fix**: Added missing return path in `VisionAgent.analyze()` for edge case (no provider + no primaryResult → keyword fallback)
+- **Feature flag enabled**: `ENABLE_VISION_ANALYSIS=true` on Vercel production
+- **LINE tested**: Image → text description → Vision AI categorizes → Flex confirm card. Working end-to-end
+- **Fallback chain**: Template matching (0.85+ sim) → OpenAI GPT-4o (primary) → Gemini Flash (fallback) → Keywords
+- **Files modified**: `scripts/seed-repair-templates.ts`, `src/lib/ai/orchestrator.ts`, `src/lib/ai/agents/vision-agent.ts`
+- **Test script**: `scripts/test-vision-ai.ts` — 5 tests (template search, VisionAgent+image, keyword fallback, DB count)
+
+---
+
+## Changes (2026-03-24)
 
 ### Student Profile Page — 3 Figma Designs
 
 - **Profile Main** (`/profile`): Avatar + name + room/building + faculty badge + stats (days in dorm, events attended) + score summary (stacked bar) + settings link
 - **Settings** (`/profile/settings`): 3 grouped sections (General, Support, Permissions) + 3 toggle switches (local state) + logout
-- **Digital ID Card** (`/profile/dorm-card`): Rotated card image + pink blur shadow + fullscreen lightbox modal + report lost/history menus
+- **Digital ID Card** (`/profile/dorm-card`): Per-user card PNG (พิชญา พูลเพียร = `id-card-pitchaya.png`, others = `id-card-example.png`) + -6deg rotation + pink blur shadow + fullscreen lightbox (90deg landscape, `w-[90vh]`) + report lost/history menus
+- **Code-rendered card branch**: `feat/digital-dorm-card` has `DormIdCard` React component (CU emblem SVG, Thai Buddhist dates, CSS barcode, signature, dual scale modes)
 - **Components**: 7 files in `src/components/student/profile/` — profile-content, profile-info-card, profile-stats-section, profile-score-section, settings-content, settings-menu-item, dorm-card-content
 - **Routes**: Updated `(student)/profile/page.tsx`, NEW `profile/settings/page.tsx`, NEW `profile/dorm-card/page.tsx`
 - **i18n**: 30+ new keys in `profile` namespace (th.json + en.json)
