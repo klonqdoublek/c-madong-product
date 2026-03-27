@@ -1,4 +1,3 @@
-// @ts-nocheck — Phase 4.5 in progress, fix TS errors when vision pipeline is finalized
 /**
  * Repair Orchestrator
  * Purpose: Coordinate multiple agents for repair request processing
@@ -43,8 +42,8 @@ export class RepairOrchestrator {
 
   constructor() {
     this.visionAgent = new VisionAgent({
-      primaryProvider: "gemini",
-      fallbackProvider: "openai",
+      primaryProvider: "openai",
+      fallbackProvider: "gemini",
       useTemplateMatching: true,
       templateMatchThreshold: 0.85,
       confidenceThreshold: 0.7
@@ -98,6 +97,7 @@ export class RepairOrchestrator {
 
     return {
       ...detection,
+      category: detection.category as RepairImageAnalysis["category"],
       damage_details: "",
       suggested_specialty: detection.category,
       confidence: 0.6,
@@ -110,18 +110,46 @@ export class RepairOrchestrator {
    * Runs in parallel with vision analysis
    */
   private async getReporterContext(userId: string): Promise<ReporterContext> {
-    const supabase = await createAdminClient()
+    const supabase = createAdminClient()
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name, building, room_number")
-      .eq("id", userId)
-      .single()
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name_th, display_name, building_id, room_id")
+        .eq("id", userId)
+        .single()
 
-    return {
-      name: profile?.full_name || "ผู้พัก",
-      building: profile?.building || "-",
-      room: profile?.room_number || "-"
+      if (!profile) {
+        return { name: "ผู้พัก", building: "-", room: "-" }
+      }
+
+      const name = profile.display_name || profile.full_name_th || "ผู้พัก"
+
+      let buildingName = "-"
+      let roomNumber = "-"
+
+      if (profile.building_id) {
+        const { data: b } = await supabase
+          .from("buildings")
+          .select("name_th")
+          .eq("id", profile.building_id)
+          .single()
+        buildingName = b?.name_th ?? "-"
+      }
+
+      if (profile.room_id) {
+        const { data: r } = await supabase
+          .from("rooms")
+          .select("room_number")
+          .eq("id", profile.room_id)
+          .single()
+        roomNumber = r?.room_number ?? "-"
+      }
+
+      return { name, building: buildingName, room: roomNumber }
+    } catch (error) {
+      console.error("[Orchestrator] getReporterContext error:", error)
+      return { name: "ผู้พัก", building: "-", room: "-" }
     }
   }
 

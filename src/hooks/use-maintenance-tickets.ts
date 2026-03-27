@@ -129,6 +129,28 @@ export function useAssignTechnician() {
   });
 }
 
+export function useReanalyzeTicket() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ticketId: string) => {
+      const res = await fetch(`/api/admin/maintenance/${ticketId}/reanalyze`, {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to re-analyze");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TICKETS_KEY] });
+    },
+  });
+}
+
 export function useUpdateTicketNotes() {
   const queryClient = useQueryClient();
 

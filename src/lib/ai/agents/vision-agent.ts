@@ -1,4 +1,3 @@
-// @ts-nocheck — Phase 4.5 in progress, fix TS errors when vision pipeline is finalized
 /**
  * Vision Agent
  * Purpose: Multi-provider AI vision analysis for repair images
@@ -8,7 +7,7 @@
 import { analyzeRepairImageGemini, type RepairImageAnalysis } from "../gemini"
 import { getOpenAIClient } from "../openai"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { REPAIR_CATEGORIES, detectRepairCategory } from "@/lib/chatbot/constants"
+import { detectRepairCategory } from "@/lib/chatbot/constants"
 import { REPAIR_IMAGE_ANALYSIS_PROMPT } from "../gemini"
 
 // =====================================================
@@ -23,8 +22,8 @@ export interface VisionAgentConfig {
 }
 
 const DEFAULT_CONFIG: VisionAgentConfig = {
-  primaryProvider: "gemini",
-  fallbackProvider: "openai",
+  primaryProvider: "openai",
+  fallbackProvider: "gemini",
   useTemplateMatching: true,
   templateMatchThreshold: 0.85,
   confidenceThreshold: 0.7
@@ -61,7 +60,7 @@ export class VisionAgent {
           await this.incrementTemplateUsage(templateMatch.id)
 
           return {
-            category: templateMatch.category,
+            category: templateMatch.category as RepairImageAnalysis["category"],
             title: templateMatch.title,
             description: templateMatch.description || context || "",
             urgency: this.inferUrgencyFromCategory(templateMatch.category),
@@ -74,39 +73,49 @@ export class VisionAgent {
       }
 
       // Step 2: Try primary provider (Gemini)
-      console.log(`[VisionAgent] Using ${this.config.primaryProvider} for analysis`)
-      const primaryResult = await this.analyzeWithProvider(
-        this.config.primaryProvider,
-        imageUrl,
-        context
-      )
-
-      // If confidence high enough, return
-      if (primaryResult.confidence >= this.config.confidenceThreshold) {
-        console.log(
-          `[VisionAgent] ${this.config.primaryProvider} success (confidence: ${primaryResult.confidence})`
+      let primaryResult: RepairImageAnalysis | null = null
+      try {
+        console.log(`[VisionAgent] Using ${this.config.primaryProvider} for analysis`)
+        primaryResult = await this.analyzeWithProvider(
+          this.config.primaryProvider,
+          imageUrl,
+          context
         )
-        return primaryResult
+
+        // If confidence high enough, return
+        if (primaryResult.confidence >= this.config.confidenceThreshold) {
+          console.log(
+            `[VisionAgent] ${this.config.primaryProvider} success (confidence: ${primaryResult.confidence})`
+          )
+          return primaryResult
+        }
+      } catch (primaryError) {
+        console.warn(
+          `[VisionAgent] ${this.config.primaryProvider} failed, trying fallback:`,
+          primaryError instanceof Error ? primaryError.message : primaryError
+        )
       }
 
       // Step 3: Fallback to secondary provider (GPT-4o)
       if (this.config.fallbackProvider) {
         console.log(
-          `[VisionAgent] Low confidence (${primaryResult.confidence}), falling back to ${this.config.fallbackProvider}`
+          `[VisionAgent] Falling back to ${this.config.fallbackProvider}`
         )
         const fallbackResult = await this.analyzeWithProvider(
           this.config.fallbackProvider,
           imageUrl,
           context,
-          primaryResult.category // hint from primary
+          primaryResult?.category // hint from primary if available
         )
         return fallbackResult
       }
 
-      return primaryResult
+      if (primaryResult) return primaryResult
+
+      // No provider succeeded — keyword fallback
+      return this.fallbackToKeywords(context || "")
     } catch (error) {
       console.error("[VisionAgent] All providers failed:", error)
-      // Last resort: keyword fallback
       return this.fallbackToKeywords(context || "")
     }
   }
@@ -124,7 +133,7 @@ export class VisionAgent {
     description: string
     similarity: number
   } | null> {
-    const supabase = await createAdminClient()
+    const supabase = createAdminClient()
 
     try {
       // Generate embedding for query (use description or URL)
@@ -134,12 +143,13 @@ export class VisionAgent {
         input: queryText
       })
 
-      // Vector search
-      const { data: matches, error } = await supabase.rpc("match_repair_templates", {
+      // Vector search (RPC may not exist in generated types yet)
+      const { data, error } = await (supabase.rpc as any)("match_repair_templates", {
         query_embedding: embedding.data[0].embedding,
         match_threshold: this.config.templateMatchThreshold,
         match_count: 1
       })
+      const matches = data as { id: string; category: string; title: string; description: string; similarity: number }[] | null
 
       if (error) {
         console.error("[VisionAgent] Template matching failed:", error)
@@ -218,10 +228,11 @@ export class VisionAgent {
    * Keyword-based fallback (no AI API call)
    */
   private fallbackToKeywords(message: string): RepairImageAnalysis {
-    const category = detectRepairCategory(message)
+    const result = detectRepairCategory(message)
+    const category = (result?.category ?? "other") as RepairImageAnalysis["category"]
 
     return {
-      category: category || "other",
+      category,
       title: message.slice(0, 50) || "แจ้งซ่อม",
       description: message || "ไม่สามารถวิเคราะห์รูปภาพได้ กรุณาระบุรายละเอียดเพิ่มเติม",
       urgency: "medium",
@@ -245,8 +256,8 @@ export class VisionAgent {
    */
   private async incrementTemplateUsage(templateId: string): Promise<void> {
     try {
-      const supabase = await createAdminClient()
-      await supabase.rpc("increase_template_usage", { template_id: templateId })
+      const supabase = createAdminClient()
+      await (supabase.rpc as any)("increase_template_usage", { template_id: templateId })
     } catch (error) {
       console.error("[VisionAgent] Failed to increment template usage:", error)
     }

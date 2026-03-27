@@ -6,6 +6,8 @@ export const updateTicketSchema = z.object({
   technician_id: z.string().uuid().nullable().optional(),
   admin_notes: z.string().max(2000).nullable().optional(),
   failure_reason: z.string().max(500).nullable().optional(),
+  ai_feedback: z.enum(["incorrect", "correct"]).optional(),
+  correct_category: z.string().optional(),
 });
 
 export const createTechnicianSchema = z.object({

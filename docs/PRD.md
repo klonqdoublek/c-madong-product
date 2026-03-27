@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 1.9
-> **Last Updated**: 2026-03-21
+> **Version**: 2.0
+> **Last Updated**: 2026-03-24
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -46,7 +46,8 @@ C-Madong Platform
 │   ├── Maintenance Requests
 │   ├── Announcements
 │   ├── Notifications
-│   └── Profile Management
+│   ├── Profile Management
+│   └── In-App Chat (น้องซีมะโด่ง modal) ✅
 │
 ├── Admin Portal (ported into c-madong-product) ✅
 │   ├── Dashboard (KPI cards, recent tickets, quick actions)
@@ -136,14 +137,17 @@ C-Madong Platform
 - [ ] Recent activity feed
 - [ ] Pinned announcements
 
-#### US-2.2: Digital Dorm Card
+#### US-2.2: Digital Dorm Card ✅ DEPLOYED (2026-03-24)
 > **As a** student, **I want to** have a digital dorm card, **so that** I don't need to carry a physical card.
 
 **Features:**
-- [ ] แสดงข้อมูลนิสิต: ชื่อ, รหัสนิสิต, รูป
-- [ ] ข้อมูลห้อง: ตึก, ชั้น, ห้อง, เตียง
+- [x] แสดงข้อมูลนิสิต: ชื่อ, รหัสนิสิต, รูป
+- [x] ข้อมูลห้อง: ตึก, ชั้น, ห้อง, เตียง
 - [ ] QR Code สำหรับ check-in/check-out
-- [ ] สามารถแคปหน้าจอได้ง่าย
+- [x] สามารถแคปหน้าจอได้ง่าย
+- [x] Fullscreen lightbox modal for card view
+- [x] Report lost/damaged card menu (placeholder)
+- [x] Card issuance history menu (placeholder)
 
 ---
 
@@ -352,7 +356,7 @@ C-Madong Platform
 - Flex Message Editor: JSON editor + preview + template selector
 - AI Writing Assistant: Gemini-powered Thai copy generation
 - LINE Broadcast: quick send with template shortcuts + tag targeting
-- Knowledge Base (RAG): document upload (txt/md/PDF) → drag & drop → OpenAI embeddings → gpt-4o-mini Q&A playground ✅
+- Knowledge Base v3 (RAG): 2-panel layout, folder/tag management, file table, document preview, per-doc Q&A ✅
 - Settings: LINE OA info, AI API keys (localStorage), app info
 
 **Maintenance Feature Completion ✅ (2026-03-19):**
@@ -383,6 +387,31 @@ C-Madong Platform
 - All AI: OpenAI gpt-4o-mini (switched from Gemini — free tier quota exhausted)
 - **Repair flow fix (2026-03-18):** Postback reads detection from session (not params), description=original message, reporter context queries tables separately, CU Pink Flex design
 
+**Chatbot UX Improvements (2026-03-21):**
+- Banner images on Flex messages: parcel notification (`Inbox.jpg`), repair confirm (`New_Request.jpg`) — hero section with 16:9 cover + absolute overlay
+- Booking flow after repair confirm: `buildTicketCreatingFlex()` with green header + booking CTA → web URL (not LIFF)
+- `buildRepairStatusFlex()` with optional `AppointmentInfo` section
+- Short trigger phrases ("แจ้งซ่อม", "ซ่อม") → guide message instead of creating ticket
+- Status check keywords ("ติดตามสถานะ", "เช็คสถานะ", "track", "status") → route to `repair_history` BEFORE session state routing
+- Ticket number (`#shortId`) shown in push notification Flex
+
+**In-App Chat Modal ✅ (2026-03-21):**
+- Chat with น้องซีมะโด่ง directly from the web app (no LINE required)
+- Bottom sheet modal (85vh) opens from mascot button in bottom nav
+- Reuses all chatbot handlers: chitchat, knowledge, score, events, parcel
+- Repair intent redirects to LINE (requires photo/postback flow)
+- Drag-to-dismiss with visual handle bar + backdrop fade
+- `visualViewport` tracking for mobile keyboard avoidance
+- Chat history view with date grouping from DB (`GET /api/chat/history`)
+- Clear session button to start fresh conversation
+- Suggestion chips on empty state
+- **Files**: `chat-modal.tsx`, `use-chat.ts`, `chat-store.ts`, `api/chat/route.ts`, `api/chat/history/route.ts`
+
+**Student Page Updates (2026-03-21):**
+- New `page-header.tsx` component replaces old `header.tsx` across all student pages
+- `logout-button.tsx` component added
+- Student pages refactored: announcements, maintenance, profile (placeholder), billing, events, parcels, score
+
 **LINE Messaging Pipeline ✅ (2026-02-21):**
 - `@line/bot-sdk` integration
 - Push/broadcast/reply for text + Flex messages
@@ -395,12 +424,14 @@ C-Madong Platform
 - notifications
 - tags (new)
 - message_templates (new)
-- documents (extended: status, filename, file_path, content_type) + document_sections (pgvector)
+- documents (extended: status, filename, file_path, content_type, folder_id, version) + document_sections (pgvector)
+- knowledge_folders, document_tags, document_tag_assignments (Knowledge Base v3)
 - ai_chat_messages, chatbot_sessions
 - score_categories, score_entries, dorm_events, event_attendance (Phase 5)
 - bills, bill_items (new — Phase 3)
 - parcels (new — Phase 4)
 - user_roles, role_permissions (RBAC — cross-phase)
+- repair_templates (Phase 4.5 — pgvector embeddings)
 - FK fix: `maintenance_requests.requester_id` → `profiles(id)` for PostgREST joins (2026-03-18)
 
 **RBAC System ✅ WIRED UP (2026-03-21):**
@@ -412,6 +443,36 @@ C-Madong Platform
 - Middleware allows all staff roles (not just admin/head)
 - Admin API routes use `createAdminClient()` to bypass RLS
 - PermissionGuard component for conditional rendering
+
+**Knowledge Base v3 ✅ DEPLOYED (2026-03-22):**
+Full rewrite from 4-tab mock to production 2-panel layout with real DB connectivity.
+
+- **Layout**: Collapsible nested sidebar (280px ↔ 52px icon strip) + main content area. Admin sidebar auto-collapses to 60px icon strip when on knowledge page.
+- **Folder Management**: Hierarchical folders (parent/child), CRUD via context menu, drag file counts, 6 seed folders (กฎหอพัก, คู่มือนิสิต, แบบฟอร์ม, ประกาศ, FAQs, อื่นๆ)
+- **Document Tags**: Many-to-many via junction table, 10 color presets, tag management dialog
+- **File Table**: Checkbox selection, type badges (PDF/MD/DOC/TXT), version display, status badges, sort by date/name, filter by status/tag
+- **Bulk Actions**: Move to folder, delete, assign tags, reprocess embeddings
+- **File Detail View**: Document preview, metadata (version, author, date), tag badges, per-document Q&A
+- **Per-Document Q&A**: RAG search scoped to single document's sections
+- **Database** (migration `20260324_knowledge_folders_tags.sql`):
+  - `knowledge_folders` table: hierarchical with parent_id FK (CASCADE), sort_order
+  - `document_tags` table: name (unique), color
+  - `document_tag_assignments` junction table
+  - Added `folder_id` (FK → knowledge_folders, SET NULL on delete) + `version` to `documents`
+  - RLS: authenticated read, admin write via adminClient
+- **API Routes** (8 routes):
+  - `GET/POST /api/admin/knowledge/folders` + `PATCH/DELETE .../folders/[id]`
+  - `GET/POST /api/admin/knowledge/tags` + `PATCH/DELETE .../tags/[id]`
+  - `GET /api/admin/knowledge/documents` (with folder/tag/status/search filters)
+  - `GET/PATCH/DELETE /api/admin/knowledge/documents/[id]`
+  - `POST /api/admin/knowledge/documents/bulk` (move/delete/tag/reprocess)
+  - Enhanced upload route (folder_id + tags) + query route (document_id filter)
+- **State**: Zustand `knowledge-store` (view, folders, files, sidebar, search, sort, filter) + 14 TanStack Query hooks in `use-knowledge.ts`
+- **Components** (14 files in `src/components/admin/knowledge/`):
+  - Sidebar: knowledge-sidebar, folder-tree, file-list-sidebar
+  - Main: folder-view, file-table, file-table-toolbar, file-detail-view, document-preview
+  - Dialogs: create-folder, upload-document, move-documents, tag-management, delete-confirm
+  - Layout shell: knowledge-page-content (rewritten)
 
 ### Phase 3: Billing & Payments ✅ DEPLOYED (2026-03-09)
 
@@ -469,7 +530,7 @@ C-Madong Platform
 - Parcel photo upload on registration
 - Auto-return workflow after X days uncollected
 
-### Phase 4.5: AI Vision Analysis for Repair Reporting ⚙️ IN PROGRESS (2026-03-18)
+### Phase 4.5: AI Vision Analysis for Repair Reporting ✅ DEPLOYED (2026-03-28)
 
 > **Goal:** Enable AI-powered image analysis for maintenance requests to automatically categorize damage, assess urgency, and improve ticket quality — reducing manual categorization and speeding up technician assignment.
 
@@ -488,8 +549,8 @@ LINE Webhook → RepairOrchestrator
 VisionAgent (photo analysis)
     ↓
 1. Template Matching (pgvector embedding search) — 70% cases, <1s, FREE
-2. Gemini 2.0 Flash (primary AI) — 25% cases, <3s, FREE (1500 req/day tier)
-3. GPT-4o (fallback) — 5% cases, <5s, ฿0.30/ticket
+2. GPT-4o (primary AI, since 03-28) — 25% cases, <5s, ฿0.30/ticket
+3. Gemini 2.0 Flash (fallback) — 5% cases, <3s, FREE (quota limited)
 4. Keyword Detection (last resort) — instant, FREE
 ```
 
@@ -534,15 +595,15 @@ VisionAgent (photo analysis)
 - GPT-4o fallback: ฿0.90 (5% of requests)
 - **Total: ~฿1/month** (93% cheaper than GPT-4o-only approach)
 
-**Rollout Plan:**
-- **Week 1 (Current)**: Foundation — migrations, agents, orchestrator, seed templates
-- **Week 2**: MVP — enable for 10 beta users, monitor accuracy/cost, iterate on prompts
-- **Week 3**: Full rollout — all users, expand template library to 50+, GPT-4o fallback active
-- **Week 4-6**: Enhancements — multi-photo analysis, admin feedback loop, template optimization
+**Rollout Status (2026-03-28):**
+- **Foundation**: COMPLETE — migrations, agents, orchestrator, 20 seed templates with embeddings
+- **Provider**: OpenAI GPT-4o (primary), Gemini 2.0 Flash (fallback) — swapped due to Gemini quota exhaustion
+- **Production**: LIVE — `ENABLE_VISION_ANALYSIS=true` on Vercel, LINE E2E tested
+- **Next**: Monitor accuracy/cost, expand template library to 50+, multi-photo analysis
 
 **Feature Flag:**
-- `ENABLE_VISION_ANALYSIS=false` (default off for gradual rollout)
-- Set to `true` to enable vision analysis for repair requests with photos
+- `ENABLE_VISION_ANALYSIS=true` (enabled in production 2026-03-28)
+- Set to `false` to disable vision analysis and fall back to text-only detection
 
 **Success Metrics:**
 - 85%+ categorization accuracy (admin validation)
@@ -606,6 +667,46 @@ Redesigned student home page from Figma design (node 189:1102):
 - **StudentShell**: Global Header hidden on dashboard page (dashboard has its own DashboardHeader)
 
 **Files**: `dashboard/content.tsx`, `dashboard-header.tsx`, `dashboard-action-cards.tsx`, `dashboard-status-card.tsx`, `dashboard-announcements.tsx`
+
+### Student Profile Page ✅ DEPLOYED (2026-03-24)
+
+3 Figma designs implemented as a complete profile experience:
+
+**Design 1 — Profile Main (`/profile`):**
+- Avatar + display name + student ID + Thai name
+- Room/building/bed info + faculty (mockup)
+- "นิสิตหอพักปัจจุบัน" pink badge
+- Action buttons: "ดูบัตรหอพัก" (→ dorm-card) + "แก้ไขข้อมูลส่วนตัว" (placeholder)
+- Re-application status card (mockup)
+- Stats: Days in dorm (calculated from `move_in_date`) + Events attended (from `useMyAttendance`)
+- Score summary: Composite score + stacked bar (3 category colors) + legend (→ links to `/score`)
+- Settings link → `/profile/settings`
+
+**Design 2 — Settings (`/profile/settings`):**
+- 3 grouped sections: General (account, payment, security, language), Support & FAQs, Permissions
+- Permission toggles: Data Access, Push Notification, Personalization Enhancement (local state only)
+- Logout button + version text
+
+**Design 3 — Digital ID Card (`/profile/dorm-card`):**
+- Serial number display
+- ID card PNG (per-user: real card for พิชญา พูลเพียร, placeholder for others) with -6deg rotation + pink blur shadow
+- "แสดงบัตรแบบเต็ม" button → fullscreen lightbox with card rotated 90deg to landscape, scaled to `w-[90vh]` (dark backdrop, tap-to-dismiss, iOS Safari safe)
+- Report lost/damaged card + card history menus (placeholders)
+
+**Components** (7 files in `src/components/student/profile/`):
+- `profile-content.tsx`, `profile-info-card.tsx`, `profile-stats-section.tsx`, `profile-score-section.tsx`
+- `settings-content.tsx`, `settings-menu-item.tsx` (reusable: icon + label + chevron/toggle)
+- `dorm-card-content.tsx`
+
+**Routes**: `(student)/profile/page.tsx` (updated), `(student)/profile/settings/page.tsx` (new), `(student)/profile/dorm-card/page.tsx` (new)
+
+**Data sources**: `useUser()`, `useBuildings()`, `useRooms()`, `useBeds()`, `useMyScore()`, `useMyAttendance()`
+
+**Not yet implemented:**
+- Profile edit form (requires API route)
+- Settings persistence (toggles are local state only)
+- Real faculty/department data (mockup string)
+- QR Code on dorm card
 
 ### LINE Flex Messages — Dorm Score Cards (2026-03-16)
 

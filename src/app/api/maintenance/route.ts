@@ -23,8 +23,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { category, title, description, photos, appointmentDate, appointmentTime } =
-      parsed.data;
+    const {
+      category, title, description, photos, appointmentDate, appointmentTime,
+      ai_confidence, ai_provider, template_id, damage_details,
+    } = parsed.data;
 
     const { data, error } = await supabase
       .from("maintenance_requests")
@@ -37,6 +39,11 @@ export async function POST(request: NextRequest) {
         status: "pending",
         appointment_date: appointmentDate ?? null,
         appointment_time: appointmentTime ?? null,
+        ai_confidence: ai_confidence ?? null,
+        ai_provider: ai_provider ?? null,
+        ai_category: ai_provider ? category : null,
+        template_id: template_id ?? null,
+        damage_details: damage_details ?? null,
       })
       .select("id")
       .single();

@@ -27,10 +27,11 @@ import {
   useMaintenanceTicket,
   useAssignTechnician,
   useUpdateTicketNotes,
+  useReanalyzeTicket,
 } from "@/hooks/use-maintenance-tickets";
 import { useTechnicians } from "@/hooks/use-technicians";
 import { formatDistanceToNow } from "@/lib/utils/date";
-import { User, Calendar, MessageSquare } from "lucide-react";
+import { User, Calendar, MessageSquare, Brain, RefreshCw, XCircle, Loader2 } from "lucide-react";
 
 interface TicketDetailModalProps {
   ticketId: string | null;
@@ -48,8 +49,11 @@ export function TicketDetailModal({
   const { data: technicians = [] } = useTechnicians(true);
   const assignTechnician = useAssignTechnician();
   const updateNotes = useUpdateTicketNotes();
+  const reanalyze = useReanalyzeTicket();
   const [notes, setNotes] = useState("");
   const [notesEditing, setNotesEditing] = useState(false);
+  const [markingIncorrect, setMarkingIncorrect] = useState(false);
+  const [correctCategory, setCorrectCategory] = useState("");
 
   const handleAssign = (technicianId: string) => {
     if (!ticketId) return;
@@ -144,6 +148,128 @@ export function TicketDetailModal({
                   {ticket.appointment_date}{" "}
                   {ticket.appointment_time && `@ ${ticket.appointment_time}`}
                 </span>
+              </div>
+            )}
+
+            {/* AI Analysis */}
+            {ticket.ai_provider && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Brain className="size-4 text-primary" />
+                  <h4 className="text-sm font-medium">
+                    {t("admin.serviceDesk.aiAnalysis")}
+                  </h4>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-xs text-muted-foreground">
+                      {t("admin.serviceDesk.aiProvider")}
+                    </span>
+                    <p className="font-medium capitalize">{ticket.ai_provider}</p>
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground">
+                      {t("admin.serviceDesk.aiConfidence")}
+                    </span>
+                    <p className="font-medium">
+                      {ticket.ai_confidence
+                        ? `${Math.round(ticket.ai_confidence * 100)}%`
+                        : "-"}
+                    </p>
+                  </div>
+                </div>
+                {ticket.damage_details && (
+                  <div className="text-sm">
+                    <span className="text-xs text-muted-foreground">
+                      {t("admin.serviceDesk.damageDetails")}
+                    </span>
+                    <p>{ticket.damage_details}</p>
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  {!markingIncorrect ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 text-destructive hover:text-destructive"
+                      onClick={() => setMarkingIncorrect(true)}
+                    >
+                      <XCircle size={14} />
+                      {t("admin.serviceDesk.markIncorrect")}
+                    </Button>
+                  ) : (
+                    <div className="flex-1 space-y-2">
+                      <Select
+                        value={correctCategory}
+                        onValueChange={setCorrectCategory}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={t("admin.serviceDesk.correctCategory")}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[
+                            "electrical", "plumbing", "furniture",
+                            "air_conditioning", "internet", "door_lock",
+                            "pest", "cleaning", "other",
+                          ].map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {t(`maintenance.categories.${cat}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          disabled={!correctCategory}
+                          onClick={async () => {
+                            if (!ticketId) return;
+                            await fetch(`/api/admin/maintenance/${ticketId}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                ai_feedback: "incorrect",
+                                correct_category: correctCategory,
+                              }),
+                            });
+                            setMarkingIncorrect(false);
+                            setCorrectCategory("");
+                          }}
+                        >
+                          {t("common.confirm")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setMarkingIncorrect(false);
+                            setCorrectCategory("");
+                          }}
+                        >
+                          {t("common.cancel")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    disabled={reanalyze.isPending}
+                    onClick={() => {
+                      if (ticketId) reanalyze.mutate(ticketId);
+                    }}
+                  >
+                    {reanalyze.isPending ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <RefreshCw size={14} />
+                    )}
+                    {t("admin.serviceDesk.reanalyze")}
+                  </Button>
+                </div>
               </div>
             )}
 
