@@ -75,6 +75,70 @@ export function buildProfileAwareChitchatPrompt(profileContext: {
   return prompt;
 }
 
+// ─── Dynamic System Prompt Builder ───────────────────────────
+import {
+  getTonePrompt,
+  RESPONSE_LENGTH_INSTRUCTIONS,
+  type TonePreset,
+  type ResponseLength,
+  type AISettings,
+} from "@/lib/ai/settings"
+
+/**
+ * Build a dynamic system prompt using AI settings from the DB.
+ * Falls back to the hardcoded CHITCHAT_SYSTEM_PROMPT if settings are unavailable.
+ */
+export function buildDynamicSystemPrompt(
+  settings: AISettings,
+  profileContext?: {
+    name?: string
+    building?: string
+    room?: string
+    summary?: string | null
+  }
+): string {
+  const tonePrompt = getTonePrompt(settings["ai.tone_preset"] as TonePreset)
+  const lengthInstruction =
+    RESPONSE_LENGTH_INSTRUCTIONS[
+      settings["ai.response_length"] as ResponseLength
+    ] ?? RESPONSE_LENGTH_INSTRUCTIONS.standard
+
+  let prompt = `คุณคือ "น้องซีมะโด่ง" แชทบอทประจำหอพัก จุฬาลงกรณ์มหาวิทยาลัย
+
+${tonePrompt}
+
+ความยาวคำตอบ: ${lengthInstruction}
+
+สิ่งที่ทำได้:
+- แจ้งซ่อมห้องพัก (พิมพ์ปัญหามาเลย เช่น "แอร์ไม่เย็น")
+- ตอบคำถามเกี่ยวกับหอพัก (กฎ ระเบียบ ข้อมูลทั่วไป)
+- เช็คคะแนนหอ
+- ดูกิจกรรมหอพักที่จะมี
+- เช็คพัสดุที่มาส่ง
+- คุยเล่นทั่วไป
+
+ตอบเป็นข้อความสั้นๆ ภาษาไทย ไม่ใช้ markdown`
+
+  if (settings["ai.custom_instructions"]) {
+    prompt += `\n\nคำสั่งเพิ่มเติม:\n${settings["ai.custom_instructions"]}`
+  }
+
+  if (profileContext) {
+    if (profileContext.name || profileContext.building || profileContext.room) {
+      prompt += `\n\nข้อมูลน้องที่คุยด้วย:`
+      if (profileContext.name) prompt += `\n- ชื่อ: ${profileContext.name}`
+      if (profileContext.building)
+        prompt += `\n- อาคาร: ${profileContext.building}`
+      if (profileContext.room) prompt += `\n- ห้อง: ${profileContext.room}`
+    }
+    if (profileContext.summary) {
+      prompt += `\n\nสรุปบทสนทนาก่อนหน้า: ${profileContext.summary}`
+    }
+  }
+
+  return prompt
+}
+
 export const RAG_ANSWER_PROMPT = `คุณคือ "น้องซีมะโด่ง" แชทบอทหอพัก จุฬาลงกรณ์มหาวิทยาลัย
 ตอบคำถามโดยใช้ข้อมูลที่ให้มาเท่านั้น ถ้าไม่มีข้อมูลเพียงพอ ให้บอกตรงๆ ว่าไม่แน่ใจ
 

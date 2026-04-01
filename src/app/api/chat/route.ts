@@ -8,6 +8,8 @@ import { handleScore } from "@/lib/chatbot/handlers/score";
 import { handleEvents } from "@/lib/chatbot/handlers/events";
 import { handleParcel } from "@/lib/chatbot/handlers/parcel";
 import { getRecentMessages, saveMessage } from "@/lib/chatbot/chat-history";
+import { getAISettings } from "@/lib/ai/settings";
+import { buildDynamicSystemPrompt } from "@/lib/chatbot/system-prompts";
 
 export async function POST(request: Request) {
   try {
@@ -47,11 +49,89 @@ export async function POST(request: Request) {
       content: message,
     });
 
+    // Check if this session has an active escalation (new table — not in generated types)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: activeEscalation } = await (adminDb as any)
+      .from("chat_escalations")
+      .select("id, status, admin_id")
+      .eq("session_id", sessionId)
+      .in("status", ["waiting", "active"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activeEscalation) {
+      if (activeEscalation.status === "active") {
+        // Save message for admin to see (sender_type = user, new column)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (adminDb as any).from("ai_chat_messages").insert({
+          line_uid: identifier,
+          session_id: null,
+          role: "user",
+          content: message,
+          sender_type: "user",
+          sender_id: user.id,
+          metadata: { escalation_id: activeEscalation.id },
+        });
+        return NextResponse.json({
+          reply: null,
+          escalated: true,
+          escalationId: activeEscalation.id,
+        });
+      }
+      // status === "waiting" — student shouldn't be able to send, but handle gracefully
+      return NextResponse.json({
+        reply: null,
+        escalated: true,
+        waiting: true,
+        escalationId: activeEscalation.id,
+      });
+    }
+
     // Get recent history for context
     const recentHistory = await getRecentMessages(identifier, 10);
 
+    // Load AI settings
+    const aiSettings = await getAISettings();
+
     // Classify intent
-    const { intent } = await classifyIntent(message);
+    const { intent, confidence } = await classifyIntent(message);
+
+    // Auto-escalation check
+    if (aiSettings["ai.auto_escalate"] && confidence < aiSettings["ai.escalate_threshold"]) {
+      // Create automatic escalation
+      const lastMessages = recentHistory.slice(-5).map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (adminDb as any).from("chat_escalations").insert({
+        session_id: sessionId,
+        student_id: user.id,
+        status: "waiting",
+        reason: "low_confidence",
+        ai_context: {
+          last_messages: lastMessages,
+          intent,
+          confidence,
+          trigger: "auto_escalate",
+        },
+      });
+
+      // Save system message
+      await saveMessage(identifier, sessionId, {
+        role: "assistant",
+        content: "กำลังเชื่อมต่อพี่ทีมงาน... รอสักครู่นะ",
+      });
+
+      return NextResponse.json({
+        reply: "กำลังเชื่อมต่อพี่ทีมงาน... รอสักครู่นะ",
+        escalated: true,
+        waiting: true,
+        autoEscalated: true,
+      });
+    }
 
     let replyText: string;
 
@@ -71,7 +151,6 @@ export async function POST(request: Request) {
         if (result.type === "text") {
           replyText = result.text ?? "ไม่พบข้อมูลคะแนน";
         } else {
-          // Flex can't render in web — extract text summary
           replyText = "ดูคะแนนได้ที่หน้า \"คะแนนหอพัก\" ในแอปนะคะ หรือพิมพ์ \"ดูคะแนน\" ใน LINE เพื่อดูรายละเอียดเป็น Flex Card ได้เลย";
         }
         break;
@@ -104,10 +183,18 @@ export async function POST(request: Request) {
             }
           : undefined;
 
+        // Build dynamic system prompt from settings
+        const dynamicPrompt = buildDynamicSystemPrompt(aiSettings, profileContext);
+
         const result = await handleChitchat(
           message,
           recentHistory.map((m) => ({ role: m.role, content: m.content })),
-          { profileContext }
+          {
+            profileContext,
+            systemPromptOverride: dynamicPrompt,
+            temperature: aiSettings["ai.temperature"],
+            model: aiSettings["ai.primary_model"],
+          }
         );
         replyText = result.text ?? "สวัสดีจ้า! น้องซีมะโด่งพร้อมช่วยเหลือนะ";
         break;

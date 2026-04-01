@@ -1,66 +1,77 @@
-"use client";
+"use client"
 
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useTranslations } from "next-intl";
-import { useChatStore } from "@/stores/chat-store";
-import { useChat } from "@/hooks/use-chat";
-import { Send, History, Trash2, ArrowLeft } from "lucide-react";
-import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslations } from "next-intl"
+import { useChatStore } from "@/stores/chat-store"
+import { useChat } from "@/hooks/use-chat"
+import { Send, History, Trash2, ArrowLeft, Headset, X, Shield } from "lucide-react"
+import Image from "next/image"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 const SUGGESTION_KEYS = [
   "askDorm",
   "checkScore",
   "events",
   "parcel",
-] as const;
+] as const
 
-const DISMISS_THRESHOLD = 120;
+const DISMISS_THRESHOLD = 120
 
 function formatTime(timestamp: number) {
-  const d = new Date(timestamp);
-  return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
+  const d = new Date(timestamp)
+  return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
 }
 
 function formatDateLabel(timestamp: number) {
-  const d = new Date(timestamp);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  const d = new Date(timestamp)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
 
-  if (d.toDateString() === today.toDateString()) return "วันนี้";
-  if (d.toDateString() === yesterday.toDateString()) return "เมื่อวาน";
+  if (d.toDateString() === today.toDateString()) return "วันนี้"
+  if (d.toDateString() === yesterday.toDateString()) return "เมื่อวาน"
   return d.toLocaleDateString("th-TH", {
     day: "numeric",
     month: "short",
     year: d.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  });
+  })
 }
 
 export function ChatModal() {
-  const t = useTranslations("chat");
+  const t = useTranslations("chat")
   const { isOpen, setOpen, view, setView, history, historyLoaded } =
-    useChatStore();
-  const { messages, sendMessage, clearSession, loadHistory, scrollRef } =
-    useChat();
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const historyScrollRef = useRef<HTMLDivElement>(null);
+    useChatStore()
+  const {
+    messages,
+    sendMessage,
+    clearSession,
+    loadHistory,
+    scrollRef,
+    escalation,
+    escalateToAdmin,
+    cancelEscalation,
+    endConversation,
+  } = useChat()
+  const [input, setInput] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
+  const historyScrollRef = useRef<HTMLDivElement>(null)
+  const [showEscalateConfirm, setShowEscalateConfirm] = useState(false)
 
   // Drag state
-  const [dragY, setDragY] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartY = useRef(0);
-  const sheetRef = useRef<HTMLDivElement>(null);
+  const [dragY, setDragY] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStartY = useRef(0)
+  const sheetRef = useRef<HTMLDivElement>(null)
 
   // Focus input when opened
   useEffect(() => {
-    if (isOpen && view === "chat") {
-      setTimeout(() => inputRef.current?.focus(), 400);
+    if (isOpen && view === "chat" && !escalation.isWaiting) {
+      setTimeout(() => inputRef.current?.focus(), 400)
     } else {
-      setDragY(0);
+      setDragY(0)
     }
-  }, [isOpen, view]);
+  }, [isOpen, view, escalation.isWaiting])
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -68,127 +79,215 @@ export function ChatModal() {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
         behavior: "smooth",
-      });
+      })
     }
-  }, [messages, scrollRef]);
+  }, [messages, scrollRef])
 
   // Track visual viewport height
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0)
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) return
 
-    const vv = window.visualViewport;
-    setViewportHeight(vv ? vv.height : window.innerHeight);
+    const vv = window.visualViewport
+    setViewportHeight(vv ? vv.height : window.innerHeight)
 
     const onResize = () => {
-      if (vv) setViewportHeight(vv.height);
-    };
+      if (vv) setViewportHeight(vv.height)
+    }
 
-    vv?.addEventListener("resize", onResize);
+    vv?.addEventListener("resize", onResize)
     return () => {
-      vv?.removeEventListener("resize", onResize);
-    };
-  }, [isOpen]);
+      vv?.removeEventListener("resize", onResize)
+    }
+  }, [isOpen])
 
   // Load history when switching to history view
   useEffect(() => {
     if (view === "history" && !historyLoaded) {
-      loadHistory();
+      loadHistory()
     }
-  }, [view, historyLoaded, loadHistory]);
+  }, [view, historyLoaded, loadHistory])
 
   // --- Drag handlers ---
   const handleDragStart = useCallback((clientY: number) => {
-    setIsDragging(true);
-    dragStartY.current = clientY;
-  }, []);
+    setIsDragging(true)
+    dragStartY.current = clientY
+  }, [])
 
   const handleDragMove = useCallback(
     (clientY: number) => {
-      if (!isDragging) return;
-      const delta = Math.max(0, clientY - dragStartY.current);
-      setDragY(delta);
+      if (!isDragging) return
+      const delta = Math.max(0, clientY - dragStartY.current)
+      setDragY(delta)
     },
     [isDragging]
-  );
+  )
 
   const handleDragEnd = useCallback(() => {
-    if (!isDragging) return;
-    setIsDragging(false);
+    if (!isDragging) return
+    setIsDragging(false)
     if (dragY > DISMISS_THRESHOLD) {
-      setOpen(false);
+      setOpen(false)
     }
-    setDragY(0);
-  }, [isDragging, dragY, setOpen]);
+    setDragY(0)
+  }, [isDragging, dragY, setOpen])
 
   const onTouchStart = useCallback(
     (e: React.TouchEvent) => handleDragStart(e.touches[0].clientY),
     [handleDragStart]
-  );
+  )
   const onTouchMove = useCallback(
     (e: React.TouchEvent) => handleDragMove(e.touches[0].clientY),
     [handleDragMove]
-  );
-  const onTouchEnd = useCallback(() => handleDragEnd(), [handleDragEnd]);
+  )
+  const onTouchEnd = useCallback(() => handleDragEnd(), [handleDragEnd])
 
   const onMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      e.preventDefault();
-      handleDragStart(e.clientY);
+      e.preventDefault()
+      handleDragStart(e.clientY)
     },
     [handleDragStart]
-  );
+  )
 
   useEffect(() => {
-    if (!isDragging) return;
-    const onMove = (e: MouseEvent) => handleDragMove(e.clientY);
-    const onUp = () => handleDragEnd();
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    if (!isDragging) return
+    const onMove = (e: MouseEvent) => handleDragMove(e.clientY)
+    const onUp = () => handleDragEnd()
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, [isDragging, handleDragMove, handleDragEnd]);
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+    }
+  }, [isDragging, handleDragMove, handleDragEnd])
 
   const handleSend = () => {
-    if (!input.trim()) return;
-    sendMessage(input);
-    setInput("");
-  };
+    if (!input.trim()) return
+    sendMessage(input)
+    setInput("")
+  }
 
   const handleSuggestion = (key: string) => {
-    const text = t(`suggestions.${key}`);
-    sendMessage(text);
-  };
+    const text = t(`suggestions.${key}`)
+    sendMessage(text)
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+      e.preventDefault()
+      handleSend()
     }
-  };
+  }
 
   const handleClear = () => {
-    clearSession();
-  };
+    clearSession()
+  }
 
-  const dragProgress = Math.min(dragY / DISMISS_THRESHOLD, 1);
+  const handleEscalate = () => {
+    setShowEscalateConfirm(false)
+    escalateToAdmin()
+  }
+
+  const dragProgress = Math.min(dragY / DISMISS_THRESHOLD, 1)
 
   // Group history messages by date
   const historyByDate = history.reduce<
     { label: string; messages: typeof history }[]
   >((groups, msg) => {
-    const label = formatDateLabel(msg.timestamp);
-    const last = groups[groups.length - 1];
+    const label = formatDateLabel(msg.timestamp)
+    const last = groups[groups.length - 1]
     if (last?.label === label) {
-      last.messages.push(msg);
+      last.messages.push(msg)
     } else {
-      groups.push({ label, messages: [msg] });
+      groups.push({ label, messages: [msg] })
     }
-    return groups;
-  }, []);
+    return groups
+  }, [])
+
+  // ─── Message bubble renderer ───────────────────────────────
+  const renderMessage = (msg: typeof messages[0], compact = false) => {
+    const isUser = msg.role === "user"
+    const isSystem = msg.role === "system" || msg.senderType === "system"
+    const isAdmin = msg.senderType === "admin"
+
+    if (isSystem) {
+      return (
+        <div key={msg.id} className="flex justify-center my-2">
+          <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+            {msg.content}
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={msg.id}
+        className={`flex ${isUser ? "justify-end" : "justify-start"}`}
+      >
+        {!isUser && (
+          <div
+            className={cn(
+              "mr-2 mt-1 flex shrink-0 items-center justify-center overflow-hidden rounded-full",
+              compact ? "size-6" : "size-7",
+              isAdmin ? "bg-blue-100" : "bg-cu-light-pink"
+            )}
+          >
+            {isAdmin ? (
+              <Shield className={cn("text-blue-600", compact ? "size-3.5" : "size-[18px]")} />
+            ) : (
+              <Image
+                src="/images/mascot.svg"
+                alt=""
+                width={compact ? 14 : 18}
+                height={compact ? 14 : 18}
+                className={compact ? "size-3.5" : "size-[18px]"}
+              />
+            )}
+          </div>
+        )}
+        <div className={compact ? "max-w-[80%]" : "max-w-[80%]"}>
+          {isAdmin && (
+            <p className="mb-0.5 text-[10px] font-medium text-blue-600">
+              {escalation.adminName ?? "ทีมงาน"}
+            </p>
+          )}
+          <div
+            className={cn(
+              "rounded-2xl px-3.5 py-2.5 leading-relaxed",
+              compact ? "text-[13px]" : "text-sm",
+              isUser
+                ? "rounded-br-sm bg-primary text-white"
+                : isAdmin
+                  ? "rounded-bl-sm bg-blue-50 text-foreground border border-blue-100"
+                  : "rounded-bl-sm bg-muted text-foreground"
+            )}
+          >
+            {msg.isLoading ? (
+              <div className="flex items-center gap-1 py-1">
+                <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:0ms]" />
+                <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:150ms]" />
+                <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:300ms]" />
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap">{msg.content}</p>
+            )}
+          </div>
+          {compact && (
+            <p
+              className={`mt-0.5 text-[10px] text-muted-foreground ${
+                isUser ? "text-right" : "text-left"
+              }`}
+            >
+              {formatTime(msg.timestamp)}
+            </p>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -205,6 +304,35 @@ export function ChatModal() {
         }}
         onClick={() => setOpen(false)}
       />
+
+      {/* Escalation confirm dialog */}
+      {showEscalateConfirm && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40">
+          <div className="mx-4 max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
+                <Headset className="size-5 text-blue-600" />
+              </div>
+              <h3 className="font-heading font-bold">{t("escalateTitle")}</h3>
+            </div>
+            <p className="text-sm text-muted-foreground mb-5">
+              {t("escalateDescription")}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShowEscalateConfirm(false)}
+              >
+                {t("escalateCancel")}
+              </Button>
+              <Button className="flex-1" onClick={handleEscalate}>
+                {t("escalateConfirm")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sheet */}
       <div
@@ -262,6 +390,26 @@ export function ChatModal() {
             {/* Action buttons */}
             {view === "chat" && (
               <div className="flex items-center gap-1">
+                {/* "Talk to human" pill — hide when already escalated */}
+                {!escalation.isEscalated && !escalation.isWaiting && (
+                  <button
+                    onClick={() => setShowEscalateConfirm(true)}
+                    className="flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-600 transition-colors hover:bg-blue-100"
+                  >
+                    <Headset className="size-3" />
+                    {t("talkToHuman")}
+                  </button>
+                )}
+                {/* End conversation — visible during active escalation */}
+                {escalation.isEscalated && !escalation.isWaiting && (
+                  <button
+                    onClick={endConversation}
+                    className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-600 transition-colors hover:bg-red-100"
+                  >
+                    <X className="size-3" />
+                    {t("endConversation")}
+                  </button>
+                )}
                 <button
                   onClick={() => setView("history")}
                   className="flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -269,7 +417,7 @@ export function ChatModal() {
                 >
                   <History className="size-[18px]" />
                 </button>
-                {messages.length > 0 && (
+                {messages.length > 0 && !escalation.isEscalated && (
                   <button
                     onClick={handleClear}
                     className="flex size-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -324,71 +472,59 @@ export function ChatModal() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`flex ${
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      {msg.role === "assistant" && (
-                        <div className="mr-2 mt-1 flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-cu-light-pink">
-                          <Image
-                            src="/images/mascot.svg"
-                            alt=""
-                            width={18}
-                            height={18}
-                            className="size-[18px]"
-                          />
-                        </div>
-                      )}
-                      <div
-                        className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                          msg.role === "user"
-                            ? "rounded-br-sm bg-primary text-white"
-                            : "rounded-bl-sm bg-muted text-foreground"
-                        }`}
-                      >
-                        {msg.isLoading ? (
-                          <div className="flex items-center gap-1 py-1">
-                            <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:0ms]" />
-                            <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:150ms]" />
-                            <span className="size-1.5 animate-bounce rounded-full bg-cu-muted [animation-delay:300ms]" />
-                          </div>
-                        ) : (
-                          <p className="whitespace-pre-wrap">{msg.content}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  {messages.map((msg) => renderMessage(msg))}
                 </div>
               )}
             </div>
 
-            {/* Input area */}
-            <div className="border-t px-4 py-3 pb-safe">
-              <div className="flex items-center gap-2">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  inputMode="text"
-                  enterKeyHint="send"
-                  autoComplete="off"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={t("placeholder")}
-                  className="flex-1 rounded-full border border-border bg-muted/50 px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/30"
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!input.trim()}
-                  className="flex size-10 items-center justify-center rounded-full bg-primary text-white transition-opacity disabled:opacity-40"
-                >
-                  <Send className="size-4" />
-                </button>
+            {/* Waiting screen — replaces input when escalation is waiting */}
+            {escalation.isWaiting ? (
+              <div className="border-t px-4 py-6 text-center">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex size-10 items-center justify-center rounded-full bg-blue-100">
+                    <Headset className="size-5 animate-pulse text-blue-600" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t("waitingForAdmin")}
+                  </p>
+                  <button
+                    onClick={cancelEscalation}
+                    className="rounded-full border px-4 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted"
+                  >
+                    {t("cancelWaiting")}
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Normal input area */
+              <div className="border-t px-4 py-3 pb-safe">
+                <div className="flex items-center gap-2">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    inputMode="text"
+                    enterKeyHint="send"
+                    autoComplete="off"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+                      escalation.isEscalated
+                        ? t("placeholderAdmin")
+                        : t("placeholder")
+                    }
+                    className="flex-1 rounded-full border border-border bg-muted/50 px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary focus:ring-1 focus:ring-primary/30"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={!input.trim()}
+                    className="flex size-10 items-center justify-center rounded-full bg-primary text-white transition-opacity disabled:opacity-40"
+                  >
+                    <Send className="size-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -428,48 +564,9 @@ export function ChatModal() {
                     </div>
 
                     <div className="space-y-2.5">
-                      {group.messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`flex ${
-                            msg.role === "user"
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
-                        >
-                          {msg.role === "assistant" && (
-                            <div className="mr-2 mt-1 flex size-6 shrink-0 items-center justify-center overflow-hidden rounded-full bg-cu-light-pink">
-                              <Image
-                                src="/images/mascot.svg"
-                                alt=""
-                                width={14}
-                                height={14}
-                                className="size-3.5"
-                              />
-                            </div>
-                          )}
-                          <div className="max-w-[80%]">
-                            <div
-                              className={`rounded-2xl px-3 py-2 text-[13px] leading-relaxed ${
-                                msg.role === "user"
-                                  ? "rounded-br-sm bg-primary/80 text-white"
-                                  : "rounded-bl-sm bg-muted text-foreground"
-                              }`}
-                            >
-                              <p className="whitespace-pre-wrap">
-                                {msg.content}
-                              </p>
-                            </div>
-                            <p
-                              className={`mt-0.5 text-[10px] text-muted-foreground ${
-                                msg.role === "user" ? "text-right" : "text-left"
-                              }`}
-                            >
-                              {formatTime(msg.timestamp)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
+                      {group.messages.map((msg) =>
+                        renderMessage(msg, true)
+                      )}
                     </div>
                   </div>
                 ))}
@@ -479,5 +576,5 @@ export function ChatModal() {
         )}
       </div>
     </>
-  );
+  )
 }

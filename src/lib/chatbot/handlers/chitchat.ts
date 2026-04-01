@@ -10,9 +10,15 @@ interface ChitchatOptions {
     room?: string
     summary?: string | null
   }
+  /** Override the system prompt (e.g. with dynamic AI settings) */
+  systemPromptOverride?: string
+  /** Override temperature (from AI settings) */
+  temperature?: number
+  /** Override model (from AI settings) */
+  model?: string
 }
 
-/** Handle chitchat intent using OpenAI gpt-4o-mini with น้องซีมะโด่ง persona */
+/** Handle chitchat intent using OpenAI with น้องซีมะโด่ง persona */
 export async function handleChitchat(
   message: string,
   recentHistory: { role: string; content: string }[] = [],
@@ -23,10 +29,12 @@ export async function handleChitchat(
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS)
 
-    // Use profile-aware prompt if context available, otherwise default
-    const systemPrompt = options?.profileContext
-      ? buildProfileAwareChitchatPrompt(options.profileContext)
-      : CHITCHAT_SYSTEM_PROMPT
+    // Use override prompt if provided, otherwise fallback to existing logic
+    const systemPrompt = options?.systemPromptOverride
+      ? options.systemPromptOverride
+      : options?.profileContext
+        ? buildProfileAwareChitchatPrompt(options.profileContext)
+        : CHITCHAT_SYSTEM_PROMPT
 
     // Build conversation history for context (increased to 10 messages)
     const historyMessages = recentHistory.slice(-10).map((msg) => ({
@@ -35,13 +43,13 @@ export async function handleChitchat(
     }))
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: options?.model ?? "gpt-4o-mini",
       messages: [
         { role: "system", content: systemPrompt },
         ...historyMessages,
         { role: "user", content: message },
       ],
-      temperature: 0.7,
+      temperature: options?.temperature ?? 0.7,
       max_tokens: 200,
     }, { signal: controller.signal })
 

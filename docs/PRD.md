@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
 > **Version**: 2.0
-> **Last Updated**: 2026-03-24
+> **Last Updated**: 2026-04-01
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -47,7 +47,8 @@ C-Madong Platform
 │   ├── Announcements
 │   ├── Notifications
 │   ├── Profile Management
-│   └── In-App Chat (น้องซีมะโด่ง modal) ✅
+│   ├── In-App Chat (น้องซีมะโด่ง modal) ✅
+│   └── Live Chat Escalation (talk to human, waiting screen) ✅
 │
 ├── Admin Portal (ported into c-madong-product) ✅
 │   ├── Dashboard (KPI cards, recent tickets, quick actions)
@@ -59,7 +60,8 @@ C-Madong Platform
 │   ├── LINE Broadcast
 │   ├── Knowledge Base (RAG: document upload, AI Q&A)
 │   ├── Booking (public appointment page)
-│   └── Settings & Configuration
+│   ├── Live Chat Handoff (escalation queue, claim, reply, close) ✅
+│   └── Settings & Configuration (AI settings, tone, thresholds) ✅
 │
 ├── LINE Integration
 │   ├── LIFF Mini App
@@ -296,9 +298,27 @@ C-Madong Platform
 **Features:**
 - [ ] Broadcast messages (text & Flex)
 - [ ] Targeted messages (by tags)
-- [ ] Webhook handler for incoming events (follow, unfollow, message)
+- [x] Webhook handler for incoming events (follow, unfollow, message) ✅
 - [ ] Auto-sync follower list
 - [ ] Flex message templates with visual builder
+
+#### US-8.3: LINE OA Onboarding & Rich Menu
+> **As a** new user adding the LINE OA, **I want to** see a welcome guide and registration CTA, **so that** I know how to get started with C-Madong.
+
+**Acceptance Criteria:**
+- [ ] แอดเพื่อน LINE OA → ได้รับ greeting carousel แนะนำการใช้งาน
+- [ ] เห็น Rich Menu A (banner ลงทะเบียน) เป็น default
+- [ ] กดลงทะเบียน → เปิดหน้า web registration
+- [ ] ลงทะเบียนสำเร็จ → Rich Menu เปลี่ยนเป็น Menu B (ปุ่มลัดฟีเจอร์) ทันที
+- [ ] ผู้ใช้ที่ลงทะเบียนแล้วกลับมาแอดใหม่ → ได้ Menu B + welcome back message
+
+#### US-8.4: Rich Menu Feature Shortcuts
+> **As a** registered student, **I want to** have quick-access buttons in LINE, **so that** I can use C-Madong features without typing.
+
+**Features:**
+- [ ] 6 ปุ่มลัด: แจ้งซ่อม, คะแนนหอ, ค่าน้ำค่าไฟ, พัสดุ, กิจกรรม, ถามน้องซี
+- [ ] Persistent menu (แสดงตลอด ไม่หายเหมือน Quick Reply)
+- [ ] chatBarText: "เมนู C-Madong"
 
 ---
 
@@ -762,19 +782,71 @@ Two Flex Message builders from Figma designs (file `zepMkYbO2pzKy9lhya4sVW`):
 - Deep linking from Flex messages
 - Quick actions within LINE
 
+### Phase 7.5: LINE OA Onboarding & Rich Menu
+Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
+
+> **Goal:** ให้ผู้ใช้ใหม่ที่แอด LINE OA ได้รับ onboarding experience ที่ดี และมี persistent Rich Menu สำหรับเข้าถึงฟีเจอร์หลักได้ตลอด
+
+**Rich Menu A — ยังไม่ลงทะเบียน (Default):**
+- Banner เดียว full-width → กดลงทะเบียน (URI → web registration)
+- ตั้งเป็น default rich menu → ผู้ใช้ใหม่ทุกคนเห็น
+- chatBarText: "ลงทะเบียนใช้งาน"
+
+**Rich Menu B — ลงทะเบียนแล้ว (Per-user):**
+- Grid 6 ปุ่มลัด: แจ้งซ่อม, คะแนนหอ, ค่าน้ำค่าไฟ, พัสดุ, กิจกรรม, ถามน้องซี
+- Link ให้ user หลัง registration สำเร็จ → per-user menu override default
+- chatBarText: "เมนู C-Madong"
+
+**Greeting Carousel (Follow Event):**
+- Flex Carousel 3-4 bubbles: ยินดีต้อนรับ → ฟีเจอร์หลัก → วิธีเริ่มต้น → CTA ลงทะเบียน
+- ส่งเมื่อ new user แอดเพื่อน (follow event)
+- Returning user (มี profile แล้ว) → swap to Menu B + welcome back message
+
+**Menu Swap Logic:**
+- Registration callback → `linkRichMenuIdToUser(lineUid, menuBId)`
+- Per-user menu takes priority over default → เห็น Menu B ทันที
+- Setup script สร้าง menus + batch link ให้ existing users
+
+**Technical:**
+- Rich Menu API ใช้ได้ฟรีทุก plan (ไม่จำกัด)
+- Image: 2500x843 (Menu A), 2500x1686 หรือ 2500x843 (Menu B)
+- New files: `rich-menu.ts`, `onboarding.ts` flex builder, `setup-rich-menu.ts` script
+- Modify: `webhook-handler.ts` (follow event), `register/route.ts` (menu swap)
+
+**Not yet implemented:**
+- Rich Menu tab switching (richmenuswitch action)
+- Role-based menu variants (committee, technician)
+- Admin Rich Menu editor UI
+- Menu analytics (tap tracking)
+
 ### Phase 8: Reports & Analytics
 - Admin dashboard charts
 - Maintenance response time analytics
 - Student activity reports
 - Export capabilities (CSV/PDF)
 
-### Phase 9: Polish & Launch
-- Performance optimization (FCP < 2s, Lighthouse > 90)
-- Error boundaries & logging
-- Comprehensive testing
-- Security audit (RLS policies, input validation)
-- WCAG 2.1 AA compliance audit
-- Production launch
+### Phase 9: UX/UI Polish & Consistency
+Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
+
+**WP1: Code Cleanup & Deduplication** — Consolidate 3 duplicate TAG_COLORS, 5 STATUS_COLORS maps, 4 Thai month arrays into shared constants (`src/lib/constants/colors.ts`, `src/lib/utils/date-format.ts`). Clean console.log in components.
+
+**WP2: Design Tokens** — Add semantic status tokens (success/warning/error/info bg+text), score bar colors, warm-bg, duration tokens (`--duration-fast/normal/slow`), `prefers-reduced-motion` to `globals.css`.
+
+**WP3: Token Compliance** — Replace 18 hardcoded hex colors in components with CSS vars/tokens. Keep intentional one-off Tailwind colors.
+
+**WP4: Component Patterns** — Create `StatusBadge` component (5 variants). Replace 6 `window.confirm/alert` with shadcn `AlertDialog`. Standardize shadows.
+
+**WP5: i18n Completeness** — Extract 100+ hardcoded Thai strings across 25+ files. Add 80+ keys each to `th.json`/`en.json`. Cover toast messages (13), admin pages, student pages, maintenance forms, time formatting.
+
+**WP6: Loading/Empty/Error States** — Create shared `EmptyState` component. Add loading skeletons to 3 pages. Add loading buttons with `disabled={isPending}` + spinner to 5 forms.
+
+**WP7: Spacing & Layout** — Normalize bottom padding on profile pages. Add text truncation for long titles.
+
+**WP8: Accessibility** — Add `aria-label` to icon buttons (bottom nav, chat, photo uploader). Add `focus-visible` rings to custom interactive elements.
+
+**WP9: Animation** — Replace hardcoded duration classes with token-based values. Add missing `transition-colors` to hover states.
+
+**Not in scope**: Performance/SEO (Phase 9.5), dark mode, Figma pixel audit, mock/prototype pages.
 
 ---
 

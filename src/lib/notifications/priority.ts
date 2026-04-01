@@ -10,6 +10,7 @@ const PRIORITY_MAP: Record<NotificationType, number> = {
   parcel_reminder: 65,
   score_added: 60,
   event_new: 55,
+  chat_escalation: 90,
   announcement: 50,
   system: 40,
 };

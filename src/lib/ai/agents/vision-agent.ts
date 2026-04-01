@@ -9,6 +9,7 @@ import { getOpenAIClient } from "../openai"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { detectRepairCategory } from "@/lib/chatbot/constants"
 import { REPAIR_IMAGE_ANALYSIS_PROMPT } from "../gemini"
+import { getAISetting } from "../settings"
 
 // =====================================================
 // Configuration
@@ -265,6 +266,28 @@ export class VisionAgent {
 }
 
 // =====================================================
-// Singleton Export
+// Factory with dynamic settings
 // =====================================================
+export async function createVisionAgent(): Promise<VisionAgent> {
+  const [visionEnabled, visionConfidence] = await Promise.all([
+    getAISetting("ai.vision_enabled", true),
+    getAISetting("ai.vision_confidence", 0.7),
+  ])
+
+  if (!visionEnabled) {
+    // Return agent that always falls back to keywords
+    return new VisionAgent({
+      useTemplateMatching: false,
+      primaryProvider: "openai",
+      fallbackProvider: undefined,
+      confidenceThreshold: 999, // effectively disable AI vision
+    })
+  }
+
+  return new VisionAgent({
+    confidenceThreshold: visionConfidence,
+  })
+}
+
+// Legacy singleton (for callers that don't need dynamic settings)
 export const visionAgent = new VisionAgent()

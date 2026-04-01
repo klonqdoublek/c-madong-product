@@ -5,7 +5,41 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-03-28)
+## Recent Changes (2026-04-01)
+
+### AI Settings + Live Chat Handoff — DEPLOYED
+
+**AI Settings (admin/settings → AI tab)**
+- `app_settings` DB table (key-value JSONB) with 5-min server-side cache
+- Model select (gpt-4o-mini / gpt-4o), temperature slider with 3 presets (Focused/Balanced/Creative)
+- Response length (brief/standard/detailed), vision AI toggle + confidence slider
+- 3 tone presets (Professional/Friendly/Casual) + custom instructions textarea + live preview mini-chat
+- Intent threshold + auto-escalate toggle + escalation threshold
+- Mock AI cost dashboard (฿245.50/mo, breakdown by model, sparkline)
+- Dynamic system prompt: `buildDynamicSystemPrompt(settings, profileContext)` wired into chatbot
+- Files: `src/lib/ai/settings.ts`, `src/components/admin/settings/ai-settings-section.tsx`, `tone-settings-section.tsx`, `ai-cost-section.tsx`, `api/admin/settings/`, `api/admin/settings/preview/`, `use-ai-settings.ts`
+
+**Live Chat Handoff (admin/live-chat)**
+- Student taps "คุยกับทีมงาน" in chat modal → waiting screen (no input, cancel button)
+- Admin sees queue at `/admin/live-chat` → claims → replies → closes → AI resumes
+- `chat_escalations` table: waiting → active → closed lifecycle with `closed_summary` JSONB
+- `ai_chat_messages` extended with `sender_type` (ai/user/admin/system) + `sender_id`
+- Polling-based real-time (3s TanStack Query refetchInterval)
+- 2-panel admin UI: queue (Active/History tabs) + conversation view + AI context card
+- Notifications: in-app + LINE push + Flex message with LIFF CTA to all admins
+- LINE webhook: escalation keywords ("ขอคุยกับคน", "ช่วยเหลือ") → redirect to web app
+- End conversation from both sides (admin "Close & Return to AI" / student "จบการสนทนา")
+- Chat history archive: closed conversations viewable in History tab
+- Files: 5 live-chat components, `use-escalations.ts`, `api/chat/escalate/`, `api/chat/messages/`, `api/admin/live-chat/`, `api/admin/live-chat/[id]/`, `escalation-flex-builder.ts`
+- Migration: `20260331_admin_features.sql` (app_settings + chat_escalations + alter ai_chat_messages)
+
+**Layout & Dev Login**
+- Root layout now has `<html>` + `<body>` (Next.js 16 requirement), locale layout has providers only
+- Dev login: `student@c-madong.app` / `devstudent123` + quick-switch buttons (Admin/Student) on localhost
+
+---
+
+## Changes (2026-03-28)
 
 ### Phase 4.5 Vision AI — DEPLOYED
 

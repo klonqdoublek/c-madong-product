@@ -35,6 +35,7 @@ import {
   CalendarDays,
   Trophy,
   Package,
+  Headset,
 } from "lucide-react";
 
 const LEGACY_ROLE_MAP: Record<string, AppRole> = {
@@ -140,6 +141,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   // Standalone nav items with permissions
   const standaloneItems: (NavItem & { icon: React.ReactNode; permission?: string })[] = [
+    { href: "/admin/live-chat", label: t("navLiveChat"), icon: <Headset className="h-4 w-4" />, permission: Permission.TICKETS_VIEW_ALL },
     { href: "/admin/events", label: t("navEvents"), icon: <CalendarDays className="h-4 w-4" />, permission: Permission.EVENTS_VIEW },
     { href: "/admin/scores", label: t("navScores"), icon: <Trophy className="h-4 w-4" />, permission: Permission.SCORES_VIEW },
     { href: "/admin/billing", label: t("navBilling"), icon: <Banknote className="h-4 w-4" />, permission: Permission.BILLS_VIEW },

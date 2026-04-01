@@ -144,6 +144,58 @@ export async function notifyParcelArrived(opts: {
   // LINE push handled separately via Flex message in the API route
 }
 
+/** Notify admins when a student requests live chat help */
+export async function notifyChatEscalation(opts: {
+  escalationId: string;
+  studentName: string;
+  studentId: string;
+  issueSummary: string;
+  sessionId: string;
+}): Promise<void> {
+  const type = "chat_escalation" as const;
+  const priority = 90; // High priority — needs immediate attention
+
+  const adminDb = createAdminClient();
+
+  // Get all admin profiles with line_uid
+  const { data: admins } = await adminDb
+    .from("profiles")
+    .select("id, line_uid")
+    .in("role", ["admin", "head"])
+    .not("line_uid", "is", null);
+
+  if (!admins || admins.length === 0) return;
+
+  // Create in-app notifications for all admins
+  const notifications = admins.map((admin) => ({
+    user_id: admin.id,
+    type,
+    title_th: "มีนิสิตต้องการความช่วยเหลือ",
+    title_en: "Student needs help",
+    body_th: `${opts.studentName} — ${opts.issueSummary}`,
+    body_en: `${opts.studentName} — ${opts.issueSummary}`,
+    action_url: `/admin/live-chat?session=${opts.escalationId}`,
+    priority,
+    metadata: {
+      escalation_id: opts.escalationId,
+      student_id: opts.studentId,
+    },
+  }));
+
+  await createNotificationBatch(notifications);
+
+  // LINE push to all admins
+  for (const admin of admins) {
+    if (admin.line_uid) {
+      await maybePushToLine({
+        lineUid: admin.line_uid,
+        priority,
+        text: `🔔 นิสิต ${opts.studentName} ต้องการความช่วยเหลือ: ${opts.issueSummary}`,
+      });
+    }
+  }
+}
+
 /** Notify all students in a building (or all) about a new event */
 export async function notifyNewEvent(opts: {
   eventId: string;

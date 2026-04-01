@@ -1,30 +1,48 @@
-import { create } from "zustand";
+import { create } from "zustand"
 
 export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: number;
-  isLoading?: boolean;
+  id: string
+  role: "user" | "assistant" | "system"
+  content: string
+  timestamp: number
+  isLoading?: boolean
+  senderType?: "ai" | "user" | "admin" | "system"
 }
 
-type ChatView = "chat" | "history";
+type ChatView = "chat" | "history"
+
+interface EscalationState {
+  isEscalated: boolean
+  isWaiting: boolean
+  escalationId: string | null
+  adminName: string | null
+}
 
 interface ChatState {
-  isOpen: boolean;
-  view: ChatView;
-  messages: ChatMessage[];
-  history: ChatMessage[];
-  historyLoaded: boolean;
-  setOpen: (open: boolean) => void;
-  setView: (view: ChatView) => void;
-  addMessage: (message: ChatMessage) => void;
-  setMessages: (messages: ChatMessage[]) => void;
-  updateMessage: (id: string, updates: Partial<ChatMessage>) => void;
-  removeMessage: (id: string) => void;
-  clearMessages: () => void;
-  setHistory: (messages: ChatMessage[]) => void;
-  setHistoryLoaded: (loaded: boolean) => void;
+  isOpen: boolean
+  view: ChatView
+  messages: ChatMessage[]
+  history: ChatMessage[]
+  historyLoaded: boolean
+  escalation: EscalationState
+  setOpen: (open: boolean) => void
+  setView: (view: ChatView) => void
+  addMessage: (message: ChatMessage) => void
+  setMessages: (messages: ChatMessage[]) => void
+  updateMessage: (id: string, updates: Partial<ChatMessage>) => void
+  removeMessage: (id: string) => void
+  clearMessages: () => void
+  setHistory: (messages: ChatMessage[]) => void
+  setHistoryLoaded: (loaded: boolean) => void
+  setEscalation: (state: Partial<EscalationState>) => void
+  resetEscalation: () => void
+}
+
+const DEFAULT_ESCALATION: EscalationState = {
+  isEscalated: false,
+  isWaiting: false,
+  escalationId: null,
+  adminName: null,
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -33,7 +51,9 @@ export const useChatStore = create<ChatState>((set) => ({
   messages: [],
   history: [],
   historyLoaded: false,
-  setOpen: (open) => set({ isOpen: open, ...(open ? {} : { view: "chat" }) }),
+  escalation: { ...DEFAULT_ESCALATION },
+  setOpen: (open) =>
+    set({ isOpen: open, ...(open ? {} : { view: "chat" }) }),
   setView: (view) => set({ view }),
   addMessage: (message) =>
     set((s) => ({ messages: [...s.messages, message] })),
@@ -49,4 +69,9 @@ export const useChatStore = create<ChatState>((set) => ({
   clearMessages: () => set({ messages: [] }),
   setHistory: (history) => set({ history, historyLoaded: true }),
   setHistoryLoaded: (loaded) => set({ historyLoaded: loaded }),
-}));
+  setEscalation: (partial) =>
+    set((s) => ({
+      escalation: { ...s.escalation, ...partial },
+    })),
+  resetEscalation: () => set({ escalation: { ...DEFAULT_ESCALATION } }),
+}))

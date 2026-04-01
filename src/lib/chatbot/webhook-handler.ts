@@ -36,6 +36,25 @@ const REPAIR_TRIGGER_PHRASES = [
   "repair",
 ]
 
+/** Keywords that mean the user wants to talk to a human admin */
+const ESCALATION_KEYWORDS = [
+  "ขอคุยกับคน",
+  "คุยกับคน",
+  "ขอคุยกับเจ้าหน้าที่",
+  "ขอคุยกับทีมงาน",
+  "ช่วยเหลือ",
+  "คนจริง",
+  "ขอพูดกับคน",
+  "talk to human",
+  "human",
+  "agent",
+]
+
+function isEscalationRequest(message: string): boolean {
+  const lower = message.trim().toLowerCase()
+  return ESCALATION_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
+}
+
 /** Keywords that mean "check repair status" — should NOT create a new ticket */
 const REPAIR_STATUS_KEYWORDS = [
   "สถานะแจ้งซ่อม",
@@ -175,6 +194,65 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
     } catch {
       // Fallback below
     }
+  }
+
+  // If user requests escalation (talk to human), create escalation and redirect to web
+  if (isEscalationRequest(message)) {
+    try {
+      const { createAdminClient } = await import("@/lib/supabase/admin")
+      const adminDb = createAdminClient()
+
+      // Get student profile
+      const { data: profile } = await adminDb
+        .from("profiles")
+        .select("id, display_name, full_name_th")
+        .eq("line_uid", lineUid)
+        .single()
+
+      if (profile) {
+        const recentHistory = await getRecentMessages(lineUid, 5)
+        const lineSessionId = `line_${lineUid}`
+
+        // Create escalation (new table — not in generated types)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (adminDb as any).from("chat_escalations").insert({
+          session_id: lineSessionId,
+          student_id: profile.id,
+          status: "waiting",
+          reason: "user_request",
+          ai_context: {
+            last_messages: recentHistory.map((m) => ({
+              role: m.role,
+              content: m.content,
+            })),
+            trigger: "line_keyword",
+          },
+        })
+
+        // Notify admins
+        const { notifyChatEscalation } = await import("@/lib/notifications/triggers")
+        await notifyChatEscalation({
+          escalationId: lineSessionId,
+          studentName: profile.display_name ?? profile.full_name_th ?? "นิสิต",
+          studentId: profile.id,
+          issueSummary: message.slice(0, 100),
+          sessionId: lineSessionId,
+        }).catch(() => {})
+      }
+    } catch (err) {
+      console.error("[Webhook] Escalation error:", err)
+    }
+
+    const webUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://c-madong-product.vercel.app"
+    await replyTextMessage(
+      event.replyToken,
+      `พี่ทีมงานจะเข้ามาช่วยเร็วๆ นี้นะ 🙂\n\nสามารถคุยต่อได้ที่แอปเลยจ้า:\n${webUrl}/th/dashboard`
+    )
+    await saveMessages(lineUid, session.id, message, {
+      type: "text",
+      text: "ส่งคำขอคุยกับทีมงานแล้ว",
+    })
+    return
   }
 
   // If in active flow (repair confirming/editing/collecting photos), route to repair handler

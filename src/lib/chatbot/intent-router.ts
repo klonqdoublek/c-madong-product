@@ -3,6 +3,7 @@ import { INTENT_CLASSIFICATION_PROMPT } from "./system-prompts"
 import { isRepairRelated } from "./constants"
 import { AI_TIMEOUT_MS } from "./constants"
 import type { ChatIntent, IntentResult } from "./types"
+import { getAISetting } from "@/lib/ai/settings"
 
 /**
  * Classify user message intent using OpenAI gpt-4o-mini.

@@ -76,6 +76,21 @@ export async function middleware(request: NextRequest) {
 
   // 7. Auth logic
   if (!user) {
+    // Dev mode on localhost: skip auth redirect, let pages load (they'll show empty state)
+    const isLocalDev =
+      process.env.NEXT_PUBLIC_DEV_LOGIN === "true" &&
+      (request.nextUrl.hostname === "localhost" || request.nextUrl.hostname === "127.0.0.1");
+
+    if (isLocalDev) {
+      // Still redirect to login, but don't block — let them access the login page
+      if (!isPublicRoute) {
+        const loginUrl = new URL(`/${locale}/login`, request.url);
+        loginUrl.searchParams.set("next", strippedPath);
+        return NextResponse.redirect(loginUrl);
+      }
+      return response;
+    }
+
     // Not logged in — allow public routes, redirect others to login
     if (isPublicRoute) {
       return response;

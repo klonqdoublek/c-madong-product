@@ -73,6 +73,7 @@ export type NotificationType =
   | "parcel_arrived"
   | "parcel_reminder"
   | "announcement"
+  | "chat_escalation"
   | "system";
 
 // Phase 5: Dorm Score & Activities

@@ -38,6 +38,9 @@ function LoginContent() {
   const [devLoading, setDevLoading] = useState(false);
   const [devError, setDevError] = useState("");
 
+  // Read ?next= param for redirect after login
+  const nextPath = searchParams.get("next");
+
   const handleDevLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setDevLoading(true);
@@ -46,7 +49,7 @@ function LoginContent() {
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: devEmail,
         password: devPassword,
       });
@@ -56,7 +59,23 @@ function LoginContent() {
         return;
       }
 
-      window.location.href = `/${locale}/admin/dashboard`;
+      // Redirect based on role or ?next= param
+      if (nextPath) {
+        window.location.href = `/${locale}${nextPath}`;
+        return;
+      }
+
+      // Check profile role to decide redirect
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", authData.user.id)
+        .single();
+
+      const isStaff = profile && ["admin", "staff", "head", "super_admin", "admin_staff"].includes(profile.role);
+      window.location.href = isStaff
+        ? `/${locale}/admin/dashboard`
+        : `/${locale}/dashboard`;
     } catch {
       setDevError("Network error");
     } finally {
@@ -222,6 +241,38 @@ function LoginContent() {
         {/* Dev login form (expandable) */}
         {showDevLogin && devExpanded && (
           <div className="mt-3 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-4">
+            {/* Quick login buttons */}
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setDevEmail("dev@c-madong.app");
+                  setDevPassword("devadmin123");
+                }}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  devEmail === "dev@c-madong.app"
+                    ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
+                    : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDevEmail("student@c-madong.app");
+                  setDevPassword("devstudent123");
+                }}
+                className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                  devEmail === "student@c-madong.app"
+                    ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
+                    : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
+                }`}
+              >
+                Student
+              </button>
+            </div>
+
             <form onSubmit={handleDevLogin} className="space-y-3 text-left">
               {devError && (
                 <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
