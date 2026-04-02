@@ -123,6 +123,7 @@ async function processEvent(event: LineEvent): Promise<void> {
           await sendResponse(event.replyToken, {
             type: "flex",
             flex: buildWelcomeBackFlex(displayName),
+            quickReply: MAIN_MENU_QUICK_REPLY,
           })
         } else {
           // New user → stays on Menu A (default) + greeting carousel
@@ -131,6 +132,7 @@ async function processEvent(event: LineEvent): Promise<void> {
           await sendResponse(event.replyToken, {
             type: "flex",
             flex: buildGreetingCarousel("เพื่อน"),
+            quickReply: MAIN_MENU_QUICK_REPLY,
           })
         }
         break
