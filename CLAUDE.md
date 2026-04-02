@@ -7,6 +7,18 @@
 
 ## Recent Changes (2026-04-02)
 
+### Phase 7.5 — Greeting Carousel + Follow Event — DEPLOYED
+
+- `buildGreetingCarousel(displayName)` — 4-bubble Flex carousel for new (unregistered) users: Welcome → Features → Getting Started (URI→register) → Try It (message action)
+- `buildWelcomeBackFlex(displayName)` — single bubble for returning (registered) users + quick menu hints
+- Follow event in `webhook-handler.ts` now differentiates new vs registered users via `checkUserRegistered()`
+- Registered user → `linkRegisteredMenu()` (Menu B swap) + welcome back flex
+- New user → stays on default Menu A + greeting carousel
+- `getProfileByLineUid()` helper for personalized display name
+- Files: NEW `src/lib/chatbot/flex-builders/greeting-carousel.ts`, MODIFIED `webhook-handler.ts`
+- **Pending**: ทดสอบ greeting carousel ด้วยบัญชี LINE ที่ยังไม่ได้ลงทะเบียน
+- **Bug**: Quick Reply ไม่แสดงหลัง follow event flex (welcome back / carousel) — ต้อง debug
+
 ### Emergency Contact Page — DEPLOYED
 
 **Emergency Contact Page (`/emergency`)**

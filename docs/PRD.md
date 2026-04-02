@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
 > **Version**: 2.0
-> **Last Updated**: 2026-04-01
+> **Last Updated**: 2026-04-02
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -307,11 +307,11 @@ C-Madong Platform
 > **As a** new user adding the LINE OA, **I want to** see a welcome guide and registration CTA, **so that** I know how to get started with C-Madong.
 
 **Acceptance Criteria:**
-- [ ] แอดเพื่อน LINE OA → ได้รับ greeting carousel แนะนำการใช้งาน
-- [ ] เห็น Rich Menu A (banner ลงทะเบียน) เป็น default
+- [x] แอดเพื่อน LINE OA → ได้รับ greeting carousel แนะนำการใช้งาน ✅
+- [x] เห็น Rich Menu A (banner ลงทะเบียน) เป็น default ✅
 - [ ] กดลงทะเบียน → เปิดหน้า web registration
-- [ ] ลงทะเบียนสำเร็จ → Rich Menu เปลี่ยนเป็น Menu B (ปุ่มลัดฟีเจอร์) ทันที
-- [ ] ผู้ใช้ที่ลงทะเบียนแล้วกลับมาแอดใหม่ → ได้ Menu B + welcome back message
+- [x] ลงทะเบียนสำเร็จ → Rich Menu เปลี่ยนเป็น Menu B (ปุ่มลัดฟีเจอร์) ทันที ✅
+- [x] ผู้ใช้ที่ลงทะเบียนแล้วกลับมาแอดใหม่ → ได้ Menu B + welcome back message ✅
 
 #### US-8.4: Rich Menu Feature Shortcuts
 > **As a** registered student, **I want to** have quick-access buttons in LINE, **so that** I can use C-Madong features without typing.
@@ -783,42 +783,43 @@ Two Flex Message builders from Figma designs (file `zepMkYbO2pzKy9lhya4sVW`):
 - Deep linking from Flex messages
 - Quick actions within LINE
 
-### Phase 7.5: LINE OA Onboarding & Rich Menu
+### Phase 7.5: LINE OA Onboarding & Rich Menu — DEPLOYED ✅
 Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 
 > **Goal:** ให้ผู้ใช้ใหม่ที่แอด LINE OA ได้รับ onboarding experience ที่ดี และมี persistent Rich Menu สำหรับเข้าถึงฟีเจอร์หลักได้ตลอด
 
-**Rich Menu A — ยังไม่ลงทะเบียน (Default):**
+**Rich Menu A — ยังไม่ลงทะเบียน (Default):** ✅
 - Banner เดียว full-width → กดลงทะเบียน (URI → web registration)
 - ตั้งเป็น default rich menu → ผู้ใช้ใหม่ทุกคนเห็น
 - chatBarText: "ลงทะเบียนใช้งาน"
 
-**Rich Menu B — ลงทะเบียนแล้ว (Per-user):**
+**Rich Menu B — ลงทะเบียนแล้ว (Per-user):** ✅
 - Grid 6 ปุ่มลัด: แจ้งซ่อม, คะแนนหอ, ค่าน้ำค่าไฟ, พัสดุ, กิจกรรม, ถามน้องซี
 - Link ให้ user หลัง registration สำเร็จ → per-user menu override default
 - chatBarText: "เมนู C-Madong"
 
-**Greeting Carousel (Follow Event):**
-- Flex Carousel 3-4 bubbles: ยินดีต้อนรับ → ฟีเจอร์หลัก → วิธีเริ่มต้น → CTA ลงทะเบียน
+**Greeting Carousel (Follow Event):** ✅
+- Flex Carousel 4 bubbles: ยินดีต้อนรับ → ฟีเจอร์หลัก → วิธีเริ่มต้น (URI ลงทะเบียน) → ลองคุยเลย (message action)
 - ส่งเมื่อ new user แอดเพื่อน (follow event)
-- Returning user (มี profile แล้ว) → swap to Menu B + welcome back message
+- Returning user (มี profile แล้ว) → swap to Menu B + welcome back flex
+- Files: `greeting-carousel.ts` (buildGreetingCarousel + buildWelcomeBackFlex)
 
-**Menu Swap Logic:**
-- Registration callback → `linkRichMenuIdToUser(lineUid, menuBId)`
+**Menu Swap Logic:** ✅
+- Follow event: `checkUserRegistered()` → new user gets carousel, returning user gets Menu B + welcome back
+- Registration callback → `linkRegisteredMenu(lineUid)` → per-user Menu B
 - Per-user menu takes priority over default → เห็น Menu B ทันที
-- Setup script สร้าง menus + batch link ให้ existing users
+- `rich-menu.ts`: `linkRegisteredMenu()`, `unlinkUserMenu()`
 
-**Technical:**
-- Rich Menu API ใช้ได้ฟรีทุก plan (ไม่จำกัด)
-- Image: 2500x843 (Menu A), 2500x1686 หรือ 2500x843 (Menu B)
-- New files: `rich-menu.ts`, `onboarding.ts` flex builder, `setup-rich-menu.ts` script
-- Modify: `webhook-handler.ts` (follow event), `register/route.ts` (menu swap)
+**Pending / Known Issues:**
+- ทดสอบ greeting carousel ด้วยบัญชี LINE ที่ยังไม่ได้ลงทะเบียน (add bot ใหม่)
+- Quick Reply (แจ้งซ่อม, คะแนนหอ, กิจกรรม, ถาม) ไม่แสดงหลัง follow event flex — ต้องแก้
 
 **Not yet implemented:**
 - Rich Menu tab switching (richmenuswitch action)
 - Role-based menu variants (committee, technician)
 - Admin Rich Menu editor UI
 - Menu analytics (tap tracking)
+- Setup script batch link existing users to Menu B
 
 ### Phase 8: Reports & Analytics
 - Admin dashboard charts
