@@ -224,10 +224,37 @@
     }
   },
   "announcements": {
-    "title": "ประกาศ",
+    "title": "ประกาศและข่าวสาร",
     "pinned": "ปักหมุด",
     "readMore": "อ่านเพิ่มเติม",
-    "markAsRead": "อ่านแล้ว"
+    "markAsRead": "อ่านแล้ว",
+    "searchPlaceholder": "ค้นหาประกาศ...",
+    "tabAll": "ทั้งหมด",
+    "tabActivity": "กิจกรรม",
+    "tabAnnouncement": "ประชาสัมพันธ์",
+    "tabAlert": "แจ้งเตือน",
+    "noResults": "ไม่พบประกาศที่ค้นหา",
+    "noAnnouncements": "ยังไม่มีประกาศตอนนี้",
+    "detail": "รายละเอียด",
+    "relatedDocuments": "เอกสารที่เกี่ยวข้อง",
+    "share": "แชร์",
+    "saveLater": "บันทึก",
+    "register": "ลงทะเบียนเข้าร่วม",
+    "hasScore": "มีคะแนนหอพัก",
+    "location": "สถานที่",
+    "registered": "ลงทะเบียนแล้ว",
+    "unregister": "ยกเลิกลงทะเบียน",
+    "registerSuccess": "ลงทะเบียนสำเร็จแล้ว!",
+    "unregisterSuccess": "ยกเลิกลงทะเบียนแล้ว",
+    "bookmarkAdded": "บันทึกแล้ว",
+    "bookmarkRemoved": "นำออกจากบันทึกแล้ว",
+    "shareSuccess": "คัดลอกลิงก์แล้ว",
+    "shareFailed": "ไม่สามารถแชร์ได้",
+    "scorePoints": "คะแนน",
+    "noDocuments": "ไม่มีเอกสารแนบ",
+    "categoryActivity": "กิจกรรม",
+    "categoryAnnouncement": "ประชาสัมพันธ์",
+    "categoryAlert": "แจ้งเตือน"
   },
   "profile": {
     "title": "บัญชีของฉัน",
@@ -269,7 +296,10 @@
     "cardSecurityNote": "บัตรนี้ใช้สำหรับยืนยันตัวตนในหอพักเท่านั้น",
     "otherMenu": "เมนูอื่น",
     "reportLostCard": "แจ้งบัตรหาย ชำรุด",
-    "cardHistory": "ประวัติการออกบัตร"
+    "cardHistory": "ประวัติการออกบัตร",
+    "savedAnnouncements": "ประกาศที่บันทึกไว้",
+    "noSavedAnnouncements": "ยังไม่มีประกาศที่บันทึกไว้",
+    "savedViewAll": "ดูทั้งหมด"
   },
   "admin": {
     "breadcrumb": {

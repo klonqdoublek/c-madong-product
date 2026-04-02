@@ -224,10 +224,37 @@
     }
   },
   "announcements": {
-    "title": "Announcements",
+    "title": "Announcements & News",
     "pinned": "Pinned",
     "readMore": "Read More",
-    "markAsRead": "Mark as Read"
+    "markAsRead": "Mark as Read",
+    "searchPlaceholder": "Search announcements...",
+    "tabAll": "All",
+    "tabActivity": "Activities",
+    "tabAnnouncement": "Announcements",
+    "tabAlert": "Alerts",
+    "noResults": "No announcements found",
+    "noAnnouncements": "No announcements right now",
+    "detail": "Details",
+    "relatedDocuments": "Related Documents",
+    "share": "Share",
+    "saveLater": "Save",
+    "register": "Register to Join",
+    "hasScore": "Dorm Score",
+    "location": "Location",
+    "registered": "Registered",
+    "unregister": "Unregister",
+    "registerSuccess": "Registered successfully!",
+    "unregisterSuccess": "Unregistered successfully",
+    "bookmarkAdded": "Saved",
+    "bookmarkRemoved": "Removed from saved",
+    "shareSuccess": "Link copied",
+    "shareFailed": "Unable to share",
+    "scorePoints": "pts",
+    "noDocuments": "No attached documents",
+    "categoryActivity": "Activity",
+    "categoryAnnouncement": "Announcement",
+    "categoryAlert": "Alert"
   },
   "profile": {
     "title": "My Account",
@@ -269,7 +296,10 @@
     "cardSecurityNote": "This card is for dorm identity verification only.",
     "otherMenu": "Other",
     "reportLostCard": "Report Lost/Damaged Card",
-    "cardHistory": "Card Issuance History"
+    "cardHistory": "Card Issuance History",
+    "savedAnnouncements": "Saved Announcements",
+    "noSavedAnnouncements": "No saved announcements",
+    "savedViewAll": "View all"
   },
   "admin": {
     "breadcrumb": {

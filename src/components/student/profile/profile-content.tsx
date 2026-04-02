@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { ProfileInfoCard } from "./profile-info-card";
 import { ProfileStatsSection } from "./profile-stats-section";
 import { ProfileScoreSection } from "./profile-score-section";
+import { ProfileSavedSection } from "./profile-saved-section";
 import { SettingsMenuItem } from "./settings-menu-item";
 import { Settings, FileText } from "lucide-react";
 
@@ -60,6 +61,9 @@ export function ProfileContent() {
 
           {/* Score summary */}
           <ProfileScoreSection />
+
+          {/* Saved announcements */}
+          <ProfileSavedSection />
 
           {/* Settings link */}
           <SettingsMenuItem

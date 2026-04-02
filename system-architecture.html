@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-Madong System Architecture</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #e9358e 0%, #aa2f79 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .tabs {
+      display: flex;
+      background: #f7fafc;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 20px;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 16px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: #4a5568;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: #e9358e;
+      background: rgba(233, 53, 142, 0.05);
+    }
+
+    .tab.active {
+      color: #e9358e;
+      border-bottom-color: #e9358e;
+      background: white;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 40px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* System Architecture Diagram */
+    .architecture-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+
+    .layer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: #f7fafc;
+      border-radius: 12px;
+      border: 2px solid #e2e8f0;
+      position: relative;
+    }
+
+    .layer-label {
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: linear-gradient(135deg, #e9358e 0%, #aa2f79 100%);
+      color: white;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .node {
+      background: white;
+      border: 2px solid #cbd5e0;
+      border-radius: 12px;
+      padding: 16px 24px;
+      min-width: 160px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .node:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(233, 53, 142, 0.2);
+      border-color: #e9358e;
+      z-index: 10;
+    }
+
+    .node-title {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+
+    .node-version {
+      font-size: 0.75rem;
+      color: #718096;
+      font-family: monospace;
+    }
+
+    .node.primary {
+      background: linear-gradient(135deg, #e9358e 0%, #aa2f79 100%);
+      color: white;
+      border: none;
+    }
+
+    .node.primary .node-title,
+    .node.primary .node-version {
+      color: white;
+    }
+
+    .connector {
+      text-align: center;
+      color: #e9358e;
+      font-size: 2rem;
+      margin: -10px 0;
+    }
+
+    /* Data Flow Diagram */
+    .data-flow {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .flow-column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .flow-node {
+      background: white;
+      border: 2px solid #cbd5e0;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .flow-node:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 24px rgba(233, 53, 142, 0.2);
+      border-color: #e9358e;
+      z-index: 10;
+    }
+
+    .flow-node-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+
+    .flow-node-title {
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 1.1rem;
+    }
+
+    .flow-node-desc {
+      font-size: 0.9rem;
+      color: #4a5568;
+      line-height: 1.5;
+    }
+
+    .flow-arrow {
+      position: absolute;
+      color: #e9358e;
+      font-size: 2rem;
+      z-index: 1;
+    }
+
+    /* Component Map */
+    .component-map {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      padding: 20px;
+    }
+
+    .component-group {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .component-group:hover {
+      border-color: #e9358e;
+      box-shadow: 0 8px 24px rgba(233, 53, 142, 0.1);
+    }
+
+    .group-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2d3748;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e9358e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .group-icon {
+      font-size: 1.5rem;
+    }
+
+    .component-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .component-item {
+      background: white;
+      border: 1px solid #cbd5e0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .component-item:hover {
+      border-color: #e9358e;
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(233, 53, 142, 0.1);
+    }
+
+    .component-name {
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.95rem;
+    }
+
+    .component-tech {
+      font-size: 0.8rem;
+      color: #718096;
+      margin-top: 4px;
+    }
+
+    /* Tech Stack Table */
+    .tech-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .tech-table thead {
+      background: linear-gradient(135deg, #e9358e 0%, #aa2f79 100%);
+      color: white;
+    }
+
+    .tech-table th {
+      padding: 16px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .tech-table td {
+      padding: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .tech-table tbody tr:hover {
+      background: #f7fafc;
+    }
+
+    .tech-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #edf2f7;
+      color: #4a5568;
+    }
+
+    .version-badge {
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #718096;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip-text {
+      visibility: hidden;
+      background-color: #2d3748;
+      color: white;
+      text-align: center;
+      padding: 8px 12px;
+      border-radius: 6px;
+      position: absolute;
+      z-index: 100;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-size: 0.85rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .data-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .component-map {
+        grid-template-columns: 1fr;
+      }
+
+      .tabs {
+        padding: 0 10px;
+      }
+
+      .tab {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.8rem;
+      }
+
+      .tab-content {
+        padding: 20px;
+      }
+
+      .layer {
+        flex-direction: column;
+      }
+
+      .node {
+        width: 100%;
+      }
+    }
+
+    /* SVG Arrows */
+    .svg-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .arrow-line {
+      stroke: #e9358e;
+      stroke-width: 2;
+      fill: none;
+      marker-end: url(#arrowhead);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏢 C-Madong System Architecture</h1>
+      <p>Chulalongkorn University Dormitory Management Platform</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('architecture')">🏗️ System Architecture</button>
+      <button class="tab" onclick="switchTab('dataflow')">🔄 Data Flow</button>
+      <button class="tab" onclick="switchTab('components')">📦 Component Map</button>
+      <button class="tab" onclick="switchTab('techstack')">💻 Tech Stack</button>
+    </div>
+
+    <!-- Tab 1: System Architecture -->
+    <div id="architecture" class="tab-content active">
+      <div class="architecture-flow">
+        <!-- Presentation Layer -->
+        <div class="layer">
+          <div class="layer-label">📱 Presentation Layer</div>
+          <div class="node primary">
+            <div class="node-title">Next.js 16</div>
+            <div class="node-version">App Router + Turbopack</div>
+          </div>
+          <div class="node">
+            <div class="node-title">React 19</div>
+            <div class="node-version">^19.2.4</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Tailwind CSS v4</div>
+            <div class="node-version">^4.1.18</div>
+          </div>
+          <div class="node">
+            <div class="node-title">shadcn/ui</div>
+            <div class="node-version">Radix UI</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Framer Motion</div>
+            <div class="node-version">Animations</div>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+
+        <!-- State Management Layer -->
+        <div class="layer">
+          <div class="layer-label">🔄 State Management</div>
+          <div class="node primary">
+            <div class="node-title">TanStack Query v5</div>
+            <div class="node-version">Server State</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Zustand</div>
+            <div class="node-version">Client State</div>
+          </div>
+          <div class="node">
+            <div class="node-title">React Hook Form</div>
+            <div class="node-version">Forms</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Zod v4</div>
+            <div class="node-version">Validation</div>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+
+        <!-- API & Business Logic Layer -->
+        <div class="layer">
+          <div class="layer-label">⚙️ API & Business Logic</div>
+          <div class="node primary">
+            <div class="node-title">Next.js API Routes</div>
+            <div class="node-version">Edge Functions</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Chatbot Handlers</div>
+            <div class="node-version">Intent Router</div>
+          </div>
+          <div class="node">
+            <div class="node-title">RBAC System</div>
+            <div class="node-version">Permissions</div>
+          </div>
+          <div class="node">
+            <div class="node-title">RAG Pipeline</div>
+            <div class="node-version">Knowledge Base</div>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+
+        <!-- AI/ML Layer -->
+        <div class="layer">
+          <div class="layer-label">🤖 AI & Machine Learning</div>
+          <div class="node primary">
+            <div class="node-title">OpenAI API</div>
+            <div class="node-version">gpt-4o-mini</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Google Gen AI</div>
+            <div class="node-version">Gemini 2.0 Flash</div>
+          </div>
+          <div class="node">
+            <div class="node-title">pgvector</div>
+            <div class="node-version">Embeddings</div>
+          </div>
+        </div>
+
+        <div class="connector">↓</div>
+
+        <!-- Data Layer -->
+        <div class="layer">
+          <div class="layer-label">🗄️ Data & Storage</div>
+          <div class="node primary">
+            <div class="node-title">Supabase</div>
+            <div class="node-version">BaaS Platform</div>
+          </div>
+          <div class="node">
+            <div class="node-title">PostgreSQL</div>
+            <div class="node-version">Database</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Supabase Auth</div>
+            <div class="node-version">Authentication</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Supabase Storage</div>
+            <div class="node-version">File Storage</div>
+          </div>
+          <div class="node">
+            <div class="node-title">RLS Policies</div>
+            <div class="node-version">Row-Level Security</div>
+          </div>
+        </div>
+
+        <div class="connector">↔️</div>
+
+        <!-- External Integrations -->
+        <div class="layer">
+          <div class="layer-label">🔌 External Integrations</div>
+          <div class="node">
+            <div class="node-title">LINE Bot SDK</div>
+            <div class="node-version">Messaging API</div>
+          </div>
+          <div class="node">
+            <div class="node-title">LINE LIFF</div>
+            <div class="node-version">In-App Browser</div>
+          </div>
+          <div class="node">
+            <div class="node-title">Vercel</div>
+            <div class="node-version">Deployment</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Data Flow -->
+    <div id="dataflow" class="tab-content">
+      <div class="data-flow">
+        <!-- Column 1: User Interface -->
+        <div class="flow-column">
+          <div class="flow-node">
+            <div class="flow-node-icon">👤</div>
+            <div class="flow-node-title">Student/Admin User</div>
+            <div class="flow-node-desc">เข้าถึงผ่าน Web Browser หรือ LINE App</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">📱</div>
+            <div class="flow-node-title">React UI Components</div>
+            <div class="flow-node-desc">shadcn/ui + Tailwind CSS v4<br>Framer Motion animations</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">🔄</div>
+            <div class="flow-node-title">State Management</div>
+            <div class="flow-node-desc">TanStack Query (server)<br>Zustand (client)</div>
+          </div>
+        </div>
+
+        <!-- Column 2: Backend Logic -->
+        <div class="flow-column">
+          <div class="flow-node">
+            <div class="flow-node-icon">⚡</div>
+            <div class="flow-node-title">Next.js API Routes</div>
+            <div class="flow-node-desc">Edge Functions<br>Serverless Backend</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">🤖</div>
+            <div class="flow-node-title">AI Processing</div>
+            <div class="flow-node-desc">OpenAI gpt-4o-mini<br>Gemini 2.0 Flash Vision<br>RAG Pipeline</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">💬</div>
+            <div class="flow-node-title">LINE Integration</div>
+            <div class="flow-node-desc">Webhook Handler<br>Flex Message Builder<br>Push Notifications</div>
+          </div>
+        </div>
+
+        <!-- Column 3: Data Storage -->
+        <div class="flow-column">
+          <div class="flow-node">
+            <div class="flow-node-icon">🗄️</div>
+            <div class="flow-node-title">Supabase PostgreSQL</div>
+            <div class="flow-node-desc">Main Database<br>RLS Policies<br>pgvector Extension</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">🔐</div>
+            <div class="flow-node-title">Authentication</div>
+            <div class="flow-node-desc">Supabase Auth<br>LINE OAuth<br>RBAC System</div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-node-icon">📁</div>
+            <div class="flow-node-title">File Storage</div>
+            <div class="flow-node-desc">Supabase Storage<br>PDF Documents<br>Images</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 40px; padding: 24px; background: #f7fafc; border-radius: 12px; border: 2px solid #e2e8f0;">
+        <h3 style="color: #2d3748; margin-bottom: 16px; font-size: 1.3rem;">🔄 Data Flow Process</h3>
+        <ol style="line-height: 2; color: #4a5568; padding-left: 24px;">
+          <li><strong>User Request</strong> → Web/LINE interface sends request</li>
+          <li><strong>State Management</strong> → TanStack Query caches & fetches data</li>
+          <li><strong>API Route</strong> → Next.js Edge Function processes request</li>
+          <li><strong>Authentication</strong> → Supabase Auth verifies user + RBAC checks permissions</li>
+          <li><strong>Business Logic</strong> → AI processing (if needed) + data transformation</li>
+          <li><strong>Database</strong> → PostgreSQL with RLS policies enforces security</li>
+          <li><strong>Response</strong> → JSON data returns to client</li>
+          <li><strong>UI Update</strong> → React re-renders with new data</li>
+          <li><strong>LINE Push (optional)</strong> → Flex Message notification sent</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Tab 3: Component Map -->
+    <div id="components" class="tab-content">
+      <div class="component-map">
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">📱</span>
+            Frontend Pages
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">Student Portal</div>
+              <div class="component-tech">(student) route group — 15+ pages</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Admin Dashboard</div>
+              <div class="component-tech">/admin segment — 20+ pages</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Auth Flow</div>
+              <div class="component-tech">(auth) route group — login, register, onboarding</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🎨</span>
+            UI Components
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">shadcn/ui Library</div>
+              <div class="component-tech">Radix UI primitives — 30+ components</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Custom Components</div>
+              <div class="component-tech">Page headers, cards, modals, forms</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Chat Modal</div>
+              <div class="component-tech">Bottom sheet, drag-to-dismiss, history</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🔄</span>
+            State Stores
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">user-store</div>
+              <div class="component-tech">User session, profile, permissions</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">ui-store</div>
+              <div class="component-tech">Sidebar collapse, theme, modals</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">chat-store</div>
+              <div class="component-tech">Chat messages, session state</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">knowledge-store</div>
+              <div class="component-tech">Folders, tags, document selection</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">notification-store</div>
+              <div class="component-tech">In-app notifications, read state</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🪝</span>
+            Custom Hooks
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">use-user</div>
+              <div class="component-tech">User profile, auth state</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">use-permissions</div>
+              <div class="component-tech">RBAC permission checks</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">use-bills</div>
+              <div class="component-tech">Billing data, payment status</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">use-maintenance-tickets</div>
+              <div class="component-tech">Repair requests CRUD</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">use-knowledge</div>
+              <div class="component-tech">14 hooks for KB v3</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">⚙️</span>
+            API Routes
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">/api/auth/*</div>
+              <div class="component-tech">Login, register, logout, callback</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">/api/admin/*</div>
+              <div class="component-tech">15+ admin endpoints (RBAC protected)</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">/api/student/*</div>
+              <div class="component-tech">Student-facing endpoints</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">/api/chatbot/webhook</div>
+              <div class="component-tech">LINE webhook handler</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">/api/chat/*</div>
+              <div class="component-tech">In-app chat, history</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🤖</span>
+            Chatbot System
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">Webhook Handler</div>
+              <div class="component-tech">Message router, session manager</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Intent Router</div>
+              <div class="component-tech">AI-powered intent classification</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Handlers</div>
+              <div class="component-tech">chitchat, knowledge, repair, score, events, parcel</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">RAG Pipeline</div>
+              <div class="component-tech">pgvector search + OpenAI</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Flex Builders</div>
+              <div class="component-tech">8 templates for LINE messages</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🧠</span>
+            AI/ML Services
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">OpenAI Client</div>
+              <div class="component-tech">gpt-4o-mini for chat & RAG</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Gemini Client</div>
+              <div class="component-tech">2.0 Flash for vision analysis</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Vision Agent</div>
+              <div class="component-tech">Image damage detection</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Orchestrator</div>
+              <div class="component-tech">Template matching + fallback</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <div class="group-title">
+            <span class="group-icon">🗄️</span>
+            Database Layer
+          </div>
+          <div class="component-list">
+            <div class="component-item">
+              <div class="component-name">Supabase Client</div>
+              <div class="component-tech">Client-side queries (RLS enforced)</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Supabase Server</div>
+              <div class="component-tech">Server Component queries</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Admin Client</div>
+              <div class="component-tech">Bypass RLS for admin ops</div>
+            </div>
+            <div class="component-item">
+              <div class="component-name">Middleware</div>
+              <div class="component-tech">Auth refresh, session management</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Tech Stack Table -->
+    <div id="techstack" class="tab-content">
+      <table class="tech-table">
+        <thead>
+          <tr>
+            <th>Technology</th>
+            <th>Version</th>
+            <th>Category</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Next.js</strong></td>
+            <td><span class="version-badge">^16.1.6</span></td>
+            <td><span class="category-badge">Framework</span></td>
+            <td>React framework with App Router, Server Components, Edge Functions</td>
+          </tr>
+          <tr>
+            <td><strong>React</strong></td>
+            <td><span class="version-badge">^19.2.4</span></td>
+            <td><span class="category-badge">UI Library</span></td>
+            <td>Component-based UI library with latest features</td>
+          </tr>
+          <tr>
+            <td><strong>TypeScript</strong></td>
+            <td><span class="version-badge">^5.9.3</span></td>
+            <td><span class="category-badge">Language</span></td>
+            <td>Type-safe JavaScript for better DX</td>
+          </tr>
+          <tr>
+            <td><strong>Tailwind CSS</strong></td>
+            <td><span class="version-badge">^4.1.18</span></td>
+            <td><span class="category-badge">Styling</span></td>
+            <td>Utility-first CSS framework with v4 @theme</td>
+          </tr>
+          <tr>
+            <td><strong>shadcn/ui</strong></td>
+            <td><span class="version-badge">Radix UI ^1.4.3</span></td>
+            <td><span class="category-badge">Components</span></td>
+            <td>Accessible component library (new-york preset)</td>
+          </tr>
+          <tr>
+            <td><strong>TanStack Query</strong></td>
+            <td><span class="version-badge">^5.90.21</span></td>
+            <td><span class="category-badge">State</span></td>
+            <td>Server state management, caching, synchronization</td>
+          </tr>
+          <tr>
+            <td><strong>Zustand</strong></td>
+            <td><span class="version-badge">^5.0.11</span></td>
+            <td><span class="category-badge">State</span></td>
+            <td>Client state management (UI, filters, session)</td>
+          </tr>
+          <tr>
+            <td><strong>React Hook Form</strong></td>
+            <td><span class="version-badge">^7.71.1</span></td>
+            <td><span class="category-badge">Forms</span></td>
+            <td>Performant form state management</td>
+          </tr>
+          <tr>
+            <td><strong>Zod</strong></td>
+            <td><span class="version-badge">^4.3.6</span></td>
+            <td><span class="category-badge">Validation</span></td>
+            <td>Schema validation (import from "zod/v4")</td>
+          </tr>
+          <tr>
+            <td><strong>Supabase</strong></td>
+            <td><span class="version-badge">@supabase/ssr ^0.8.0</span></td>
+            <td><span class="category-badge">Backend</span></td>
+            <td>BaaS: Auth, PostgreSQL, Storage, Edge Functions</td>
+          </tr>
+          <tr>
+            <td><strong>OpenAI API</strong></td>
+            <td><span class="version-badge">^6.22.0</span></td>
+            <td><span class="category-badge">AI</span></td>
+            <td>gpt-4o-mini for chatbot, RAG, insights</td>
+          </tr>
+          <tr>
+            <td><strong>Google Gen AI</strong></td>
+            <td><span class="version-badge">^1.42.0</span></td>
+            <td><span class="category-badge">AI</span></td>
+            <td>Gemini 2.0 Flash for vision analysis</td>
+          </tr>
+          <tr>
+            <td><strong>LINE Bot SDK</strong></td>
+            <td><span class="version-badge">^10.6.0</span></td>
+            <td><span class="category-badge">Integration</span></td>
+            <td>Messaging API webhook + push notifications</td>
+          </tr>
+          <tr>
+            <td><strong>LINE LIFF</strong></td>
+            <td><span class="version-badge">^2.27.3</span></td>
+            <td><span class="category-badge">Integration</span></td>
+            <td>LINE Front-end Framework (Phase 7)</td>
+          </tr>
+          <tr>
+            <td><strong>Framer Motion</strong></td>
+            <td><span class="version-badge">^12.34.0</span></td>
+            <td><span class="category-badge">Animation</span></td>
+            <td>Declarative animations and gestures</td>
+          </tr>
+          <tr>
+            <td><strong>next-intl</strong></td>
+            <td><span class="version-badge">^4.8.2</span></td>
+            <td><span class="category-badge">i18n</span></td>
+            <td>Type-safe internationalization (th/en)</td>
+          </tr>
+          <tr>
+            <td><strong>Lucide React</strong></td>
+            <td><span class="version-badge">^0.563.0</span></td>
+            <td><span class="category-badge">Icons</span></td>
+            <td>Icon library (1000+ icons)</td>
+          </tr>
+          <tr>
+            <td><strong>date-fns</strong></td>
+            <td><span class="version-badge">^4.1.0</span></td>
+            <td><span class="category-badge">Utilities</span></td>
+            <td>Modern date utility library</td>
+          </tr>
+          <tr>
+            <td><strong>sonner</strong></td>
+            <td><span class="version-badge">^2.0.7</span></td>
+            <td><span class="category-badge">UI</span></td>
+            <td>Toast notifications</td>
+          </tr>
+          <tr>
+            <td><strong>docx</strong></td>
+            <td><span class="version-badge">^9.5.3</span></td>
+            <td><span class="category-badge">Utilities</span></td>
+            <td>Word document generation</td>
+          </tr>
+          <tr>
+            <td><strong>unpdf</strong></td>
+            <td><span class="version-badge">^1.4.0</span></td>
+            <td><span class="category-badge">Utilities</span></td>
+            <td>PDF parsing for knowledge base</td>
+          </tr>
+          <tr>
+            <td><strong>@dnd-kit</strong></td>
+            <td><span class="version-badge">core ^6.3.1</span></td>
+            <td><span class="category-badge">UI</span></td>
+            <td>Drag and drop functionality</td>
+          </tr>
+          <tr>
+            <td><strong>class-variance-authority</strong></td>
+            <td><span class="version-badge">^0.7.1</span></td>
+            <td><span class="category-badge">Styling</span></td>
+            <td>Variant-based component styling (CVA)</td>
+          </tr>
+          <tr>
+            <td><strong>next-themes</strong></td>
+            <td><span class="version-badge">^0.4.6</span></td>
+            <td><span class="category-badge">UI</span></td>
+            <td>Dark mode support (future)</td>
+          </tr>
+          <tr>
+            <td><strong>Playwright</strong></td>
+            <td><span class="version-badge">^1.58.2</span></td>
+            <td><span class="category-badge">Testing</span></td>
+            <td>End-to-end testing framework</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 40px; padding: 24px; background: linear-gradient(135deg, #e9358e 0%, #aa2f79 100%); border-radius: 12px; color: white;">
+        <h3 style="margin-bottom: 16px; font-size: 1.3rem;">📊 Tech Stack Summary</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+          <div>
+            <div style="font-size: 2rem; font-weight: 700;">25+</div>
+            <div style="opacity: 0.9;">Core Dependencies</div>
+          </div>
+          <div>
+            <div style="font-size: 2rem; font-weight: 700;">5</div>
+            <div style="opacity: 0.9;">Architecture Layers</div>
+          </div>
+          <div>
+            <div style="font-size: 2rem; font-weight: 700;">2</div>
+            <div style="opacity: 0.9;">AI Providers</div>
+          </div>
+          <div>
+            <div style="font-size: 2rem; font-weight: 700;">100%</div>
+            <div style="opacity: 0.9;">TypeScript Coverage</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+
+      // Deactivate all tabs
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+
+      // Show selected tab content
+      document.getElementById(tabId).classList.add('active');
+
+      // Activate clicked tab
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

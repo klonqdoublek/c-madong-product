@@ -5,7 +5,27 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-01)
+## Recent Changes (2026-04-02)
+
+### Announcement Features — DEPLOYED
+
+**Announcement Detail Page Enhancements**
+- Bookmark toggle (heart icon), registration button, read tracking, document attachments
+- Tables: `announcement_bookmarks`, `announcement_registrations`, `announcement_reads`, `announcement_documents`
+- Migration: `20260402_announcement_features.sql`
+- Hooks: `useIsBookmarked`, `useToggleBookmark`, `useMyRegistration`, `useRegisterAnnouncement`, `useUnregisterAnnouncement`, `useMarkAnnouncementRead`, `useAnnouncementDocuments`
+- New student components: `src/components/student/announcements/` (announcement-content, announcement-card)
+
+**Saved Announcements on Profile Page**
+- `ProfileSavedSection` component: horizontal scroll of bookmarked announcement cards (cover image + category badge + title)
+- `useMyBookmarkedAnnouncements()` hook: joins `announcement_bookmarks` → `announcements` for current user
+- Empty state with Bookmark icon when no bookmarks
+- Max 10 items visible, "ดูทั้งหมด" link if more
+- Files: `src/components/student/profile/profile-saved-section.tsx`, `use-announcements.ts` (+1 hook), `profile-content.tsx` (wired in), 3 i18n keys
+
+---
+
+## Changes (2026-04-01)
 
 ### AI Settings + Live Chat Handoff — DEPLOYED
 
