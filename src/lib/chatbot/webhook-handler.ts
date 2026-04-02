@@ -107,8 +107,9 @@ async function processEvent(event: LineEvent): Promise<void> {
         break
       case "follow": {
         const followUid = event.source.userId
-        const followDisplayName = (event.source as unknown as Record<string, unknown>).displayName as string | undefined
+        console.log("[Webhook] Follow event from:", followUid)
         const isRegistered = followUid ? await checkUserRegistered(followUid) : false
+        console.log("[Webhook] User registered:", isRegistered)
 
         if (isRegistered && followUid) {
           // Returning user → link Menu B + welcome back flex
@@ -116,17 +117,20 @@ async function processEvent(event: LineEvent): Promise<void> {
           await linkRegisteredMenu(followUid)
 
           const profile = await getProfileByLineUid(followUid)
+          const displayName = profile?.display_name || profile?.full_name_th || "เพื่อน"
+          console.log("[Webhook] Welcome back:", displayName)
           const { buildWelcomeBackFlex } = await import("./flex-builders/greeting-carousel")
           await sendResponse(event.replyToken, {
             type: "flex",
-            flex: buildWelcomeBackFlex(profile?.display_name || profile?.full_name_th || followDisplayName || "เพื่อน"),
+            flex: buildWelcomeBackFlex(displayName),
           })
         } else {
           // New user → stays on Menu A (default) + greeting carousel
+          console.log("[Webhook] New user → greeting carousel")
           const { buildGreetingCarousel } = await import("./flex-builders/greeting-carousel")
           await sendResponse(event.replyToken, {
             type: "flex",
-            flex: buildGreetingCarousel(followDisplayName || "เพื่อน"),
+            flex: buildGreetingCarousel("เพื่อน"),
           })
         }
         break
