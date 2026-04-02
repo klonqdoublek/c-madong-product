@@ -18,7 +18,7 @@ const leftNavItems = [
 
 const rightNavItems = [
   {
-    href: "#",
+    href: "/emergency",
     icon: "shield",
     labelKey: "emergency" as const,
   },

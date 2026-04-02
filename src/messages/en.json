@@ -1086,5 +1086,17 @@
     "cancelWaiting": "Cancel",
     "endConversation": "End Conversation",
     "placeholderAdmin": "Type a message to staff..."
+  },
+  "emergency": {
+    "title": "Emergency Contact",
+    "heroTitle": "Emergency Contact",
+    "heroSubtitle": "Tap to call staff immediately",
+    "otherContacts": "Other Contact Channels",
+    "tabDorm": "Dormitory",
+    "tabHospital": "Hospital",
+    "tabSecurity": "Security",
+    "tabInternal": "University",
+    "tabExternal": "External",
+    "call": "Call"
   }
 }

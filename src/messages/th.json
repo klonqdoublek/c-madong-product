@@ -1086,5 +1086,17 @@
     "cancelWaiting": "ยกเลิก",
     "endConversation": "จบการสนทนา",
     "placeholderAdmin": "พิมพ์ข้อความถึงพี่ทีมงาน..."
+  },
+  "emergency": {
+    "title": "ติดต่อฉุกเฉิน",
+    "heroTitle": "ติดต่อฉุกเฉิน",
+    "heroSubtitle": "กดปุ่มเพื่อติดต่อเจ้าหน้าที่ทันที",
+    "otherContacts": "ช่องทางการติดต่ออื่น",
+    "tabDorm": "หอพัก",
+    "tabHospital": "โรงพยาบาล",
+    "tabSecurity": "รปภ.",
+    "tabInternal": "ภายในมหา'ลัย",
+    "tabExternal": "ภายนอก",
+    "call": "โทร"
   }
 }
