@@ -105,13 +105,32 @@ async function processEvent(event: LineEvent): Promise<void> {
       case "postback":
         await handlePostbackEvent(event)
         break
-      case "follow":
-        await sendResponse(event.replyToken, {
-          type: "text",
-          text: "สวัสดีจ้า! 🏠 น้องซีมะโด่งยินดีต้อนรับเข้าหอพักนะ\n\nเลือกเมนูด้านล่าง หรือพิมพ์อะไรมาก็ได้เลยจ้า ✨",
-          quickReply: MAIN_MENU_QUICK_REPLY,
-        })
+      case "follow": {
+        const followUid = event.source.userId
+        const followDisplayName = (event.source as unknown as Record<string, unknown>).displayName as string | undefined
+        const isRegistered = followUid ? await checkUserRegistered(followUid) : false
+
+        if (isRegistered && followUid) {
+          // Returning user → link Menu B + welcome back flex
+          const { linkRegisteredMenu } = await import("@/lib/line/rich-menu")
+          await linkRegisteredMenu(followUid)
+
+          const profile = await getProfileByLineUid(followUid)
+          const { buildWelcomeBackFlex } = await import("./flex-builders/greeting-carousel")
+          await sendResponse(event.replyToken, {
+            type: "flex",
+            flex: buildWelcomeBackFlex(profile?.display_name || profile?.full_name_th || followDisplayName || "เพื่อน"),
+          })
+        } else {
+          // New user → stays on Menu A (default) + greeting carousel
+          const { buildGreetingCarousel } = await import("./flex-builders/greeting-carousel")
+          await sendResponse(event.replyToken, {
+            type: "flex",
+            flex: buildGreetingCarousel(followDisplayName || "เพื่อน"),
+          })
+        }
         break
+      }
       case "unfollow": {
         const uid = event.source.userId
         if (uid) {
@@ -519,5 +538,22 @@ async function checkUserRegistered(lineUid: string): Promise<boolean> {
   } catch {
     // If Supabase not available, allow through
     return true
+  }
+}
+
+async function getProfileByLineUid(
+  lineUid: string
+): Promise<{ display_name: string | null; full_name_th: string | null } | null> {
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from("profiles")
+      .select("display_name, full_name_th")
+      .eq("line_uid", lineUid)
+      .single()
+    return data
+  } catch {
+    return null
   }
 }
