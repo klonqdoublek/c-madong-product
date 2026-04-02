@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { linkRegisteredMenu } from "@/lib/line/rich-menu";
 
 interface LineTokenResponse {
   access_token: string;
@@ -128,6 +129,9 @@ export async function GET(request: NextRequest) {
       );
       const serverSupabase = await createServerClient();
       await serverSupabase.auth.signInWithPassword({ email, password: tempPassword });
+
+      // Swap to registered rich menu (fire-and-forget but awaited)
+      await linkRegisteredMenu(lineProfile.userId);
 
       const locale = existingProfile.language || defaultLocale;
       const redirectPath = existingProfile.onboarding_completed

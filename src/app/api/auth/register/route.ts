@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerSchema } from "@/lib/validators/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { linkRegisteredMenu } from "@/lib/line/rich-menu";
 
 export async function POST(request: NextRequest) {
   try {
@@ -150,6 +151,9 @@ export async function POST(request: NextRequest) {
       console.error("[Register] Sign-in failed:", signInError);
       // Profile was created — user can still log in via LINE again
     }
+
+    // Swap to registered rich menu
+    await linkRegisteredMenu(lineUid);
 
     return NextResponse.json({ success: true, userId: authUser.id });
   } catch (err) {

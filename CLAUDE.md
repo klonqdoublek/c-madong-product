@@ -7,6 +7,17 @@
 
 ## Recent Changes (2026-04-02)
 
+### Emergency Contact Page — DEPLOYED
+
+**Emergency Contact Page (`/emergency`)**
+- Hero section: Concentric animated circles (CSS pulse, GPU-composited scale) + Phone icon in white circle → `tel:` main number
+- Draggable bottom sheet: touch/mouse drag, collapsed 200px / expanded 60dvh, 50px snap threshold
+- 5 category tabs with icons: หอพัก (Building2), โรงพยาบาล (Hospital), รปภ. (ShieldCheck), ภายในมหา'ลัย (Landmark), ภายนอก (MapPin)
+- 19 hardcoded mock contacts across all categories, each with pink `tel:` call button
+- Bottom nav "ฉุกเฉิน" button now links to `/emergency` (was `#`)
+- Files: `src/app/[locale]/(student)/emergency/page.tsx`, `src/components/student/emergency/emergency-content.tsx`
+- Modified: `bottom-nav.tsx` (href fix), `th.json` + `en.json` (+10 i18n keys each)
+
 ### Announcement Features — DEPLOYED
 
 **Announcement Detail Page Enhancements**

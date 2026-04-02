@@ -47,6 +47,7 @@ C-Madong Platform
 │   ├── Announcements
 │   ├── Notifications
 │   ├── Profile Management
+│   ├── Emergency Contact (draggable bottom sheet, 5 category tabs) ✅
 │   ├── In-App Chat (น้องซีมะโด่ง modal) ✅
 │   └── Live Chat Escalation (talk to human, waiting screen) ✅
 │
