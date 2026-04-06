@@ -106,7 +106,7 @@ export function DormCardContent() {
               alt={t("dormCardTitle")}
               width={800}
               height={504}
-              className="w-[90vh] max-w-none rounded-xl"
+              className="w-[70vh] max-w-none rounded-xl"
             />
           </div>
         </div>
