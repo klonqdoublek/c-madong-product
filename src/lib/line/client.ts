@@ -75,6 +75,22 @@ export async function replyMessage(
   })
 }
 
+/**
+ * Reply with multiple raw messages in a single API call (up to 5).
+ * Useful for Flex + Quick Reply combos — LINE attaches quickReply to the LAST message,
+ * so send the Flex first and a tiny text with quickReply last for reliable display.
+ */
+export async function replyMessages(
+  replyToken: string,
+  messages: Record<string, unknown>[]
+): Promise<void> {
+  const api = getClient()
+  await api.replyMessage({
+    replyToken,
+    messages: messages as unknown as messagingApi.Message[],
+  })
+}
+
 /** Push a text message to a user (no reply token needed) */
 export async function pushTextMessage(
   lineUid: string,

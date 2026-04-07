@@ -1,4 +1,4 @@
-import { replyTextMessage, replyFlexMessage, replyMessage } from "@/lib/line/client"
+import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages } from "@/lib/line/client"
 import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
@@ -120,20 +120,28 @@ async function processEvent(event: LineEvent): Promise<void> {
           const displayName = profile?.display_name || profile?.full_name_th || "เพื่อน"
           console.log("[Webhook] Welcome back:", displayName)
           const { buildWelcomeBackFlex } = await import("./flex-builders/greeting-carousel")
-          await sendResponse(event.replyToken, {
-            type: "flex",
-            flex: buildWelcomeBackFlex(displayName),
-            quickReply: MAIN_MENU_QUICK_REPLY,
-          })
+          // Send flex + separate text with quickReply (LINE attaches quickReply to LAST message;
+          // Flex + quickReply in same object is unreliable on some LINE clients)
+          await replyMessages(event.replyToken, [
+            buildWelcomeBackFlex(displayName) as unknown as Record<string, unknown>,
+            {
+              type: "text",
+              text: "เลือกเมนูด่วนด้านล่างได้เลยจ้า 👇",
+              quickReply: MAIN_MENU_QUICK_REPLY,
+            },
+          ])
         } else {
           // New user → stays on Menu A (default) + greeting carousel
           console.log("[Webhook] New user → greeting carousel")
           const { buildGreetingCarousel } = await import("./flex-builders/greeting-carousel")
-          await sendResponse(event.replyToken, {
-            type: "flex",
-            flex: buildGreetingCarousel("เพื่อน"),
-            quickReply: MAIN_MENU_QUICK_REPLY,
-          })
+          await replyMessages(event.replyToken, [
+            buildGreetingCarousel("เพื่อน") as unknown as Record<string, unknown>,
+            {
+              type: "text",
+              text: "ลองพิมพ์ถามน้องซี หรือเลือกเมนูด่วนด้านล่างเลยจ้า 👇",
+              quickReply: MAIN_MENU_QUICK_REPLY,
+            },
+          ])
         }
         break
       }
