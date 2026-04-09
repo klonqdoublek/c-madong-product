@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.0
-> **Last Updated**: 2026-04-02
+> **Version**: 2.1
+> **Last Updated**: 2026-04-10
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -105,7 +105,8 @@ C-Madong Platform
 > **As a** new student, **I want to** register with my CUNET email, **so that** my identity is verified.
 
 **Acceptance Criteria:**
-- [ ] กรอก student ID (10 หลัก), ชื่อ-นามสกุล (ไทย/อังกฤษ), อีเมล CUNET
+- [x] กรอก student ID (10 หลัก), ชื่อ-นามสกุล (ไทย/อังกฤษ), อีเมล CUNET
+- [x] กรอกคณะ (faculty) — required, free-text input (เช่น "คณะวิศวกรรมศาสตร์")
 - [ ] ระบบส่ง verification email ไปที่ @student.chula.ac.th
 - [ ] ยืนยันอีเมลแล้วจึงดำเนินการต่อ
 
@@ -113,10 +114,11 @@ C-Madong Platform
 > **As a** registered student, **I want to** set up my room information, **so that** the system knows where I stay.
 
 **Acceptance Criteria:**
-- [ ] เลือกตึก → ชั้น → ห้อง → เตียง (multi-step form)
-- [ ] เลือกภาษาที่ต้องการใช้ (ไทย/อังกฤษ)
+- [x] เลือกตึก → ชั้น (1-17) → ห้อง → เตียง (multi-step form)
+- [x] เตียงแสดงเป็น button group (ไม่ใช่ dropdown) — ชวนชม A-B (2 col), ตึกอื่น A-D (4 col)
+- [x] เลือกภาษาที่ต้องการใช้ (ไทย/อังกฤษ)
 - [ ] ตั้งค่า preferences สำหรับการแจ้งเตือน
-- [ ] หลังเสร็จ → redirect ไป dashboard
+- [x] หลังเสร็จ → redirect ไป dashboard
 
 #### US-1.4: Staff Login (Admin)
 > **As a** staff member, **I want to** login with email/password, **so that** I can manage the dormitory.
@@ -349,13 +351,16 @@ C-Madong Platform
 - Chulalongkorn University fonts (heading + body)
 - CU Pink brand palette
 
-### Phase 1: Authentication & Onboarding ✅ DEPLOYED (2026-02-23)
+### Phase 1: Authentication & Onboarding ✅ DEPLOYED (2026-02-23, enhanced 2026-04-10)
 - Supabase project setup + environment variables
-- Database migrations (profiles, buildings, rooms, beds — 5 buildings, 200 rooms, 560 beds)
+- Database migrations (profiles, buildings, rooms, beds — 5 buildings, 680 rooms, 2448 beds)
 - LINE Login OAuth flow (`/api/auth/line` → `/api/auth/callback`)
 - Synthetic email auth pattern (`{lineUid}@line.c-madong.app`)
-- Registration form (`/api/auth/register`)
+- Registration form (`/api/auth/register`) — student ID, name TH/EN, **faculty** (required), email, phone
 - Multi-step onboarding wizard (profile → room/bed → language)
+- **Room data**: 17 floors × 8 rooms × 5 buildings. ชวนชม capacity=2 (beds A-B), others capacity=4 (beds A-D)
+- **Bed selection**: Button group UI (aspect-square tiles) filtered by room capacity
+- **Faculty field**: `profiles.faculty` column, displayed on student profile page
 - Middleware: auth protection + i18n routing + admin role gating + onboarding redirect
 - LINE Login channel (ID: 2009201565) published & verified
 
@@ -798,11 +803,20 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 - Link ให้ user หลัง registration สำเร็จ → per-user menu override default
 - chatBarText: "เมนู C-Madong"
 
-**Greeting Carousel (Follow Event):** ✅
-- Flex Carousel 4 bubbles: ยินดีต้อนรับ → ฟีเจอร์หลัก → วิธีเริ่มต้น (URI ลงทะเบียน) → ลองคุยเลย (message action)
-- ส่งเมื่อ new user แอดเพื่อน (follow event)
+**Welcome Bubble + Onboarding Carousel (Follow Event):** ✅ UPDATED 2026-04-08
+- **New user (follow event)** → Single `buildWelcomeNewEntryFlex()` bubble: pink CU header + 3 numbered steps + 2 CTAs (green URI→register, white pink-border message→"ดูคู่มือ")
+- **Onboarding Carousel** (`buildOnboardingCarousel`) → 6-bubble carousel triggered when user taps "📖 ดูคู่มือการใช้งานน้องซีมะโด่ง" or types "ดูคู่มือ"
+  - Bubble 1 — เริ่มต้นใช้งานง่ายๆ (pink)
+  - Bubble 2 — ถามอะไรตอบได้! (cream)
+  - Bubble 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
+  - Bubble 4 — แจ้งเตือนอัจฉริยะ (cream)
+  - Bubble 5 — LINE MINI APP (cream, URI → /register)
+  - Bubble 6 — ยังมีอีกเยอะ! (pink, URI → /dashboard)
+- All bubbles use 1:1 square banner images (Figma-designed, served from `public/line-banners/`)
+- Bubbles 1-4 CTA send "น้องซีมะโด่ง" → triggers menu quick reply
 - Returning user (มี profile แล้ว) → swap to Menu B + welcome back flex
-- Files: `greeting-carousel.ts` (buildGreetingCarousel + buildWelcomeBackFlex)
+- `GUIDE_TRIGGERS` check placed BEFORE rate limit + registration so unregistered users can view guide
+- Files: `greeting-carousel.ts` (`buildWelcomeNewEntryFlex` + `buildOnboardingCarousel` + `buildWelcomeBackFlex` + helpers `buildCtaPill`/`buildOnboardingBubble`), `public/line-banners/onboarding-{1-6}-{slug}.jpg` (optimized 4.6MB → 684KB)
 
 **Menu Swap Logic:** ✅
 - Follow event: `checkUserRegistered()` → new user gets carousel, returning user gets Menu B + welcome back
@@ -811,8 +825,9 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 - `rich-menu.ts`: `linkRegisteredMenu()`, `unlinkUserMenu()`
 
 **Pending / Known Issues:**
-- ทดสอบ greeting carousel ด้วยบัญชี LINE ที่ยังไม่ได้ลงทะเบียน (add bot ใหม่)
-- Quick Reply (แจ้งซ่อม, คะแนนหอ, กิจกรรม, ถาม) ไม่แสดงหลัง follow event flex — ต้องแก้
+- ทดสอบ welcome bubble + onboarding carousel ด้วยบัญชี LINE ที่ยังไม่ได้ลงทะเบียน (add bot ใหม่)
+- Quick Reply (แจ้งซ่อม, คะแนนหอ, กิจกรรม, ถาม) ไม่แสดงหลัง follow event flex — fix ด้วย pattern `replyMessages([flex, text+quickReply])` แล้ว รอ verify
+- `WELCOME_BANNER_URL` ยังเป็น null — welcome bubble ใช้ text-based pink header layout ไปก่อน
 
 **Not yet implemented:**
 - Rich Menu tab switching (richmenuswitch action)
@@ -820,6 +835,87 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 - Admin Rich Menu editor UI
 - Menu analytics (tap tracking)
 - Setup script batch link existing users to Menu B
+
+### Phase 7.6: PIN Security (6-digit) — PLANNED 📋
+
+**Goal**: เพิ่มชั้นความปลอดภัยด้วย PIN 6 หลัก สำหรับ lock screen และ gate action สำคัญ (ดูบิล, บัตรหอ, เปลี่ยน settings) โดย PIN บังคับตั้งครั้งแรกตอน onboarding และ reset ได้ผ่าน LINE OAuth re-auth
+
+**Use Cases (ตกลงแล้ว 2026-04-06)**:
+- Lock screen ทุกครั้งที่เปิดแอป (หรือหลัง idle timeout)
+- Gate ก่อน action สำคัญ: ดูบิล, ดูบัตรหอ (dorm-card), logout, เปลี่ยน settings
+- ลืม PIN → re-auth ผ่าน LINE OAuth → ตั้ง PIN ใหม่
+- ตั้ง PIN บังคับใน onboarding flow (หลัง complete profile)
+
+**Scope Breakdown**:
+
+**1. Database Migration** (⭐ ง่าย)
+- Migration: `supabase/migrations/YYYYMMDD_pin_security.sql`
+- Columns บน `profiles`:
+  - `pin_hash` (text, nullable) — bcrypt hash, salt rounds = 10
+  - `pin_set_at` (timestamptz) — เวลาที่ตั้ง PIN ครั้งล่าสุด
+  - `pin_failed_attempts` (int, default 0) — นับ fail สำหรับ rate limit
+  - `pin_locked_until` (timestamptz, nullable) — lock 5 นาทีหลัง fail 5 ครั้ง
+- RLS: user อ่าน/เขียนได้เฉพาะของตัวเอง; `pin_hash` ห้ามส่งกลับ client (ใช้ explicit column select ทุกที่)
+- Index: `profiles(pin_locked_until)` สำหรับ cleanup job (optional)
+
+**2. API Routes** (⭐⭐ ปานกลาง)
+- `POST /api/auth/pin/set` — ตั้ง PIN ครั้งแรก (verify authenticated + `pin_hash IS NULL`)
+- `POST /api/auth/pin/verify` — ตรวจ PIN, track failed attempts, lock 5 นาทีหลัง fail 5 ครั้ง, return JWT-ish unlock token
+- `POST /api/auth/pin/reset` — เรียกหลัง re-auth LINE OAuth สำเร็จ → clear hash → redirect ไปตั้งใหม่
+- `POST /api/auth/pin/change` — เปลี่ยน PIN (verify PIN เก่าก่อน)
+- ทั้งหมดใช้ `runtime = "nodejs"` (bcrypt ไม่รองรับ Edge runtime)
+- ใช้ `createAdminClient()` สำหรับอัปเดต `pin_hash` เพื่อ bypass RLS safely
+
+**3. UI Components** (⭐⭐ ปานกลาง)
+- `src/components/pin/pin-keypad.tsx` — numeric keypad 0-9 + delete, 6 dots indicator, shake animation on error, haptic feedback (mobile)
+- `src/components/pin/pin-setup-screen.tsx` — 2 steps: enter + confirm (ต้องตรงกัน)
+- `src/components/pin/pin-lock-screen.tsx` — full-screen overlay, mascot น้องซีมะโด่ง, keypad, "ลืม PIN?" link
+- `src/components/pin/pin-verify-dialog.tsx` — modal สำหรับ gate action สำคัญ
+- `src/app/[locale]/(auth)/forgot-pin/page.tsx` — trigger LINE OAuth re-auth → redirect กลับมา setup ใหม่
+
+**4. State & Lock Logic** (⭐⭐⭐ ยากสุด — edge cases เยอะ)
+- `src/stores/pin-store.ts` (Zustand) — `isUnlocked`, `unlockedAt`, `idleTimeoutMs` (default 5 นาที)
+- `src/hooks/use-pin-lock.ts` — ฟัง `visibilitychange` + `pagehide` (iOS Safari), lock เมื่อ background > 30 วิ
+- Gate ใน `src/components/layout/student-shell.tsx` — ถ้า `profile.pin_hash` exists + `!isUnlocked` → render `<PinLockScreen />` แทน children
+- Onboarding flow — เพิ่ม step `setup-pin` หลัง `complete-profile` ใน `(auth)/register/onboarding`
+- **Edge cases ที่ต้องจัดการ**:
+  - iOS Safari `visibilitychange` ไม่เสถียร → ใช้ `pagehide` ร่วมด้วย
+  - Dev login mode (`NEXT_PUBLIC_DEV_LOGIN=true`) ต้อง bypass PIN
+  - LIFF environment: unlock state ไม่ควรแชร์ข้าม LIFF/web (ใช้ sessionStorage ไม่ใช่ localStorage)
+  - Deep link → ต้อง preserve intent หลัง unlock (redirect กลับไปหน้าที่ตั้งใจเปิด)
+
+**5. Protected Actions Wrapper** (⭐ ง่าย)
+- `<PinGate>` compound component → เปิด `PinVerifyDialog` ก่อนทำงาน
+- Wrap: ปุ่มดูบิล, ดูบัตรหอ (`/profile/dorm-card`), logout, settings ที่สำคัญ
+
+**6. i18n + Microcopy** (⭐ ง่าย)
+- ~15 keys ใน `th.json` + `en.json` (setup, verify, error, locked, forgot, mismatch, too_many_attempts)
+- Tone: น้องซีมะโด่ง friendly แต่ serious สำหรับ security — ใช้ `thai-ux-writing` skill
+
+**Gotchas / Security Considerations**:
+- `pin_hash` ห้ามหลุดไปใน `useUser()` query — ต้อง explicit column select ในทุก hook ที่ดึง profiles
+- bcrypt ใน Next.js 16 Edge runtime ไม่ support → API route ต้องประกาศ `export const runtime = "nodejs"`
+- Rate limit: lock 5 นาทีหลัง fail 5 ครั้ง → ป้องกัน brute force
+- PIN = 6 หลัก (10^6 = 1M combinations) — เพียงพอถ้ามี lockout, แต่ไม่ใช่ security สูง
+- ห้ามเก็บ PIN ใน plain text ที่ไหนเลย (แม้แต่ logs)
+- `pin_hash` + `pin_failed_attempts` update ต้องผ่าน server-side เท่านั้น (ห้าม client update ตรง)
+
+**Delivery Plan (2 PRs)**:
+1. **PR1**: DB + API + Setup flow ใน onboarding (ยังไม่ enforce lock)
+   - User สามารถตั้ง PIN ได้ แต่ยังไม่ต้องใช้
+   - Admin ตรวจใน DB ได้ว่า user ไหนตั้งแล้วบ้าง
+2. **PR2**: Lock screen + gate logic + forgot PIN + protected actions
+   - Enforce lock ทั้งระบบ
+   - Forgot PIN flow ผ่าน LINE OAuth
+   - `<PinGate>` wrapper ใน actions สำคัญ
+
+**Not in scope (Phase 7.6)**:
+- Biometric auth (Face ID / Touch ID) — อาจเพิ่มใน Phase 9+
+- PIN history (ป้องกันตั้งซ้ำของเก่า)
+- Admin reset PIN ผ่าน dashboard (user ใช้ LINE OAuth เองได้)
+- PIN complexity rules (ห้าม 000000, 123456) — พิจารณาภายหลัง
+
+---
 
 ### Phase 8: Reports & Analytics
 - Admin dashboard charts
@@ -897,3 +993,276 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 | Announcement read rate | > 70% | Read count / total recipients |
 | Student satisfaction | > 4.0/5.0 | In-app feedback survey |
 | Staff efficiency | 50% time reduction | Maintenance ticket processing time |
+
+---
+
+## 6. Version History & Roadmap
+
+### 6.1 V1 Checkpoint (2026-04-10) ✅
+
+**Status**: Production Release — Feature Complete
+
+#### Deployed Features (Phases 0-7.5)
+- ✅ **Phase 0**: Scaffold (Next.js 16, Tailwind v4, Supabase, 45 pages)
+- ✅ **Phase 1**: Authentication (LINE Login, registration, onboarding, 17 floors, bed button group)
+- ✅ **Phase 2**: Admin Dashboard (15 pages, RBAC with 12 roles)
+- ✅ **Phase 3**: Billing (bill generation, payment tracking, LINE Flex reminder)
+- ✅ **Phase 4**: Parcels (admin CRUD, student UI, LINE Flex notification, chatbot carousel)
+- ✅ **Phase 4.5**: Vision AI (repair image analysis, template matching, GPT-4o + Gemini fallback)
+- ✅ **Phase 5**: Student Scores (scoring system, admin CRUD, LINE Flex cards)
+- ✅ **Phase 6**: AI-Powered UX (notifications, insights, chatbot น้องซีมะโด่ง, RAG)
+- ✅ **Phase 7**: LIFF (scaffolded SDK init only)
+- ✅ **Phase 7.5**: LINE Onboarding (welcome bubble + 6-bubble carousel, 684KB optimized banners)
+
+#### Post-Launch Features
+- ✅ In-App Chat Modal (bottom sheet, drag-to-dismiss, history, suggestion chips)
+- ✅ LINE Flex Repair (3 Figma designs: created, tracking, done)
+- ✅ Knowledge Base v3 (2-panel layout, folder/tag CRUD, per-doc Q&A)
+- ✅ Student Profile (3 Figma designs: main, settings, digital ID card)
+- ✅ AI Settings (model, temperature, tone, vision, thresholds, cost dashboard)
+- ✅ Live Chat Handoff (student escalation, admin queue, polling-based real-time)
+- ✅ Announcements v2 (bookmark, register, read tracking, docs, saved section)
+- ✅ Emergency Contact (animated hero, draggable bottom sheet, 5 tabs, 19 contacts)
+
+#### Technical Metrics (V1)
+- **Pages**: 36 (student + admin)
+- **API Routes**: 60+
+- **Database Tables**: 40+
+- **LINE Integrations**: 17 (Flex + webhook)
+- **Migrations**: 24 files
+- **Components**: 100+ custom components
+- **State Hooks**: 25 TanStack Query hooks
+- **Stores**: 6 Zustand stores
+
+#### V1 Documentation
+- 📄 [CHANGELOG_V1.md](./CHANGELOG_V1.md) — Detailed changelog
+- 📄 [V1_FEATURES.md](./V1_FEATURES.md) — Feature reference
+- 📄 [V1_SNAPSHOT.md](./V1_SNAPSHOT.md) — Architecture snapshot
+
+#### Git Reference
+```bash
+# V1.0.0 release tag
+git tag -a v1.0.0 -m "C-Madong V1 Release - Full feature set"
+git checkout -b release/v1.0  # Maintenance branch
+```
+
+---
+
+### 6.2 V2 Planning (2026-Q2 onwards)
+
+**Status**: Planning Phase
+
+#### Core Objectives
+1. **Complete Phases 8-9** (Reports + Polish)
+2. **LIFF Mini App** (full integration)
+3. **Technical Debt Resolution**
+4. **Advanced AI Features**
+
+---
+
+#### Phase 8: Reports & Analytics (NOT STARTED)
+
+**Admin Dashboards**
+- [ ] Maintenance analytics (response time, completion rate, category breakdown)
+- [ ] Occupancy reports (bed utilization, building stats, vacancy trends)
+- [ ] Billing analytics (collection rate, overdue tracking, revenue dashboard)
+- [ ] Student engagement (app usage, feature adoption, notification open rates)
+- [ ] Export functionality (PDF, Excel, CSV)
+
+**Student Insights**
+- [ ] Personal activity summary (maintenance history, event attendance, score progress)
+- [ ] Monthly reports (bills, announcements, upcoming events)
+
+**Technical Requirements**
+- Chart libraries (Recharts or Chart.js)
+- PDF generation (react-pdf or Puppeteer)
+- Excel export (@tanstack/table + xlsx)
+- Date range filters
+- Real-time data aggregation
+
+**Estimated Effort**: 3-4 weeks
+
+---
+
+#### Phase 9: UX Polish & Accessibility (NOT STARTED)
+
+**Performance Optimization**
+- [ ] Replace polling with WebSockets (Supabase Realtime)
+- [ ] Image lazy loading + blur placeholders
+- [ ] Code splitting for admin modules
+- [ ] Service worker + offline support
+- [ ] Bundle size optimization (< 200KB initial)
+
+**Accessibility Audit (WCAG 2.1 AA)**
+- [ ] Screen reader testing (VoiceOver + TalkBack)
+- [ ] Keyboard navigation improvements
+- [ ] Focus management in modals
+- [ ] Color contrast fixes
+- [ ] `aria-label` on all icon buttons
+- [ ] `focus-visible` rings
+
+**UX Refinements**
+- [ ] Toast notifications (replace alerts)
+- [ ] Loading skeletons (replace spinners)
+- [ ] Empty states with illustrations
+- [ ] Error boundaries + retry mechanisms
+- [ ] Animated page transitions
+- [ ] Haptic feedback (mobile)
+
+**Design System Audit**
+- [ ] Token consistency check (spacing, colors, shadows)
+- [ ] Component prop standardization
+- [ ] Dark mode support (optional)
+
+**Estimated Effort**: 2-3 weeks
+
+---
+
+#### Phase 10: LIFF Mini App (SCAFFOLDED)
+
+**Status**: SDK initialized, full integration pending
+
+**Features to Implement**
+- [ ] QR code scanner (dorm card verification)
+- [ ] Camera integration (repair photo upload from LIFF)
+- [ ] Share target (share announcement to LINE chat)
+- [ ] Bluetooth beacon (automatic check-in)
+- [ ] Push to LINE chat (emergency broadcast)
+- [ ] External browser redirect (payment gateway)
+
+**Technical Requirements**
+- LIFF SDK v2 upgrade (from v1 placeholder)
+- Permission handling (camera, location)
+- iOS/Android compatibility testing
+- Fallback for non-LIFF browsers
+
+**Estimated Effort**: 2 weeks
+
+---
+
+#### Technical Debt Resolution
+
+**Database**
+- [ ] Regenerate Supabase types (all V1 tables finalized)
+- [ ] Migrate legacy role mapping to RBAC-only (`profiles.role` deprecation)
+- [ ] RLS policy review (remove `createAdminClient()` workarounds where possible)
+- [ ] Index optimization (slow queries on `maintenance_requests`, `announcements`)
+
+**Code Quality**
+- [ ] Consolidate admin API routes (reduce duplication)
+- [ ] Remove `(supabase as any)` casts (after type regen)
+- [ ] Standardize error handling (unified error boundaries)
+- [ ] Extract magic numbers to constants
+- [ ] Remove dead code (unused components, old migrations)
+
+**Architecture**
+- [ ] Replace in-memory cache with Redis (AI settings, session state)
+- [ ] WebSocket server for real-time (replace polling)
+- [ ] Event-driven architecture (pub/sub for notifications)
+
+**Estimated Effort**: 1-2 weeks
+
+---
+
+#### Advanced AI Features
+
+**Vision AI Enhancements**
+- [ ] Multi-photo analysis (detect multiple issues in single request)
+- [ ] Damage severity scoring (minor/moderate/severe)
+- [ ] Before/after comparison (repair validation)
+- [ ] Object detection (specific equipment recognition)
+
+**Chatbot Improvements**
+- [ ] Sentiment analysis (detect frustrated users → auto-escalate)
+- [ ] Multi-turn conversation memory (context beyond session state)
+- [ ] Voice input support (Thai speech-to-text)
+- [ ] Proactive notifications (predictive maintenance reminders)
+
+**Knowledge Base**
+- [ ] Auto-categorization (new docs → suggested folders/tags)
+- [ ] Semantic search (not just keyword)
+- [ ] Question suggestions (based on doc content)
+- [ ] Multi-lingual embeddings (Thai + English)
+
+**Predictive Analytics**
+- [ ] Maintenance forecasting (predict common issues by season/building)
+- [ ] Occupancy prediction (vacancy trends)
+- [ ] Bill overdue risk scoring (notify high-risk students earlier)
+
+**Estimated Effort**: 4-6 weeks
+
+---
+
+#### Infrastructure & DevOps
+
+**CI/CD**
+- [ ] Automated testing (Playwright E2E + Vitest unit tests)
+- [ ] Staging environment (separate Supabase project)
+- [ ] Preview deployments (per-PR on Vercel)
+- [ ] Database migration rollback scripts
+
+**Monitoring**
+- [ ] Error tracking (Sentry or similar)
+- [ ] Performance monitoring (Vercel Analytics + custom metrics)
+- [ ] Uptime monitoring (LINE webhook health checks)
+- [ ] Database query performance (slow query logs)
+
+**Security**
+- [ ] Dependency updates (automated Dependabot PRs)
+- [ ] Security audit (OWASP top 10 compliance review)
+- [ ] Penetration testing (third-party)
+
+**Estimated Effort**: 1-2 weeks
+
+---
+
+#### Breaking Changes Considerations (V2)
+
+**Database Schema**
+- **Approach**: Backward-compatible migrations (additive changes only)
+- **Strategy**: New columns nullable, deprecated columns kept for 1 version
+- **Example**: `profiles.role` → keep but mark deprecated, read from `user_roles` instead
+
+**API Versioning**
+- **Approach**: Unversioned → `/api/v1/` prefix for new routes
+- **Strategy**: Keep existing routes as-is, new features use `/api/v2/`
+- **Example**: `/api/admin/maintenance` (V1) vs `/api/v2/admin/maintenance` (V2 with WebSocket)
+
+**State Management**
+- **Approach**: Migrate Zustand stores to TanStack Query where possible
+- **Reason**: Server state should use TanStack Query, client state only for UI
+
+---
+
+### 6.3 Future Considerations (V3+)
+
+**Platform Expansion**
+- Native mobile apps (React Native or Flutter)
+- Desktop app (Electron for admin portal)
+- Public API for third-party integrations
+
+**Advanced Features**
+- IoT integration (smart locks, sensors)
+- Payment gateway (PromptPay, credit card)
+- Visitor management system
+- Parcel locker integration
+- Laundry booking system
+- Co-working space reservation
+
+**Multi-Tenancy**
+- White-label solution for other universities
+- Multi-dorm support (Chula's 30+ dorms)
+- SaaS model with per-dorm pricing
+
+---
+
+**Next Steps for V2**:
+1. Complete Phase 8 (Reports) — 3-4 weeks
+2. Complete Phase 9 (Polish) — 2-3 weeks
+3. Technical debt resolution — 1-2 weeks
+4. LIFF Mini App — 2 weeks
+5. Advanced AI (optional stretch goal) — 4-6 weeks
+
+**Estimated V2 Timeline**: 8-12 weeks (2-3 months)
+
+---
