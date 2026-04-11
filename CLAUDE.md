@@ -5,7 +5,75 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-02)
+## Recent Changes (2026-04-10)
+
+### Register Flow Enhancements — DEPLOYED
+
+**Faculty Field (Registration)**
+- `profiles.faculty` TEXT column (nullable for legacy users)
+- Required free-text input on `/register` page (after fullNameEn, before email)
+- Validated via `registerSchema` in `src/lib/validators/auth.ts`
+- Stored via `POST /api/auth/register` → profile insert
+- Profile page renders `profile.faculty` from DB (not mockup). Null → silent hide
+- i18n: `auth.faculty` + `auth.facultyPlaceholder` in th/en
+
+**Floors 1-17 + Room Seeding**
+- Migration `20260408_register_flow_enhancements.sql`: `profiles.faculty` column + `buildings.floors=17` + `rooms.capacity` rule (ชวนชม=2, others=4)
+- Migration `20260409_seed_floors_6_to_17.sql`: PL/pgSQL DO block seeding 480 rooms (floors 6-17 × 8 rooms × 5 buildings) + 160 backfilled bed D rows for non-ชวนชม floors 1-5
+- Total: **680 rooms · 2,448 beds** across 5 buildings × 17 floors
+- Room numbering: `{floor}{NN}` zero-padded (101-108 ... 1701-1708)
+
+**Bed Selection — Button Group UI**
+- Onboarding page: replaced `<Select>` dropdown with grid of `<button>` tiles
+- Filter by `rooms.capacity`: ชวนชม → 2-col grid (A, B), others → 4-col grid (A, B, C, D)
+- Selected state: `border-primary bg-cu-light-pink text-primary`
+- Floor select: hardcoded 1-17 (not derived from `buildings.floors`)
+
+**Files**:
+- Migrations: `20260408_register_flow_enhancements.sql`, `20260409_seed_floors_6_to_17.sql`
+- Types: `src/lib/supabase/types.ts` (+faculty on profiles Row/Insert/Update)
+- Validator: `src/lib/validators/auth.ts` (+faculty required)
+- Register: `src/app/[locale]/(auth)/register/page.tsx` (+faculty field + form data)
+- Register API: `src/app/api/auth/register/route.ts` (+faculty in insert)
+- Onboarding: `src/app/[locale]/(auth)/onboarding/page.tsx` (floor 1-17 hardcode, bed button group, capacity filter)
+- Profile: `src/components/student/profile/profile-info-card.tsx` (real faculty from DB)
+- i18n: `th.json`, `en.json` (+auth.faculty, +auth.facultyPlaceholder, profile.faculty→label)
+
+---
+
+## Changes (2026-04-08)
+
+### Phase 7.5 — Welcome Bubble + Onboarding Carousel Redesign — DEPLOYED
+
+**New User Onboarding Flow (from Figma)**
+- **Welcome Bubble** (`buildWelcomeNewEntryFlex`) — single bubble shown on follow event for new users. Pink CU header (#DD598B) + 3 numbered steps + 2 CTAs: green "สร้างบัญชี/เข้าสู่ระบบ" (URI → /register) + white pink-border "📖 ดูคู่มือการใช้งานน้องซีมะโด่ง" (message action). Replaces old 4-bubble carousel on follow.
+- **Onboarding Carousel** (`buildOnboardingCarousel`) — 6 bubbles shown when user taps "ดูคู่มือ" CTA. Replaces old `buildGreetingCarousel`. Alternating pink/cream themes, square 1:1 hero banners, dark-grey CTA pill footer.
+- **6 Figma-designed bubbles**: (1) เริ่มต้นใช้งานง่ายๆ pink (2) ถามอะไรตอบได้ cream (3) แจ้งซ่อมได้ง่ายกว่าที่เคย pink (4) แจ้งเตือนอัจฉริยะ cream (5) LINE MINI APP cream (6) ยังมีอีกเยอะ pink
+- **Banner assets**: 6 square JPEG banners at `public/line-banners/onboarding-{1-6}-{slug}.jpg`. Optimized from 4.6MB → 684KB total (1800×1800 → 1040×1040, JPEG q75). Served via `https://c-madong-product.vercel.app/line-banners/...`
+- **Conditional hero rendering**: `buildOnboardingBubble()` helper swaps between hero-image version (when bannerUrl set) and fallback styled colored bubble (header+body+footer with theme bg)
+- **GUIDE_TRIGGERS**: `["ดูคู่มือการใช้งานน้องซีมะโด่ง", "ดูคู่มือ", "คู่มือการใช้งาน"]` in `webhook-handler.ts`, placed BEFORE rate limit + registration check so unregistered users can view guide
+- **CTA actions**: Bubbles 1-4 use message action sending "น้องซีมะโด่ง" (triggers menu quick reply). Bubble 5 → URI /register. Bubble 6 → URI /dashboard.
+- **Welcome banner pending**: `WELCOME_BANNER_URL = null` — welcome bubble still uses text-based pink header layout
+- Files: `src/lib/chatbot/flex-builders/greeting-carousel.ts` (added `buildWelcomeNewEntryFlex` + `buildOnboardingCarousel` + helpers `buildCtaPill`/`buildOnboardingBubble`, removed old `buildGreetingCarousel`), `src/lib/chatbot/webhook-handler.ts` (GUIDE_TRIGGERS + follow event update), `public/line-banners/` (6 new optimized JPEGs)
+
+---
+
+## Changes (2026-04-05)
+
+### Notification Bell Removal — DEPLOYED
+
+**UX Polish: Clean Page Headers**
+- Removed notification bell from `PageHeader` component used by 14 student pages
+- Bell now appears ONLY on dashboard page (via `DashboardHeader`)
+- Clean header design: back button (left) + centered title + spacer (right) for visual symmetry
+- Affected pages: billing, maintenance, parcels, announcements, events, score, profile, emergency
+- Files: `src/components/layout/page-header.tsx` (simplified - removed 3 imports, removed bell button + state)
+- Deployment: Pre-deploy validation with vercel-deploy-doctor skill, build passed, 2min deploy
+- Commit: `ac853a0` - refactor: Remove notification bell from PageHeader component
+
+---
+
+## Changes (2026-04-02)
 
 ### Phase 7.5 — Greeting Carousel + Follow Event — DEPLOYED
 

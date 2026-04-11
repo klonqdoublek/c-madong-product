@@ -48,10 +48,11 @@ export function ProfileInfoCard() {
           {bed && ` · ${t("bed")} ${bed.bed_label}`}
         </p>
 
-        {/* Faculty mockup */}
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {t("faculty")}
-        </p>
+        {profile?.faculty && (
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {profile.faculty}
+          </p>
+        )}
 
         <Badge
           variant="secondary"

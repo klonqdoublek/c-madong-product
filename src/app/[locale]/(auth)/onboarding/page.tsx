@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import type { Database } from "@/lib/supabase/types";
 
 type Building = Database["public"]["Tables"]["buildings"]["Row"];
@@ -129,10 +130,13 @@ export default function OnboardingPage() {
     loadBeds();
   }, [selectedRoom, supabase]);
 
-  const selectedBuildingData = buildings.find((b) => b.id === selectedBuilding);
-  const floors = selectedBuildingData
-    ? Array.from({ length: selectedBuildingData.floors }, (_, i) => i + 1)
-    : [];
+  const floors = Array.from({ length: 17 }, (_, i) => i + 1);
+
+  const selectedRoomData = rooms.find((r) => r.id === selectedRoom);
+  const maxBedIdx = selectedRoomData?.capacity ?? 4;
+  const allowedBeds = beds.filter(
+    (b) => b.bed_label.charCodeAt(0) - 64 <= maxBedIdx
+  );
 
   const handleNext = () => {
     if (step === 0 && !editedNameTh.trim()) {
@@ -321,23 +325,36 @@ export default function OnboardingPage() {
             {selectedRoom && (
               <div className="space-y-2">
                 <Label>{t("bed")}</Label>
-                {beds.length === 0 ? (
+                {allowedBeds.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
                     {t("noBedsAvailable")}
                   </p>
                 ) : (
-                  <Select value={selectedBed} onValueChange={setSelectedBed}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("selectBed")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {beds.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>
+                  <div
+                    className={cn(
+                      "grid gap-2",
+                      maxBedIdx <= 2 ? "grid-cols-2" : "grid-cols-4"
+                    )}
+                  >
+                    {allowedBeds.map((b) => (
+                      <button
+                        key={b.id}
+                        type="button"
+                        onClick={() => setSelectedBed(b.id)}
+                        className={cn(
+                          "flex aspect-square flex-col items-center justify-center rounded-xl border-2 font-heading text-2xl font-bold transition",
+                          selectedBed === b.id
+                            ? "border-primary bg-cu-light-pink text-primary"
+                            : "border-muted bg-card text-foreground hover:border-primary/50"
+                        )}
+                      >
+                        {b.bed_label}
+                        <span className="text-[10px] font-normal text-muted-foreground">
                           {t("bedLabel", { bed: b.bed_label })}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
             )}

@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createIntlMiddleware(routing);
 
 // Routes that don't require auth
-const PUBLIC_ROUTES = ["/login", "/register"];
+const PUBLIC_ROUTES = ["/login", "/register", "/guide"];
 
 // Routes only accessible to admin/head
 const ADMIN_ROUTE_PREFIX = "/admin";

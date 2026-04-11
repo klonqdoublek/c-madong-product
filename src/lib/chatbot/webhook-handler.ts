@@ -131,11 +131,11 @@ async function processEvent(event: LineEvent): Promise<void> {
             },
           ])
         } else {
-          // New user → stays on Menu A (default) + greeting carousel
-          console.log("[Webhook] New user → greeting carousel")
-          const { buildGreetingCarousel } = await import("./flex-builders/greeting-carousel")
+          // New user → stays on Menu A (default) + welcome bubble
+          console.log("[Webhook] New user → welcome bubble")
+          const { buildWelcomeNewEntryFlex } = await import("./flex-builders/greeting-carousel")
           await replyMessages(event.replyToken, [
-            buildGreetingCarousel("เพื่อน") as unknown as Record<string, unknown>,
+            buildWelcomeNewEntryFlex("เพื่อน") as unknown as Record<string, unknown>,
             {
               type: "text",
               text: "ลองพิมพ์ถามน้องซี หรือเลือกเมนูด่วนด้านล่างเลยจ้า 👇",
@@ -188,6 +188,58 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
       text: "สวัสดีจ้า! 🏠 น้องซีมะโด่งพร้อมช่วยเสมอนะ\n\nเลือกเมนูด้านล่าง หรือพิมพ์อะไรมาก็ได้เลยจ้า ✨",
       quickReply: MAIN_MENU_QUICK_REPLY,
     })
+    return
+  }
+
+  // Manual trigger: greeting carousel from welcome bubble CTA
+  // Placed BEFORE rate limit + registration check so unregistered users can view the guide
+  const GUIDE_TRIGGERS = [
+    "ดูคู่มือการใช้งานน้องซีมะโด่ง",
+    "ดูคู่มือ",
+    "คู่มือการใช้งาน",
+  ]
+  if (GUIDE_TRIGGERS.some((kw) => message === kw)) {
+    const { buildOnboardingCarousel } = await import("./flex-builders/greeting-carousel")
+    await replyMessages(event.replyToken, [
+      buildOnboardingCarousel() as unknown as Record<string, unknown>,
+      {
+        type: "text",
+        text: "เลือกเมนูด่วนด้านล่างเลยจ้า 👇",
+        quickReply: MAIN_MENU_QUICK_REPLY,
+      },
+    ])
+    return
+  }
+
+  // How-To carousel set 2 — from "ดูเพิ่มเติม" CTA on onboarding card 6
+  const HOWTO_TRIGGERS = ["ดูเพิ่มเติม"]
+  if (HOWTO_TRIGGERS.some((kw) => message === kw)) {
+    const { buildHowToCarousel } = await import("./flex-builders/greeting-carousel")
+    await replyMessages(event.replyToken, [
+      buildHowToCarousel() as unknown as Record<string, unknown>,
+      {
+        type: "text",
+        text: "เลือกเมนูด่วนด้านล่างเลยจ้า 👇",
+        quickReply: MAIN_MENU_QUICK_REPLY,
+      },
+    ])
+    return
+  }
+
+  // Contact staff — from carousel set 2 card 1 CTA
+  const CONTACT_TRIGGERS = ["ติดต่อเจ้าหน้าที่"]
+  if (CONTACT_TRIGGERS.some((kw) => message === kw)) {
+    await replyMessages(event.replyToken, [
+      {
+        type: "text",
+        text: "📞 ข้อมูลติดต่อเจ้าหน้าที่หอพัก\n\n☎️ สำนักงานหอพัก: 02-218-XXXX\n📧 Email: dorm@chula.ac.th\n🕐 เวลาทำการ: จ-ศ 08:30-16:30\n📍 ตึกจุฬาพัฒน์ 14 ชั้น 1",
+      },
+      {
+        type: "text",
+        text: "เลือกเมนูด่วนด้านล่างเลยจ้า 👇",
+        quickReply: MAIN_MENU_QUICK_REPLY,
+      },
+    ])
     return
   }
 

@@ -119,6 +119,7 @@ export type Database = {
           language: string;
           tags: string[];
           status: string;
+          faculty: string | null;
           onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
@@ -141,6 +142,7 @@ export type Database = {
           language?: string;
           tags?: string[];
           status?: string;
+          faculty?: string | null;
           onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -163,6 +165,7 @@ export type Database = {
           language?: string;
           tags?: string[];
           status?: string;
+          faculty?: string | null;
           onboarding_completed?: boolean;
           updated_at?: string;
         };

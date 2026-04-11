@@ -45,6 +45,8 @@
     "fullNameTh": "Full Name (Thai)",
     "fullNameThPlaceholder": "Somchai Jaidee",
     "fullNameEn": "Full Name (English)",
+    "faculty": "Faculty",
+    "facultyPlaceholder": "e.g. Faculty of Engineering",
     "phone": "Phone Number",
     "welcomeTitle": "Welcome to C-Madong!",
     "welcomeSubtitle": "RCU.Chula",
@@ -264,7 +266,7 @@
     "floor": "Floor",
     "bed": "Bed",
     "language": "Language",
-    "faculty": "Faculty of Engineering · Computer Engineering",
+    "faculty": "Faculty",
     "currentResident": "Current Resident",
     "viewDormCard": "View Dorm Card",
     "editProfile": "Edit Profile",
@@ -1098,5 +1100,9 @@
     "tabInternal": "University",
     "tabExternal": "External",
     "call": "Call"
+  },
+  "guide": {
+    "desktopOnly": "Please open on mobile",
+    "desktopOnlyDescription": "This page is designed for mobile use. Please open via LINE or scan the QR code with your phone."
   }
 }

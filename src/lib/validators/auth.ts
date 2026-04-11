@@ -11,6 +11,7 @@ export const registerSchema = z.object({
     .regex(/^\d{10}$/, "Student ID must be 10 digits"),
   fullNameTh: z.string().min(1),
   fullNameEn: z.string().optional(),
+  faculty: z.string().min(1, "กรุณากรอกคณะ"),
   email: z.email(),
   phone: z.string().optional(),
   lineUid: z.string().min(1),

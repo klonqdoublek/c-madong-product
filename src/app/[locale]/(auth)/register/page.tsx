@@ -18,6 +18,7 @@ interface RegisterFormData {
   studentId: string;
   fullNameTh: string;
   fullNameEn: string;
+  faculty: string;
   email: string;
   phone: string;
 }
@@ -38,6 +39,7 @@ export default function RegisterPage() {
       studentId: "",
       fullNameTh: "",
       fullNameEn: "",
+      faculty: "",
       email: "",
       phone: "",
     },
@@ -173,6 +175,20 @@ export default function RegisterPage() {
             placeholder="Somchai Jaidee"
             {...register("fullNameEn")}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="faculty">{t("faculty")} *</Label>
+          <Input
+            id="faculty"
+            placeholder={t("facultyPlaceholder")}
+            {...register("faculty", {
+              required: t("fieldRequired"),
+            })}
+          />
+          {errors.faculty && (
+            <p className="text-xs text-destructive">{errors.faculty.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">

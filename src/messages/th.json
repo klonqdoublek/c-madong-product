@@ -45,6 +45,8 @@
     "fullNameTh": "ชื่อ-นามสกุล (ภาษาไทย)",
     "fullNameThPlaceholder": "สมชาย ใจดี",
     "fullNameEn": "ชื่อ-นามสกุล (ภาษาอังกฤษ)",
+    "faculty": "คณะ",
+    "facultyPlaceholder": "เช่น คณะวิศวกรรมศาสตร์",
     "phone": "เบอร์โทรศัพท์",
     "welcomeTitle": "ยินดีต้อนรับสู่รั้วซีมะโด่ง!",
     "welcomeSubtitle": "RCU.Chula",
@@ -264,7 +266,7 @@
     "floor": "ชั้น",
     "bed": "เตียง",
     "language": "ภาษา",
-    "faculty": "คณะวิศวกรรมศาสตร์ · ภาควิชาวิศวกรรมคอมพิวเตอร์",
+    "faculty": "คณะ",
     "currentResident": "นิสิตหอพักปัจจุบัน",
     "viewDormCard": "ดูบัตรหอพัก",
     "editProfile": "แก้ไขข้อมูลส่วนตัว",
@@ -1098,5 +1100,9 @@
     "tabInternal": "ภายในมหา'ลัย",
     "tabExternal": "ภายนอก",
     "call": "โทร"
+  },
+  "guide": {
+    "desktopOnly": "กรุณาเปิดบนมือถือ",
+    "desktopOnlyDescription": "หน้านี้ออกแบบมาสำหรับใช้งานบนมือถือ กรุณาเปิดผ่าน LINE หรือสแกน QR Code ด้วยมือถือ"
   }
 }
