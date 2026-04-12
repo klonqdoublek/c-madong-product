@@ -226,172 +226,32 @@ export function buildWelcomeNewEntryFlex(
 }
 
 // --- Onboarding Carousel (from "ดูคู่มือ" CTA) ---
-// 6-bubble tour based on Figma nodes 73:389 → 73:395
-// Banner images will be uploaded later — constants below are null until ready.
-// When bannerUrl is set, bubble swaps from styled header+body to hero image + body.
-
-const CREAM_BG = "#FBF6E9"
-const CREAM_LIGHT = "#FFFEF5"
-const TEXT_DARK_GREY = "#3F3F3D"
-const CTA_PILL_BG = "#585856"
-
-// Banner images served from /public/line-banners/ — 1800x1800 square JPEGs
+// 6-bubble tour - image-only format (no text/CTAs)
+// Banner images served from /public/line-banners/ — 1040x1040 square JPEGs
 const BANNER_BASE = "https://c-madong-product.vercel.app/line-banners"
 const ONBOARDING_BANNERS = {
-  start: `${BANNER_BASE}/onboarding-1-start.jpg` as string | null, // 73:389 — เริ่มต้นใช้งานง่ายๆ (pink)
-  ask: `${BANNER_BASE}/onboarding-2-ask.jpg` as string | null, // 73:391 — ถามอะไรตอบได้! (cream)
-  repair: `${BANNER_BASE}/onboarding-3-repair.jpg` as string | null, // 73:390 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
-  notify: `${BANNER_BASE}/onboarding-4-notify.jpg` as string | null, // 73:392 — แจ้งเตือนอัจฉริยะ (cream)
-  miniApp: `${BANNER_BASE}/onboarding-5-miniapp.jpg` as string | null, // 73:394 — LINE MINI APP (cream)
-  more: `${BANNER_BASE}/onboarding-6-more.jpg` as string | null, // 73:395 — ยังมีอีกเยอะ! (pink)
+  start: `${BANNER_BASE}/onboarding-1-start.jpg`, // เริ่มต้นใช้งานง่ายๆ
+  ask: `${BANNER_BASE}/onboarding-2-ask.jpg`, // ถามอะไรตอบได้!
+  repair: `${BANNER_BASE}/onboarding-3-repair.jpg`, // แจ้งซ่อมได้ ง่ายกว่าที่เคย!
+  notify: `${BANNER_BASE}/onboarding-4-notify.jpg`, // แจ้งเตือนอัจฉริยะ
+  miniApp: `${BANNER_BASE}/onboarding-5-miniapp.jpg`, // LINE MINI APP
+  more: `${BANNER_BASE}/onboarding-6-more.jpg`, // ยังมีอีกเยอะ!
 }
-
-type BubbleTheme = "pink" | "cream"
-
-type CtaAction =
-  | { kind: "message"; label: string; text: string }
-  | { kind: "uri"; label: string; uri: string }
 
 interface OnboardingBubbleConfig {
-  theme: BubbleTheme
-  bannerUrl: string | null
-  title: string
-  description: string
-  cta: CtaAction
-}
-
-function buildCtaPill(cta: CtaAction) {
-  const action =
-    cta.kind === "message"
-      ? { type: "message", label: cta.label, text: cta.text }
-      : { type: "uri", label: cta.label, uri: cta.uri }
-
-  return {
-    type: "box",
-    layout: "vertical",
-    backgroundColor: CTA_PILL_BG,
-    cornerRadius: "xxl",
-    paddingTop: "md",
-    paddingBottom: "md",
-    paddingStart: "lg",
-    paddingEnd: "lg",
-    contents: [
-      {
-        type: "text",
-        text: cta.label,
-        color: "#FFFFFF",
-        weight: "bold",
-        size: "md",
-        align: "center",
-        wrap: true,
-      },
-    ],
-    action,
-  }
+  bannerUrl: string
 }
 
 function buildOnboardingBubble(config: OnboardingBubbleConfig) {
-  const isPink = config.theme === "pink"
-  const bgColor = isPink ? CU_PINK : CREAM_BG
-  const titleColor = isPink ? "#FFFFFF" : CU_PINK
-  const descColor = isPink ? CREAM_LIGHT : TEXT_DARK_GREY
-
-  // When banner is uploaded → use hero image + white body/footer
-  if (config.bannerUrl) {
-    return {
-      type: "bubble",
-      size: "kilo",
-      hero: {
-        type: "image",
-        url: config.bannerUrl,
-        size: "full",
-        aspectRatio: "1:1",
-        aspectMode: "cover",
-        backgroundColor: bgColor,
-      },
-      body: {
-        type: "box",
-        layout: "vertical",
-        spacing: "sm",
-        contents: [
-          {
-            type: "text",
-            text: config.title,
-            weight: "bold",
-            size: "lg",
-            color: CU_PINK,
-            wrap: true,
-          },
-          {
-            type: "text",
-            text: config.description,
-            size: "sm",
-            color: TEXT_DARK_GREY,
-            wrap: true,
-            margin: "sm",
-          },
-        ],
-        paddingAll: "lg",
-      },
-      footer: {
-        type: "box",
-        layout: "vertical",
-        contents: [buildCtaPill(config.cta)],
-        paddingAll: "md",
-      },
-    }
-  }
-
-  // No banner yet → styled colored bubble with header + body + footer
   return {
     type: "bubble",
     size: "kilo",
-    styles: {
-      header: { backgroundColor: bgColor },
-      body: { backgroundColor: bgColor },
-      footer: { backgroundColor: bgColor },
-    },
-    header: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "text",
-          text: config.title,
-          weight: "bold",
-          size: "lg",
-          color: titleColor,
-          wrap: true,
-        },
-      ],
-      paddingTop: "xl",
-      paddingStart: "lg",
-      paddingEnd: "lg",
-      paddingBottom: "md",
-    },
-    body: {
-      type: "box",
-      layout: "vertical",
-      contents: [
-        {
-          type: "text",
-          text: config.description,
-          size: "sm",
-          color: descColor,
-          wrap: true,
-        },
-      ],
-      paddingStart: "lg",
-      paddingEnd: "lg",
-      paddingTop: "none",
-      paddingBottom: "xl",
-    },
-    footer: {
-      type: "box",
-      layout: "vertical",
-      contents: [buildCtaPill(config.cta)],
-      paddingAll: "lg",
-      paddingTop: "none",
+    hero: {
+      type: "image",
+      url: config.bannerUrl,
+      size: "full",
+      aspectRatio: "1:1",
+      aspectMode: "cover",
     },
   }
 }
@@ -401,87 +261,33 @@ export function buildOnboardingCarousel(): FlexMessagePayload {
   const bubbles = [
     // 1 — เริ่มต้นใช้งานง่ายๆ (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: ONBOARDING_BANNERS.start,
-      title: "👩🏻‍💻 เริ่มต้นใช้งานง่ายๆ",
-      description:
-        "แค่พิมพ์คุยกับน้องซีมะโด่งในช่องแชทได้เลย โดยไม่ต้องกดเมนู! ถามอะไรมาได้ตลอดเลย",
-      cta: {
-        kind: "message",
-        label: "👋 ลองส่งข้อความ",
-        text: "น้องซีมะโด่ง",
-      },
     }),
     // 2 — ถามอะไรตอบได้! (cream)
     buildOnboardingBubble({
-      theme: "cream",
       bannerUrl: ONBOARDING_BANNERS.ask,
-      title: "💡 ถามอะไรตอบได้!",
-      description:
-        "มีคำถามเรื่องหอพัก ระเบียบ หรือข้อมูลต่างๆ ถามน้องซีได้เลยน้า ตอบได้หมดจ้า! 🤓",
-      cta: {
-        kind: "message",
-        label: "💡 ลองถามคำถาม",
-        text: "น้องซีมะโด่ง",
-      },
     }),
     // 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: ONBOARDING_BANNERS.repair,
-      title: "🔨 แจ้งซ่อมได้ ง่ายกว่าที่เคย!",
-      description:
-        "แค่ถ่ายรูปส่งมาเลยก็พอ น้องซีช่วยแจ้งให้ได้เลย! ติดตามสถานะได้ตลอด 👩🏻‍🔧",
-      cta: {
-        kind: "message",
-        label: "🔨 ลองแจ้งซ่อม",
-        text: "น้องซีมะโด่ง",
-      },
     }),
     // 4 — แจ้งเตือนอัจฉริยะ (cream)
     buildOnboardingBubble({
-      theme: "cream",
       bannerUrl: ONBOARDING_BANNERS.notify,
-      title: "🔔 แจ้งเตือนอัจฉริยะ",
-      description:
-        "พัสดุมาถึง ค่าหอใกล้ครบ กิจกรรมใกล้ถึง น้องซีจะแจ้งเตือนให้ไม่พลาดเลยจ้า 🔔",
-      cta: {
-        kind: "message",
-        label: "📦 ลองเช็คพัสดุ",
-        text: "น้องซีมะโด่ง",
-      },
     }),
     // 5 — LINE MINI APP (cream)
     buildOnboardingBubble({
-      theme: "cream",
       bannerUrl: ONBOARDING_BANNERS.miniApp,
-      title: "📱 LINE MINI APP",
-      description:
-        "เพิ่มไปหน้าจอโทรศัพท์ได้โดยไม่ต้องโหลดแอพ! ใช้งานง่ายเหมือนแอพปกติ เข้าถึงฟีเจอร์ได้ทั้งหมดเลย",
-      cta: {
-        kind: "uri",
-        label: "📱 เปิด LINE MINI APP",
-        uri: `${WEB_BASE}/login`,
-      },
     }),
     // 6 — ยังมีอีกเยอะ! (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: ONBOARDING_BANNERS.more,
-      title: "🎉 ยังมีอีกเยอะ!",
-      description:
-        "น้องซียังมีฟีเจอร์เจ๋งๆ อีกเยอะ! กดดูเพิ่มเติมได้เลยนะ 🎉",
-      cta: {
-        kind: "message",
-        label: "ดูเพิ่มเติม",
-        text: "ดูเพิ่มเติม",
-      },
     }),
   ]
 
   return {
     type: "flex",
-    altText: "🎉 คู่มือการใช้งานน้องซีมะโด่ง",
+    altText: "คู่มือการใช้งานน้องซีมะโด่ง",
     contents: {
       type: "carousel",
       contents: bubbles,
@@ -490,14 +296,14 @@ export function buildOnboardingCarousel(): FlexMessagePayload {
 }
 
 // --- How-To Carousel (from "ดูเพิ่มเติม" CTA on card 6) ---
-// 5-bubble set 2 carousel: contact, getting started, shortcuts, account, FAQ
+// 5-bubble set 2 - image-only format (no text/CTAs)
 
 const HOWTO_BANNERS = {
-  contact: `${BANNER_BASE}/howto-1-contact.jpg` as string | null,
-  gettingStarted: `${BANNER_BASE}/howto-2-getting-started.jpg` as string | null,
-  shortcuts: `${BANNER_BASE}/howto-3-shortcuts.jpg` as string | null,
-  account: `${BANNER_BASE}/howto-4-account.jpg` as string | null,
-  faq: `${BANNER_BASE}/howto-5-faq.jpg` as string | null,
+  contact: `${BANNER_BASE}/howto-1-contact.jpg`,
+  gettingStarted: `${BANNER_BASE}/howto-2-getting-started.jpg`,
+  shortcuts: `${BANNER_BASE}/howto-3-shortcuts.jpg`,
+  account: `${BANNER_BASE}/howto-4-account.jpg`,
+  faq: `${BANNER_BASE}/howto-5-faq.jpg`,
 }
 
 /** 5-bubble how-to carousel — shown when user taps "ดูเพิ่มเติม" on card 6 */
@@ -505,74 +311,29 @@ export function buildHowToCarousel(): FlexMessagePayload {
   const bubbles = [
     // 1 — ติดต่อสอบถาม (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: HOWTO_BANNERS.contact,
-      title: "💬 ติดต่อสอบถาม หรือข้อมูลเพิ่มเติม",
-      description:
-        "มีคำถาม หรือต้องการความช่วยเหลือ? ติดต่อเจ้าหน้าที่หอพักได้เลยจ้า",
-      cta: {
-        kind: "message",
-        label: "💬 ติดต่อเจ้าหน้าที่",
-        text: "ติดต่อเจ้าหน้าที่",
-      },
     }),
     // 2 — วิธีการใช้งานเบื้องต้น (cream)
     buildOnboardingBubble({
-      theme: "cream",
       bannerUrl: HOWTO_BANNERS.gettingStarted,
-      title: "📖 วิธีการใช้งาน C-MADONG เบื้องต้น",
-      description:
-        "เริ่มต้นใช้งานระบบหอพักอัจฉริยะ ดูขั้นตอนง่ายๆ ได้ที่นี่เลย",
-      cta: {
-        kind: "uri",
-        label: "📖 ดูคู่มือการใช้งาน",
-        uri: `${WEB_BASE}/guide/getting-started`,
-      },
     }),
     // 3 — คีย์ลัด (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: HOWTO_BANNERS.shortcuts,
-      title: "⚡️ คีย์ลัด และเมนูเพิ่มเติม",
-      description:
-        "รวมคำสั่งลัดและเมนูที่ช่วยให้ใช้งานได้เร็วขึ้น!",
-      cta: {
-        kind: "uri",
-        label: "⚡️ ดูคีย์ลัดทั้งหมด",
-        uri: `${WEB_BASE}/guide/shortcuts`,
-      },
     }),
     // 4 — เกี่ยวกับบัญชี (cream)
     buildOnboardingBubble({
-      theme: "cream",
       bannerUrl: HOWTO_BANNERS.account,
-      title: "👤 เกี่ยวกับบัญชีผู้ใช้งาน",
-      description:
-        "ดูข้อมูลบัญชี แก้ไขโปรไฟล์ และจัดการการตั้งค่าต่างๆ",
-      cta: {
-        kind: "uri",
-        label: "👤 ดูข้อมูลบัญชี",
-        uri: `${WEB_BASE}/guide/account`,
-      },
     }),
     // 5 — คำถามที่พบบ่อย (pink)
     buildOnboardingBubble({
-      theme: "pink",
       bannerUrl: HOWTO_BANNERS.faq,
-      title: "❓ คำถามที่พบบ่อย",
-      description:
-        "รวมคำตอบสำหรับคำถามยอดฮิตที่นิสิตถามบ่อย ดูได้เลยจ้า!",
-      cta: {
-        kind: "uri",
-        label: "❓ ดูคำถามที่พบบ่อย",
-        uri: `${WEB_BASE}/guide/faq`,
-      },
     }),
   ]
 
   return {
     type: "flex",
-    altText: "📚 ข้อมูลเพิ่มเติมเกี่ยวกับน้องซีมะโด่ง",
+    altText: "ข้อมูลเพิ่มเติมเกี่ยวกับน้องซีมะโด่ง",
     contents: {
       type: "carousel",
       contents: bubbles,
