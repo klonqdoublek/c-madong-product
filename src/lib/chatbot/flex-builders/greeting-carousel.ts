@@ -226,7 +226,7 @@ export function buildWelcomeNewEntryFlex(
 }
 
 // --- Onboarding Carousel (from "ดูคู่มือ" CTA) ---
-// 6-bubble tour - image-only format (no text/CTAs)
+// 6-bubble tour - image-only format with tappable actions
 // Banner images served from /public/line-banners/ — 1040x1040 square JPEGs
 const BANNER_BASE = "https://c-madong-product.vercel.app/line-banners"
 const ONBOARDING_BANNERS = {
@@ -238,8 +238,13 @@ const ONBOARDING_BANNERS = {
   more: `${BANNER_BASE}/onboarding-6-more.jpg`, // ยังมีอีกเยอะ!
 }
 
+type FlexAction =
+  | { type: "message"; label: string; text: string }
+  | { type: "uri"; label: string; uri: string }
+
 interface OnboardingBubbleConfig {
   bannerUrl: string
+  action: FlexAction
 }
 
 function buildOnboardingBubble(config: OnboardingBubbleConfig) {
@@ -247,11 +252,19 @@ function buildOnboardingBubble(config: OnboardingBubbleConfig) {
     type: "bubble",
     size: "kilo",
     hero: {
-      type: "image",
-      url: config.bannerUrl,
-      size: "full",
-      aspectRatio: "1:1",
-      aspectMode: "cover",
+      type: "box",
+      layout: "vertical",
+      contents: [
+        {
+          type: "image",
+          url: config.bannerUrl,
+          size: "full",
+          aspectRatio: "1:1",
+          aspectMode: "cover",
+        },
+      ],
+      paddingAll: "0px",
+      action: config.action,
     },
   }
 }
@@ -262,26 +275,32 @@ export function buildOnboardingCarousel(): FlexMessagePayload {
     // 1 — เริ่มต้นใช้งานง่ายๆ (pink)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.start,
+      action: { type: "message", label: "ลองส่งข้อความ", text: "น้องซีมะโด่ง" },
     }),
     // 2 — ถามอะไรตอบได้! (cream)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.ask,
+      action: { type: "message", label: "ลองถามคำถาม", text: "น้องซีมะโด่ง" },
     }),
     // 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.repair,
+      action: { type: "message", label: "ลองแจ้งซ่อม", text: "น้องซีมะโด่ง" },
     }),
     // 4 — แจ้งเตือนอัจฉริยะ (cream)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.notify,
+      action: { type: "message", label: "ลองเช็คพัสดุ", text: "น้องซีมะโด่ง" },
     }),
     // 5 — LINE MINI APP (cream)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.miniApp,
+      action: { type: "uri", label: "เปิด LINE MINI APP", uri: `${WEB_BASE}/login` },
     }),
     // 6 — ยังมีอีกเยอะ! (pink)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.more,
+      action: { type: "message", label: "ดูเพิ่มเติม", text: "ดูเพิ่มเติม" },
     }),
   ]
 
@@ -312,22 +331,27 @@ export function buildHowToCarousel(): FlexMessagePayload {
     // 1 — ติดต่อสอบถาม (pink)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.contact,
+      action: { type: "message", label: "ติดต่อเจ้าหน้าที่", text: "ติดต่อเจ้าหน้าที่" },
     }),
     // 2 — วิธีการใช้งานเบื้องต้น (cream)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.gettingStarted,
+      action: { type: "uri", label: "ดูคู่มือการใช้งาน", uri: `${WEB_BASE}/guide/getting-started` },
     }),
     // 3 — คีย์ลัด (pink)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.shortcuts,
+      action: { type: "uri", label: "ดูคีย์ลัดทั้งหมด", uri: `${WEB_BASE}/guide/shortcuts` },
     }),
     // 4 — เกี่ยวกับบัญชี (cream)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.account,
+      action: { type: "uri", label: "ดูข้อมูลบัญชี", uri: `${WEB_BASE}/guide/account` },
     }),
     // 5 — คำถามที่พบบ่อย (pink)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.faq,
+      action: { type: "uri", label: "ดูคำถามที่พบบ่อย", uri: `${WEB_BASE}/guide/faq` },
     }),
   ]
 
