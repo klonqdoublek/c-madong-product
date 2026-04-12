@@ -280,17 +280,17 @@ export function buildOnboardingCarousel(): FlexMessagePayload {
     // 2 — ถามอะไรตอบได้! (cream)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.ask,
-      action: { type: "message", label: "ลองถามคำถาม", text: "น้องซีมะโด่ง" },
+      action: { type: "message", label: "ถามคำถาม", text: "ถามคำถาม" },
     }),
     // 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.repair,
-      action: { type: "message", label: "ลองแจ้งซ่อม", text: "น้องซีมะโด่ง" },
+      action: { type: "message", label: "คู่มือแจ้งซ่อม", text: "คู่มือแจ้งซ่อม" },
     }),
     // 4 — แจ้งเตือนอัจฉริยะ (cream)
     buildOnboardingBubble({
       bannerUrl: ONBOARDING_BANNERS.notify,
-      action: { type: "message", label: "ลองเช็คพัสดุ", text: "น้องซีมะโด่ง" },
+      action: { type: "message", label: "ดูเมนูแจ้งเตือน", text: "แจ้งเตือนอัจฉริยะ" },
     }),
     // 5 — LINE MINI APP (cream)
     buildOnboardingBubble({

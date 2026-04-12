@@ -243,6 +243,48 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
     return
   }
 
+  // Ask question menu — from onboarding carousel bubble 2 CTA
+  const ASK_TRIGGERS = ["ถามคำถาม"]
+  if (ASK_TRIGGERS.some((kw) => message === kw)) {
+    const { ASK_QUICK_REPLY } = await import("./quick-reply")
+    await replyMessages(event.replyToken, [
+      {
+        type: "text",
+        text: "อยากรู้เรื่องอะไรจ้า? เลือกได้เลย 👇",
+        quickReply: ASK_QUICK_REPLY,
+      },
+    ])
+    return
+  }
+
+  // Repair guide — from onboarding carousel bubble 3 CTA
+  const REPAIR_GUIDE_TRIGGERS = ["คู่มือแจ้งซ่อม"]
+  if (REPAIR_GUIDE_TRIGGERS.some((kw) => message === kw)) {
+    const { REPAIR_GUIDE_QUICK_REPLY } = await import("./quick-reply")
+    await replyMessages(event.replyToken, [
+      {
+        type: "text",
+        text: "📱 วิธีแจ้งซ่อมง่ายๆ 3 ขั้นตอน\n\n1️⃣ กดปุ่ม 'ลองแจ้งซ่อมเลย' ด้านล่าง\n2️⃣ ถ่ายรูปส่งมาให้น้องซีมะโด่ง\n3️⃣ ยืนยันรายละเอียด แล้วเสร็จ!\n\n✨ AI จะช่วยวิเคราะห์ภาพและจัดหมวดหมู่ให้อัตโนมัติจ้า",
+        quickReply: REPAIR_GUIDE_QUICK_REPLY,
+      },
+    ])
+    return
+  }
+
+  // Smart notification menu — from onboarding carousel bubble 4 CTA
+  const SMART_NOTIFY_TRIGGERS = ["แจ้งเตือนอัจฉริยะ"]
+  if (SMART_NOTIFY_TRIGGERS.some((kw) => message === kw)) {
+    const { SMART_NOTIFY_QUICK_REPLY } = await import("./quick-reply")
+    await replyMessages(event.replyToken, [
+      {
+        type: "text",
+        text: "เลือกสิ่งที่ต้องการเช็คจ้า 👇",
+        quickReply: SMART_NOTIFY_QUICK_REPLY,
+      },
+    ])
+    return
+  }
+
   // Rate limiting
   const recentCount = await countRecentUserMessages(lineUid)
   if (recentCount >= RATE_LIMIT_PER_MINUTE) {
