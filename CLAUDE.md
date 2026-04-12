@@ -5,7 +5,114 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-10)
+## Recent Changes (2026-04-13)
+
+### Context-Specific Quick Reply Menus for Onboarding Carousel — DEPLOYED
+
+**Problem Solved**
+- Bubbles 2, 3, 4 in onboarding carousel all sent generic "น้องซีมะโด่ง" → showed same main menu
+- Users expected context-specific actions matching each bubble's theme
+
+**Unique Trigger Keywords** (3 new triggers in `webhook-handler.ts`)
+- Bubble 2 "ถามอะไรตอบได้!" → `"ถามคำถาม"` → ASK_QUICK_REPLY
+- Bubble 3 "แจ้งซ่อมได้ ง่ายกว่าที่เคย!" → `"คู่มือแจ้งซ่อม"` → repair guide text + REPAIR_GUIDE_QUICK_REPLY
+- Bubble 4 "แจ้งเตือนอัจฉริยะ" → `"แจ้งเตือนอัจฉริยะ"` → SMART_NOTIFY_QUICK_REPLY
+
+**Quick Reply Menus** (3 new exports in `quick-reply.ts`)
+- **ASK_QUICK_REPLY**: 📋 กฎหอพัก | 💰 ค่าหอ/ค่าน้ำค่าไฟ | 🏢 สิ่งอำนวยความสะดวก
+- **REPAIR_GUIDE_QUICK_REPLY**: 🔧 ลองแจ้งซ่อมเลย (single button)
+- **SMART_NOTIFY_QUICK_REPLY**: 📊 คะแนนหอ | 📦 พัสดุ | 💰 ค่าหอพัก
+
+**Repair Guide Text** (bubble 3 response)
+```
+📱 วิธีแจ้งซ่อมง่ายๆ 3 ขั้นตอน
+
+1️⃣ กดปุ่ม 'ลองแจ้งซ่อมเลย' ด้านล่าง
+2️⃣ ถ่ายรูปส่งมาให้น้องซีมะโด่ง
+3️⃣ ยืนยันรายละเอียด แล้วเสร็จ!
+
+✨ AI จะช่วยวิเคราะห์ภาพและจัดหมวดหมู่ให้อัตโนมัติจ้า
+```
+
+**Files Modified**:
+- `src/lib/chatbot/flex-builders/greeting-carousel.ts` — bubbles 2-4 action text changed
+- `src/lib/chatbot/quick-reply.ts` — +3 quick reply menu exports
+- `src/lib/chatbot/webhook-handler.ts` — +3 trigger handlers (before rate limit for unregistered access)
+
+**Commit**: `1b946e2` - feat: add context-specific quick reply menus to onboarding carousel
+
+**Gotchas & Lessons Learned**:
+
+1. **Context Understanding — Read Full Context Before Implementing**
+   - Initial plan only mentioned bubble 4, but bubbles 2 & 3 had the same issue (sending generic "น้องซีมะโด่ง")
+   - Lesson: When fixing a pattern issue in carousel, **audit ALL bubbles** for duplicates, not just the one mentioned
+   - Pattern recognition > literal spec — if you see a problem repeated, fix it comprehensively
+
+2. **CTA Preservation Pattern**
+   - ✅ **Never remove CTAs** — only enhance them by changing action text/type
+   - ✅ Kept Flex structure intact — only modified `action.text` from generic to specific triggers
+   - ✅ Maintained UX flow — users still tap bubbles, just get context-relevant responses
+   - Principle: Flex carousel CTAs are core UX elements → enhance, don't delete
+
+3. **Webhook Handler Placement — Trigger Order Matters**
+   - Pre-rate-limit triggers (accessible to unregistered users):
+     - GUIDE_TRIGGERS, HOWTO_TRIGGERS, CONTACT_TRIGGERS
+     - ASK_TRIGGERS, REPAIR_GUIDE_TRIGGERS, SMART_NOTIFY_TRIGGERS ← NEW
+   - Why: Onboarding triggers must bypass rate limit so new users can explore features
+   - Placing after rate limit = bad UX (unregistered users get blocked)
+
+4. **Quick Reply Menu Design Principles**
+   - Context Relevance: Menu must match bubble theme (e.g., "แจ้งเตือนอัจฉริยะ" → notification features only)
+   - Button Count: Main menu = 4 buttons (max utility), Context menu = 1-3 buttons (focused choices)
+   - Text Triggers: Reuse existing intent keywords ("คะแนนหอ", "พัสดุ", "ค่าหอ") → no new handlers needed
+
+5. **Dynamic Import Pattern for Performance**
+   - Use `await import("./quick-reply")` instead of top-level imports
+   - Webhook handler processes every message → must be fast
+   - Load quick reply configs only when trigger matched
+
+6. **Proactive Pattern Checking**
+   - When fixing one bubble, grep for similar patterns: `grep -n '"น้องซีมะโด่ง"' greeting-carousel.ts`
+   - Would have found bubbles 2, 3, 4 all using same text immediately
+   - DRY principle: If fixing something once, search codebase for duplication
+
+**Key Takeaway**: Think **holistically** when modifying carousel flows — understand full context, recognize patterns, and fix comprehensively rather than literally following spec.
+
+---
+
+## Changes (2026-04-11)
+
+### How-To Carousel Set 2 + LIFF Guide Pages — DEPLOYED
+
+**Onboarding Carousel Card 6 CTA Change**
+- Card 6 "ยังมีอีกเยอะ!" CTA changed from URI `/dashboard` → message action "ดูเพิ่มเติม"
+- Triggers how-to carousel set 2 (5 bubbles)
+
+**How-To Carousel Set 2** (`buildHowToCarousel()`)
+- 5 bubbles: (1) ติดต่อเจ้าหน้าที่ pink (2) วิธีการใช้งานเบื้องต้น cream (3) คีย์ลัด pink (4) เกี่ยวกับบัญชี cream (5) คำถามที่พบบ่อย pink
+- Banner images: `public/line-banners/howto-{1-5}-{slug}.jpg`
+- Reuses `buildOnboardingBubble()` + `buildCtaPill()` from set 1
+
+**Webhook Triggers** (before rate limit, accessible to unregistered users)
+- `HOWTO_TRIGGERS = ["ดูเพิ่มเติม"]` → replies with how-to carousel + quick reply menu
+- `CONTACT_TRIGGERS = ["ติดต่อเจ้าหน้าที่"]` → replies with mock contact info text
+
+**LIFF Guide Pages** (4 image-based pages)
+- Routes: `/guide/getting-started`, `/guide/shortcuts`, `/guide/account`, `/guide/faq`
+- Located at `src/app/[locale]/guide/` (NOT inside `(student)` route group — no bottom nav)
+- Shared layout: mobile shows full-width image, desktop shows "กรุณาเปิดบนมือถือ" fallback
+- Images: `public/guide/{getting-started,shortcuts,account,faq}.jpg`
+- Components: `src/components/student/guide/` (guide-image-page, desktop-fallback, guide-layout-client)
+- Middleware: `/guide` added to `PUBLIC_ROUTES` (no auth required)
+- i18n: `guide.desktopOnly` + `guide.desktopOnlyDescription` in th/en
+
+**Files**:
+- Modified: `greeting-carousel.ts` (card 6 CTA + `buildHowToCarousel` + `HOWTO_BANNERS`), `webhook-handler.ts` (+2 trigger blocks), `middleware.ts` (+`/guide`), `th.json`, `en.json`
+- Created: `src/app/[locale]/guide/` (layout + 4 pages), `src/components/student/guide/` (3 components), `public/guide/` (4 JPEGs), `public/line-banners/howto-*.jpg` (5 JPEGs)
+
+---
+
+## Changes (2026-04-10)
 
 ### Register Flow Enhancements — DEPLOYED
 
