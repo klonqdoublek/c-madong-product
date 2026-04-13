@@ -1038,7 +1038,10 @@
     "uploadSuccess": "Upload successful",
     "uploadError": "Upload failed",
     "dateRange": "{start} - {end}",
-    "doEvaluation": "Do Evaluation"
+    "doEvaluation": "Do Evaluation",
+    "submitEvaluation": "Submit Evaluation",
+    "skippedCriterion": "Skipped this criterion",
+    "undoSkip": "Undo"
   },
   "notifications": {
     "title": "Notifications",

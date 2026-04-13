@@ -1038,7 +1038,10 @@
     "uploadSuccess": "อัปโหลดสำเร็จ",
     "uploadError": "อัปโหลดล้มเหลว",
     "dateRange": "{start} - {end}",
-    "doEvaluation": "ทำแบบประเมิน"
+    "doEvaluation": "ทำแบบประเมิน",
+    "submitEvaluation": "ส่งแบบประเมิน",
+    "skippedCriterion": "ข้ามข้อนี้แล้ว",
+    "undoSkip": "ยกเลิก"
   },
   "notifications": {
     "title": "การแจ้งเตือน",

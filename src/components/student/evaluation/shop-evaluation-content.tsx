@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { toast } from "sonner";
 import { Store } from "lucide-react";
 import { StepIndicator } from "./step-indicator";
 import { CriterionCard } from "./criterion-card";
 import { StickyBottomBar } from "./sticky-bottom-bar";
-import {
-  useEvaluationCriteria,
-  useMySubmission,
-  useMyResponses,
-  useSaveStepResponses,
-  useCompleteEvaluation,
-} from "@/hooks/use-evaluation";
+import { useEvaluationCriteria, useMyResponses } from "@/hooks/use-evaluation";
 
 interface ShopEvaluationContentProps {
   formId: string;
@@ -26,42 +22,50 @@ export function ShopEvaluationContent({
   shops,
 }: ShopEvaluationContentProps) {
   const t = useTranslations("evaluation");
+  const router = useRouter();
   const { data: criteria = [] } = useEvaluationCriteria(formId);
-  const { data: submission } = useMySubmission(formId);
   const { data: responses = [] } = useMyResponses(formId);
-  const saveResponses = useSaveStepResponses();
-  const completeEvaluation = useCompleteEvaluation();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [criteriaValues, setCriteriaValues] = useState<
     Record<string, number | string | null>
   >({});
+  const [skippedCriteria, setSkippedCriteria] = useState<Set<string>>(
+    new Set()
+  );
+  const [loadingLabel, setLoadingLabel] = useState(false);
 
-  // Load existing responses for current step
-  useEffect(() => {
-    const stepResponses = responses.filter((r) => r.step_index === currentStep);
+  // Use ref for busy guard — NOT state — so React batching can never leave buttons stuck
+  const busyRef = useRef(false);
+
+  // Restore saved responses when switching steps
+  const lastRestoredStep = useRef(-1);
+  if (lastRestoredStep.current !== currentStep) {
+    const stepResponses = responses.filter(
+      (r: any) => r.step_index === currentStep
+    );
     const values: Record<string, number | string | null> = {};
-    stepResponses.forEach((r) => {
+    const skipped = new Set<string>();
+    stepResponses.forEach((r: any) => {
       if (r.criterion_id) {
-        values[r.criterion_id] = r.rating ?? r.text_response ?? null;
+        if (r.skipped) {
+          skipped.add(r.criterion_id);
+          values[r.criterion_id] = null;
+        } else {
+          values[r.criterion_id] = r.rating ?? r.text_response ?? null;
+        }
       }
     });
     setCriteriaValues(values);
-  }, [currentStep, responses]);
-
-  // Restore step from submission
-  useEffect(() => {
-    if (submission && submission.current_step !== currentStep) {
-      setCurrentStep(Math.min(submission.current_step, totalSteps - 1));
-    }
-  }, [submission, currentStep, totalSteps]);
+    setSkippedCriteria(skipped);
+    lastRestoredStep.current = currentStep;
+  }
 
   const currentShop = shops[currentStep];
   const isLastStep = currentStep === totalSteps - 1;
 
-  const handleNext = async () => {
-    // Save current step responses
-    const stepResponses = criteria.map((criterion) => ({
+  const buildStepResponses = () =>
+    criteria.map((criterion) => ({
       criterion_id: criterion.id,
       rating:
         criterion.criteria_type === "rating"
@@ -71,50 +75,108 @@ export function ShopEvaluationContent({
         criterion.criteria_type === "textarea"
           ? (criteriaValues[criterion.id] as string) ?? null
           : null,
-      skipped: criteriaValues[criterion.id] === null,
+      skipped:
+        skippedCriteria.has(criterion.id) ||
+        criteriaValues[criterion.id] == null,
     }));
 
-    await saveResponses.mutateAsync({
-      formId,
-      stepIndex: currentStep,
-      responses: stepResponses,
+  const saveStep = async (stepIndex: number, stepResponses: any[]) => {
+    const res = await fetch(`/api/student/evaluation/${formId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stepIndex, responses: stepResponses }),
     });
-
-    if (isLastStep) {
-      // Complete evaluation
-      await completeEvaluation.mutateAsync(formId);
-      // Show completion message or redirect
-      alert(t("completedNotice"));
-    } else {
-      // Go to next step
-      setCurrentStep(currentStep + 1);
-      setCriteriaValues({});
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Save failed: ${text}`);
     }
+  };
+
+  const handleNext = async () => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setLoadingLabel(true);
+
+    try {
+      const stepIndex = currentStep;
+      const stepResponses = buildStepResponses();
+
+      await saveStep(stepIndex, stepResponses);
+
+      if (stepIndex === totalSteps - 1) {
+        // Submit
+        const submitRes = await fetch(
+          `/api/student/evaluation/${formId}/submit`,
+          { method: "POST" }
+        );
+        if (!submitRes.ok) {
+          const text = await submitRes.text();
+          throw new Error(`Submit failed: ${text}`);
+        }
+        toast.success(t("completedNotice"), { duration: 3000 });
+        router.push("/events");
+      } else {
+        // Go to next step
+        lastRestoredStep.current = -1;
+        setCurrentStep(stepIndex + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch (err) {
+      console.error("Evaluation error:", err);
+      toast.error("เกิดข้อผิดพลาด กรุณาลองอีกครั้ง");
+    } finally {
+      busyRef.current = false;
+      setLoadingLabel(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep <= 0) return;
+    lastRestoredStep.current = -1;
+    setCurrentStep(currentStep - 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSkipStep = async () => {
-    // Save all as skipped
-    const skipResponses = criteria.map((criterion) => ({
-      criterion_id: criterion.id,
-      skipped: true,
-    }));
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setLoadingLabel(true);
 
-    await saveResponses.mutateAsync({
-      formId,
-      stepIndex: currentStep,
-      responses: skipResponses,
-    });
+    try {
+      const skipResponses = criteria.map((criterion) => ({
+        criterion_id: criterion.id,
+        skipped: true,
+      }));
+      await saveStep(currentStep, skipResponses);
 
-    if (!isLastStep) {
-      setCurrentStep(currentStep + 1);
-      setCriteriaValues({});
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (!isLastStep) {
+        lastRestoredStep.current = -1;
+        setCurrentStep(currentStep + 1);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    } catch {
+      toast.error("เกิดข้อผิดพลาด กรุณาลองอีกครั้ง");
+    } finally {
+      busyRef.current = false;
+      setLoadingLabel(false);
     }
   };
 
+  const handleSkipCriterion = (criterionId: string) => {
+    setSkippedCriteria((prev) => new Set(prev).add(criterionId));
+    setCriteriaValues((prev) => ({ ...prev, [criterionId]: null }));
+  };
+
+  const handleUndoSkipCriterion = (criterionId: string) => {
+    setSkippedCriteria((prev) => {
+      const next = new Set(prev);
+      next.delete(criterionId);
+      return next;
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-[#fffdf3] pb-32">
+    <div className="min-h-screen bg-[#fffdf3] pb-52">
       {/* Step Indicator */}
       <div className="py-6">
         <StepIndicator totalSteps={totalSteps} currentStep={currentStep} />
@@ -130,12 +192,14 @@ export function ShopEvaluationContent({
             <p className="font-heading text-[20px] font-bold text-[#565655]">
               {t("shopInfo", { number: currentStep + 1 })}
             </p>
-            <p className="text-[14px] text-[#565655]">{currentShop?.name_th}</p>
+            <p className="text-[14px] text-[#565655]">
+              {currentShop?.name_th}
+            </p>
           </div>
         </div>
 
         {/* Criteria Cards */}
-        <div className="space-y-4 overflow-y-auto">
+        <div className="space-y-4">
           {criteria.map((criterion, index) => (
             <CriterionCard
               key={criterion.id}
@@ -144,10 +208,16 @@ export function ShopEvaluationContent({
               description={criterion.description_th}
               type={criterion.criteria_type}
               isSkippable={criterion.is_skippable}
+              isSkipped={skippedCriteria.has(criterion.id)}
               value={criteriaValues[criterion.id] ?? null}
               onChange={(value) =>
-                setCriteriaValues({ ...criteriaValues, [criterion.id]: value })
+                setCriteriaValues((prev) => ({
+                  ...prev,
+                  [criterion.id]: value,
+                }))
               }
+              onSkip={() => handleSkipCriterion(criterion.id)}
+              onUndoSkip={() => handleUndoSkipCriterion(criterion.id)}
             />
           ))}
         </div>
@@ -156,10 +226,11 @@ export function ShopEvaluationContent({
       {/* Sticky Bottom Bar */}
       <StickyBottomBar
         onNext={handleNext}
+        onBack={currentStep > 0 ? handleBack : undefined}
         onSkip={!isLastStep ? handleSkipStep : undefined}
-        nextLabel={isLastStep ? t("submit") : t("nextStep")}
+        nextLabel={isLastStep ? t("submitEvaluation") : t("nextStep")}
         skipLabel={!isLastStep ? t("skipStep") : undefined}
-        loading={saveResponses.isPending || completeEvaluation.isPending}
+        loading={loadingLabel}
       />
     </div>
   );

@@ -91,7 +91,6 @@ export function DocumentUploadContent({
         onNext={handleSubmit}
         nextLabel={t("submit")}
         loading={completeEvaluation.isPending}
-        disabled={files.length === 0}
       />
     </div>
   );

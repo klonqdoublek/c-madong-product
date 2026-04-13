@@ -58,7 +58,7 @@ export function EvaluationPageContent({ eventId }: EvaluationPageContentProps) {
           <ShopEvaluationContent
             formId={form.id}
             totalSteps={form.total_steps}
-            shops={form.config.items ?? []}
+            shops={(form.config as any).items ?? []}
           />
         </>
       );
@@ -72,7 +72,7 @@ export function EvaluationPageContent({ eventId }: EvaluationPageContentProps) {
             title={form.title_th}
             description={form.description_th ?? undefined}
             dateRange="19 ก.พ. - 28 ก.พ. 23.59" // TODO: Format from event dates
-            conditions={form.config.conditions_th ?? []}
+            conditions={(form.config as any).conditions_th ?? []}
           />
         </>
       );
@@ -86,7 +86,7 @@ export function EvaluationPageContent({ eventId }: EvaluationPageContentProps) {
             title={form.title_th}
             description={form.description_th ?? undefined}
             dateRange="1 ส.ค. - 31 ส.ค. 23.59" // TODO: Format from event dates
-            config={form.config}
+            config={form.config as any}
           />
         </>
       );
