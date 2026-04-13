@@ -1,12 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import {
   useEventDetail,
   useMyEventAttendance,
   useRegisterEvent,
   useUnregisterEvent,
 } from "@/hooks/use-events";
+import { useEvaluationForm, useMySubmission } from "@/hooks/use-evaluation";
 import { EVENT_TYPE_CONFIG, ATTENDANCE_STATUS_CONFIG } from "@/lib/utils/score-constants";
 import {
   CalendarDays,
@@ -15,6 +17,7 @@ import {
   Trophy,
   AlertTriangle,
   Check,
+  ClipboardList,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import type { EventType } from "@/lib/supabase/types";
@@ -22,11 +25,18 @@ import type { EventType } from "@/lib/supabase/types";
 export function EventDetailContent({ eventId }: { eventId: string }) {
   const t = useTranslations("events");
   const tDetail = useTranslations("events.detail");
+  const tEval = useTranslations("evaluation");
 
   const { data: event, isLoading } = useEventDetail(eventId);
   const { data: myAttendance } = useMyEventAttendance(eventId);
   const registerEvent = useRegisterEvent();
   const unregisterEvent = useUnregisterEvent();
+
+  // Check if this is an evaluation event
+  const { data: evaluationForm } = useEvaluationForm(
+    event?.event_type === "evaluation" ? eventId : null
+  );
+  const { data: evaluationSubmission } = useMySubmission(evaluationForm?.id ?? null);
 
   if (isLoading) {
     return (
@@ -194,8 +204,23 @@ export function EventDetailContent({ eventId }: { eventId: string }) {
         </div>
       )}
 
-      {/* Register / Unregister button */}
-      {event.event_status !== "completed" &&
+      {/* Evaluation button for evaluation-type events */}
+      {event.event_type === "evaluation" &&
+        event.event_status !== "completed" &&
+        event.event_status !== "cancelled" && (
+          <Link href={`/events/${eventId}/evaluate`}>
+            <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-medium text-white hover:bg-primary/90">
+              <ClipboardList className="h-4 w-4" />
+              {evaluationSubmission?.status === "completed"
+                ? tEval("viewResult")
+                : tEval("startEvaluation")}
+            </button>
+          </Link>
+        )}
+
+      {/* Register / Unregister button for non-evaluation events */}
+      {event.event_type !== "evaluation" &&
+        event.event_status !== "completed" &&
         event.event_status !== "cancelled" && (
           <div className="pb-4">
             {isRegistered ? (

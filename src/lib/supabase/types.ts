@@ -96,6 +96,11 @@ export type ImpactLevel = "high" | "medium" | "low";
 
 export type ScoreSource = "manual_admin" | "auto_attendance" | "bulk_import" | "system";
 
+// Evaluation System
+export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
+export type EvaluationStatus = "in_progress" | "completed" | "skipped";
+export type CriteriaType = "rating" | "textarea";
+
 // Placeholder – run `npx supabase gen types typescript` after creating migrations
 export type Database = {
   public: {

@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDays, Check, X, AlertCircle } from "lucide-react";
+import { CalendarDays, Check, X, AlertCircle, ClipboardList } from "lucide-react";
 import type { EventType, AttendanceStatus } from "@/lib/supabase/types";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -30,6 +30,7 @@ const THAI_MONTHS_SHORT = [
 
 export function EventsPageContent() {
   const t = useTranslations("events");
+  const tEval = useTranslations("evaluation");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   const { data: upcoming, isLoading: upcomingLoading } = useUpcomingEvents();
@@ -153,11 +154,13 @@ function EventCard({
   isRegistering?: boolean;
 }) {
   const t = useTranslations("events");
+  const tEval = useTranslations("evaluation");
   const date = new Date(event.event_date);
   const day = date.getDate();
   const month = THAI_MONTHS_SHORT[date.getMonth()];
   const typeConfig = EVENT_TYPE_CONFIG[event.event_type as EventType];
   const isRegistered = !!attendance;
+  const isEvaluation = event.event_type === "evaluation";
 
   return (
     <Link href={`/events/${event.id}`} className="block">
@@ -203,7 +206,18 @@ function EventCard({
           {isPast && attendance ? (
             <AttendanceStatusBadge status={attendance.status} />
           ) : !isPast ? (
-            isRegistered ? (
+            isEvaluation ? (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className="flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-primary/90"
+              >
+                <ClipboardList className="h-3 w-3" />
+                {tEval("doEvaluation")}
+              </button>
+            ) : isRegistered ? (
               <button
                 onClick={(e) => {
                   e.preventDefault();
