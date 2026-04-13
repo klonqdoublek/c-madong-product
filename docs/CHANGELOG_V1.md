@@ -330,6 +330,21 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - ✅ 5 category tabs (dorm, hospital, security, internal, external)
 - ✅ 19 mock contacts with tel: links
 
+### Context-Specific Quick Reply Menus (2026-04-13)
+- ✅ **Unique trigger keywords** for onboarding carousel bubbles 2-4
+- ✅ **3 new quick reply menus** (ASK, REPAIR_GUIDE, SMART_NOTIFY)
+- ✅ Bubble 2 "ถามคำถาม" → 📋 กฎหอพัก | 💰 ค่าหอ/ค่าน้ำค่าไฟ | 🏢 สิ่งอำนวยความสะดวก
+- ✅ Bubble 3 "คู่มือแจ้งซ่อม" → repair guide text + 🔧 ลองแจ้งซ่อมเลย
+- ✅ Bubble 4 "แจ้งเตือนอัจฉริยะ" → 📊 คะแนนหอ | 📦 พัสดุ | 💰 ค่าหอพัก
+- ✅ Pre-rate-limit triggers for unregistered user access
+- ✅ Dynamic imports for performance optimization
+
+**Lessons Learned**:
+- Pattern recognition: audit ALL carousel bubbles for duplicates, not just one mentioned
+- CTA preservation: enhance not delete, maintain UX flow
+- Webhook trigger placement: pre-rate-limit for onboarding accessibility
+- Think holistically when modifying flows
+
 ---
 
 ## Database Summary (V1)

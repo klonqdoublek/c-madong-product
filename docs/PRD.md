@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.1
-> **Last Updated**: 2026-04-10
+> **Version**: 2.2
+> **Last Updated**: 2026-04-13
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -803,17 +803,17 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 - Link ให้ user หลัง registration สำเร็จ → per-user menu override default
 - chatBarText: "เมนู C-Madong"
 
-**Welcome Bubble + Onboarding Carousel (Follow Event):** ✅ UPDATED 2026-04-08
+**Welcome Bubble + Onboarding Carousel (Follow Event):** ✅ UPDATED 2026-04-13
 - **New user (follow event)** → Single `buildWelcomeNewEntryFlex()` bubble: pink CU header + 3 numbered steps + 2 CTAs (green URI→register, white pink-border message→"ดูคู่มือ")
 - **Onboarding Carousel** (`buildOnboardingCarousel`) → 6-bubble carousel triggered when user taps "📖 ดูคู่มือการใช้งานน้องซีมะโด่ง" or types "ดูคู่มือ"
-  - Bubble 1 — เริ่มต้นใช้งานง่ายๆ (pink)
-  - Bubble 2 — ถามอะไรตอบได้! (cream)
-  - Bubble 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink)
-  - Bubble 4 — แจ้งเตือนอัจฉริยะ (cream)
+  - Bubble 1 — เริ่มต้นใช้งานง่ายๆ (pink) → sends "น้องซีมะโด่ง" (main menu)
+  - Bubble 2 — ถามอะไรตอบได้! (cream) → sends "ถามคำถาม" (ASK_QUICK_REPLY: กฎหอพัก, ค่าหอ, สิ่งอำนวยความสะดวก) ✅
+  - Bubble 3 — แจ้งซ่อมได้ ง่ายกว่าที่เคย! (pink) → sends "คู่มือแจ้งซ่อม" (repair guide + quick reply) ✅
+  - Bubble 4 — แจ้งเตือนอัจฉริยะ (cream) → sends "แจ้งเตือนอัจฉริยะ" (SMART_NOTIFY_QUICK_REPLY: คะแนนหอ, พัสดุ, ค่าหอพัก) ✅
   - Bubble 5 — LINE MINI APP (cream, URI → /register)
-  - Bubble 6 — ยังมีอีกเยอะ! (pink, URI → /dashboard)
+  - Bubble 6 — ยังมีอีกเยอะ! (pink) → sends "ดูเพิ่มเติม" (how-to carousel set 2)
 - All bubbles use 1:1 square banner images (Figma-designed, served from `public/line-banners/`)
-- Bubbles 1-4 CTA send "น้องซีมะโด่ง" → triggers menu quick reply
+- **Context-Specific Quick Replies** (2026-04-13): Each bubble has unique trigger matching its theme → better UX than generic "น้องซีมะโด่ง"
 - Returning user (มี profile แล้ว) → swap to Menu B + welcome back flex
 - `GUIDE_TRIGGERS` check placed BEFORE rate limit + registration so unregistered users can view guide
 - Files: `greeting-carousel.ts` (`buildWelcomeNewEntryFlex` + `buildOnboardingCarousel` + `buildWelcomeBackFlex` + helpers `buildCtaPill`/`buildOnboardingBubble`), `public/line-banners/onboarding-{1-6}-{slug}.jpg` (optimized 4.6MB → 684KB)

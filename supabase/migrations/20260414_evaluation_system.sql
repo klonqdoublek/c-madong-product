@@ -173,7 +173,7 @@ DROP POLICY IF EXISTS "evaluation_responses_select_own" ON evaluation_responses;
 CREATE POLICY "evaluation_responses_select_own" ON evaluation_responses
   FOR SELECT TO authenticated
   USING (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
     OR is_admin()
   );
 
@@ -181,14 +181,14 @@ DROP POLICY IF EXISTS "evaluation_responses_insert_own" ON evaluation_responses;
 CREATE POLICY "evaluation_responses_insert_own" ON evaluation_responses
   FOR INSERT TO authenticated
   WITH CHECK (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
   );
 
 DROP POLICY IF EXISTS "evaluation_responses_update_own" ON evaluation_responses;
 CREATE POLICY "evaluation_responses_update_own" ON evaluation_responses
   FOR UPDATE TO authenticated
   USING (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
     OR is_admin()
   );
 
@@ -202,7 +202,7 @@ DROP POLICY IF EXISTS "evaluation_submissions_select_own" ON evaluation_submissi
 CREATE POLICY "evaluation_submissions_select_own" ON evaluation_submissions
   FOR SELECT TO authenticated
   USING (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
     OR is_admin()
   );
 
@@ -210,14 +210,14 @@ DROP POLICY IF EXISTS "evaluation_submissions_insert_own" ON evaluation_submissi
 CREATE POLICY "evaluation_submissions_insert_own" ON evaluation_submissions
   FOR INSERT TO authenticated
   WITH CHECK (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
   );
 
 DROP POLICY IF EXISTS "evaluation_submissions_update_own" ON evaluation_submissions;
 CREATE POLICY "evaluation_submissions_update_own" ON evaluation_submissions
   FOR UPDATE TO authenticated
   USING (
-    student_id = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    student_id = (SELECT student_id FROM profiles WHERE id = auth.uid())
     OR is_admin()
   );
 
@@ -236,7 +236,7 @@ CREATE POLICY "Users can upload own evaluation files"
   TO authenticated
   WITH CHECK (
     bucket_id = 'evaluation-uploads'
-    AND (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    AND (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE id = auth.uid())
   );
 
 DROP POLICY IF EXISTS "Users can view own evaluation files" ON storage.objects;
@@ -246,7 +246,7 @@ CREATE POLICY "Users can view own evaluation files"
   USING (
     bucket_id = 'evaluation-uploads'
     AND (
-      (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+      (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE id = auth.uid())
       OR is_admin()
     )
   );
@@ -257,7 +257,7 @@ CREATE POLICY "Users can delete own evaluation files"
   TO authenticated
   USING (
     bucket_id = 'evaluation-uploads'
-    AND (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE auth_id = auth.uid())
+    AND (storage.foldername(name))[1] = (SELECT student_id FROM profiles WHERE id = auth.uid())
   );
 
 -- ============================================================================

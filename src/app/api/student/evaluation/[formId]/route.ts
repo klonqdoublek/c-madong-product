@@ -24,7 +24,7 @@ export async function GET(
     const { data: profile } = await supabase
       .from("profiles")
       .select("student_id")
-      .eq("auth_id", user.id)
+      .eq("id", user.id)
       .single();
     if (!profile?.student_id) {
       return NextResponse.json(
@@ -103,7 +103,7 @@ export async function POST(
     const { data: profile } = await supabase
       .from("profiles")
       .select("student_id")
-      .eq("auth_id", user.id)
+      .eq("id", user.id)
       .single();
     if (!profile?.student_id) {
       return NextResponse.json(
