@@ -77,7 +77,7 @@ export function TicketListView({ tickets, isLoading }: TicketListViewProps) {
                 {ticket.requester?.full_name_th ?? "-"}
               </TableCell>
               <TableCell>
-                <StatusBadge status={ticket.status} />
+                <StatusBadge status={ticket.status as any} />
               </TableCell>
               <TableCell className="text-sm">
                 {ticket.technician?.display_name ?? "-"}

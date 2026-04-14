@@ -109,7 +109,7 @@ export function FileTable({
                           <span
                             key={tag.id}
                             className="inline-block h-2 w-2 rounded-full"
-                            style={{ backgroundColor: tag.color }}
+                            style={{ backgroundColor: tag.color ?? undefined }}
                             title={tag.name}
                           />
                         ))}

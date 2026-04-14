@@ -30,7 +30,7 @@ export async function GET(_request: NextRequest, { params }: Params) {
       .select("tag_id")
       .eq("document_id", id);
 
-    let tags: { id: string; name: string; color: string }[] = [];
+    let tags: { id: string; name: string; color: string | null }[] = [];
     if (assignments && assignments.length > 0) {
       const tagIds = assignments.map((a) => a.tag_id);
       const { data: tagData } = await adminDb

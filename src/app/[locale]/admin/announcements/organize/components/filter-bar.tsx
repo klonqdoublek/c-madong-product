@@ -2,7 +2,8 @@
 
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, X } from "lucide-react";
+import { Search, X, CircleDot, Archive, Clock } from "lucide-react";
+import { DynamicLucideIcon } from "@/components/ui/dynamic-lucide-icon";
 import {
   Select,
   SelectContent,
@@ -59,9 +60,24 @@ export function FilterBar({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">ทุกสถานะ</SelectItem>
-            <SelectItem value="active">🟢 Active</SelectItem>
-            <SelectItem value="archived">📦 Archived</SelectItem>
-            <SelectItem value="scheduled">⏰ Scheduled</SelectItem>
+            <SelectItem value="active">
+              <span className="flex items-center gap-2">
+                <CircleDot className="h-3.5 w-3.5 text-green-500" />
+                ใช้งานอยู่
+              </span>
+            </SelectItem>
+            <SelectItem value="archived">
+              <span className="flex items-center gap-2">
+                <Archive className="h-3.5 w-3.5 text-muted-foreground" />
+                เก็บถาวร
+              </span>
+            </SelectItem>
+            <SelectItem value="scheduled">
+              <span className="flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-orange-500" />
+                ตั้งเวลา
+              </span>
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -73,7 +89,11 @@ export function FilterBar({
 
           {selectedFolder !== "all" && selectedFolderData && (
             <Badge variant="secondary" className="gap-1.5">
-              <span>{selectedFolderData.icon}</span>
+              <DynamicLucideIcon
+                name={selectedFolderData.icon}
+                className="h-3 w-3"
+                size={12}
+              />
               <span>{selectedFolderData.name}</span>
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -85,7 +105,7 @@ export function FilterBar({
           {selectedTagsData.map((tag) => (
             <Badge
               key={tag.id}
-              style={{ backgroundColor: tag.color, borderColor: tag.color }}
+              style={{ backgroundColor: tag.color ?? undefined, borderColor: tag.color ?? undefined }}
               className="gap-1.5 border-0 text-white"
             >
               {tag.name}

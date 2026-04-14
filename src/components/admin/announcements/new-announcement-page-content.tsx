@@ -8,6 +8,7 @@ import { useTags } from "@/hooks/use-tags";
 import { FlexMessageEditor } from "@/components/admin/flex-editor/flex-message-editor";
 import { AIWritingAssistant } from "@/components/admin/flex-editor/ai-writing-assistant";
 import { TemplateSelector } from "@/components/admin/flex-editor/template-selector";
+import { UploadArea } from "@/components/admin/announcements/upload-area";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
@@ -37,6 +38,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [targetType, setTargetType] = useState(existing?.target_type ?? "broadcast");
   const [targetTags, setTargetTags] = useState<string[]>(existing?.target_tags ?? []);
   const [isPinned, setIsPinned] = useState(existing?.is_pinned ?? false);
+  const [coverImage, setCoverImage] = useState<string | null>(existing?.cover_image ?? null);
+  const [coverPath, setCoverPath] = useState<string | null>(null);
 
   const [showAI, setShowAI] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
@@ -58,7 +61,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   function handleTemplateSelect(template: MessageTemplate) {
     if (template.content) setContentTh(template.content);
     if (template.flex_json) {
-      setFlexJson(template.flex_json);
+      setFlexJson(template.flex_json as Record<string, unknown>);
       setMessageType("flex");
     }
   }
@@ -70,18 +73,19 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       content_th: contentTh,
       content_en: contentEn || contentTh,
       message_type: messageType,
-      flex_json: messageType === "flex" ? flexJson : null,
+      flex_json: (messageType === "flex" ? flexJson : null) as any,
       target_type: targetType,
       target_tags: targetType === "tags" ? targetTags : [],
       is_pinned: isPinned,
+      cover_image: coverImage,
       status,
       author_id: "", // Will be set by RLS/server
     };
 
     if (announcementId) {
-      await updateAnnouncement.mutateAsync({ id: announcementId, ...data });
+      await updateAnnouncement.mutateAsync({ id: announcementId, ...data } as any);
     } else {
-      await createAnnouncement.mutateAsync(data);
+      await createAnnouncement.mutateAsync(data as any);
     }
     router.push("/admin/announcements");
   }
@@ -96,10 +100,11 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
         content_th: contentTh,
         content_en: contentEn || contentTh,
         message_type: messageType,
-        flex_json: messageType === "flex" ? flexJson : null,
+        flex_json: (messageType === "flex" ? flexJson : null) as any,
         target_type: targetType,
         target_tags: targetType === "tags" ? targetTags : [],
         is_pinned: isPinned,
+        cover_image: coverImage,
         status: "sent",
         sent_at: new Date().toISOString(),
         author_id: "",
@@ -107,9 +112,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
 
       let id = announcementId;
       if (id) {
-        await updateAnnouncement.mutateAsync({ id, ...data });
+        await updateAnnouncement.mutateAsync({ id, ...data } as any);
       } else {
-        const result = await createAnnouncement.mutateAsync(data);
+        const result = await createAnnouncement.mutateAsync(data as any);
         id = result.id;
       }
 
@@ -139,6 +144,19 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       <h1 className="font-heading text-2xl font-bold">
         {announcementId ? t("editTitle") : t("title")}
       </h1>
+
+      {/* Cover Image Upload */}
+      <UploadArea
+        imageUrl={coverImage}
+        onUploaded={(url, path) => {
+          setCoverImage(url);
+          setCoverPath(path);
+        }}
+        onRemove={() => {
+          setCoverImage(null);
+          setCoverPath(null);
+        }}
+      />
 
       {/* Title */}
       <div>
@@ -233,7 +251,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                 }`}
                 style={
                   targetTags.includes(tag.name)
-                    ? { backgroundColor: tag.color }
+                    ? { backgroundColor: tag.color ?? undefined }
                     : undefined
                 }
               >

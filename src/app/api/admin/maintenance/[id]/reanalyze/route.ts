@@ -31,7 +31,7 @@ export async function POST(
     "admin", "staff", "super_admin", "head", "registrar", "finance",
     "admin_staff", "service", "technician_head", "technician",
   ];
-  if (!profile || !STAFF_ROLES.includes(profile.role)) {
+  if (!profile || !STAFF_ROLES.includes(profile.role!)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

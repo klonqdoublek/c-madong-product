@@ -119,7 +119,7 @@ export function BroadcastPageContent() {
                 }`}
                 style={
                   targetTags.includes(tag.name)
-                    ? { backgroundColor: tag.color }
+                    ? { backgroundColor: tag.color ?? undefined }
                     : undefined
                 }
               >

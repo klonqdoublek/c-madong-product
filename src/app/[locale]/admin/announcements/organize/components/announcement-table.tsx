@@ -4,7 +4,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { th } from "date-fns/locale";
-import { Facebook, MessageCircle, Smartphone } from "lucide-react";
+import { Archive, Clock } from "lucide-react";
+import { DynamicLucideIcon } from "@/components/ui/dynamic-lucide-icon";
 import type { AnnouncementListItem, Folder, Tag } from "./announcement-organizer";
 
 interface AnnouncementTableProps {
@@ -15,16 +16,10 @@ interface AnnouncementTableProps {
   onSelectItems: (ids: string[]) => void;
 }
 
-const PRIORITY_CONFIG = {
-  normal: { label: "ปกติ", variant: "secondary" as const },
-  important: { label: "สำคัญ", variant: "default" as const },
-  urgent: { label: "ด่วน", variant: "destructive" as const },
-};
-
-const CHANNEL_ICONS = {
-  facebook: Facebook,
-  line: MessageCircle,
-  app: Smartphone,
+const PRIORITY_CONFIG: Record<string, { label: string; variant: "secondary" | "default" | "destructive" }> = {
+  normal: { label: "ปกติ", variant: "secondary" },
+  important: { label: "สำคัญ", variant: "default" },
+  urgent: { label: "ด่วน", variant: "destructive" },
 };
 
 export function AnnouncementTable({
@@ -71,18 +66,21 @@ export function AnnouncementTable({
               <Checkbox checked={allSelected} onCheckedChange={toggleAll} />
             </th>
             <th className="p-4 text-left text-sm font-medium">ประกาศ</th>
-            <th className="w-32 p-4 text-left text-sm font-medium">Folder</th>
-            <th className="w-48 p-4 text-left text-sm font-medium">Tags</th>
+            <th className="w-32 p-4 text-left text-sm font-medium">โฟลเดอร์</th>
+            <th className="w-48 p-4 text-left text-sm font-medium">แท็ก</th>
             <th className="w-32 p-4 text-left text-sm font-medium">ความสำคัญ</th>
-            <th className="w-32 p-4 text-left text-sm font-medium">Channels</th>
             <th className="w-40 p-4 text-left text-sm font-medium">วันที่</th>
           </tr>
         </thead>
         <tbody>
           {announcements.map((ann) => {
-            const folder = folders.find((f) => f.id === ann.folder_id);
-            const annTags = tags.filter((t) => ann.tags.includes(t.id));
-            const priorityConfig = PRIORITY_CONFIG[ann.priority];
+            const folder = ann.folder
+              ? ann.folder
+              : folders.find((f) => f.id === ann.folder_id);
+            const annTags = ann.tag_objects && ann.tag_objects.length > 0
+              ? ann.tag_objects
+              : tags.filter((t) => ann.tags.includes(t.id));
+            const priorityConfig = PRIORITY_CONFIG[ann.priority] || PRIORITY_CONFIG.normal;
 
             return (
               <tr
@@ -100,25 +98,30 @@ export function AnnouncementTable({
                 <td className="p-4">
                   <div className="space-y-1">
                     <p className="font-medium leading-tight">{ann.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {ann.target}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       {ann.status === "archived" && (
-                        <Badge variant="outline" className="ml-2">
-                          📦 Archived
+                        <Badge variant="outline" className="gap-1">
+                          <Archive className="h-3 w-3" />
+                          เก็บถาวร
                         </Badge>
                       )}
                       {ann.status === "scheduled" && (
-                        <Badge variant="outline" className="ml-2">
-                          ⏰ Scheduled
+                        <Badge variant="outline" className="gap-1">
+                          <Clock className="h-3 w-3" />
+                          ตั้งเวลา
                         </Badge>
                       )}
-                    </p>
+                    </div>
                   </div>
                 </td>
                 <td className="p-4">
-                  {folder && (
+                  {folder && folder.id !== "all" && (
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{folder.icon}</span>
+                      <DynamicLucideIcon
+                        name={(folder as any).icon || "Folder"}
+                        className="h-4 w-4"
+                        size={16}
+                      />
                       <span className="text-sm">{folder.name}</span>
                     </div>
                   )}
@@ -126,7 +129,7 @@ export function AnnouncementTable({
                 <td className="p-4">
                   <div className="flex flex-wrap gap-1">
                     {annTags.length > 0 ? (
-                      annTags.map((tag) => (
+                      annTags.map((tag: any) => (
                         <Badge
                           key={tag.id}
                           variant="secondary"
@@ -148,19 +151,6 @@ export function AnnouncementTable({
                   <Badge variant={priorityConfig.variant}>
                     {priorityConfig.label}
                   </Badge>
-                </td>
-                <td className="p-4">
-                  <div className="flex gap-2">
-                    {ann.channels.map((channel) => {
-                      const Icon = CHANNEL_ICONS[channel as keyof typeof CHANNEL_ICONS];
-                      return Icon ? (
-                        <Icon
-                          key={channel}
-                          className="h-4 w-4 text-muted-foreground"
-                        />
-                      ) : null;
-                    })}
-                  </div>
                 </td>
                 <td className="p-4 text-sm text-muted-foreground">
                   {formatDistanceToNow(new Date(ann.created_at), {

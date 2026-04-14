@@ -160,7 +160,7 @@ export function AdminScoresPageContent() {
                     </td>
                     <td className="hidden px-4 py-3 md:table-cell">
                       <div className="flex justify-center gap-1">
-                        {(student.categories ?? []).slice(0, 4).map((cat) => {
+                        {(student.categories ?? []).slice(0, 4).map((cat: any) => {
                           const pct =
                             cat.max_score > 0
                               ? (cat.score / cat.max_score) * 100

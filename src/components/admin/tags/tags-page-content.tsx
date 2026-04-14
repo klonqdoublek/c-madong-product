@@ -45,7 +45,7 @@ export function TagsPageContent() {
     setEditingTag(tag);
     setFormName(tag.name);
     setFormDescription(tag.description ?? "");
-    setFormColor(tag.color);
+    setFormColor(tag.color ?? "#6B7280");
     setFormError("");
     setShowDialog(true);
   }
@@ -115,7 +115,7 @@ export function TagsPageContent() {
             >
               <div
                 className="mt-0.5 h-4 w-4 shrink-0 rounded-full"
-                style={{ backgroundColor: tag.color }}
+                style={{ backgroundColor: tag.color ?? undefined }}
               />
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{tag.name}</p>

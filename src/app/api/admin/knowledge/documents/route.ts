@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch tags for all documents
     const docIds = (data ?? []).map((d) => d.id);
-    let docTags: Record<string, { id: string; name: string; color: string }[]> = {};
+    let docTags: Record<string, { id: string; name: string; color: string | null }[]> = {};
 
     if (docIds.length > 0) {
       const { data: assignments } = await adminDb

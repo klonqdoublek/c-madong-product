@@ -72,7 +72,7 @@ function LoginContent() {
         .eq("id", authData.user.id)
         .single();
 
-      const isStaff = profile && ["admin", "staff", "head", "super_admin", "admin_staff"].includes(profile.role);
+      const isStaff = profile?.role && ["admin", "staff", "head", "super_admin", "admin_staff"].includes(profile.role);
       window.location.href = isStaff
         ? `/${locale}/admin/dashboard`
         : `/${locale}/dashboard`;

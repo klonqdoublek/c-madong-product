@@ -31,7 +31,7 @@ export async function GET() {
       .eq("id", user.id)
       .single()
 
-    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+    if (!profile || !ADMIN_ROLES.includes(profile.role!)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
       .eq("id", user.id)
       .single()
 
-    if (!profile || !ADMIN_ROLES.includes(profile.role)) {
+    if (!profile || !ADMIN_ROLES.includes(profile.role!)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 

@@ -99,7 +99,7 @@ export function AnnouncementsPageContent() {
                   </div>
                 </div>
                 <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[ann.status] ?? STATUS_COLORS.draft}`}
+                  className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[ann.status ?? "draft"] ?? STATUS_COLORS.draft}`}
                 >
                   {t(
                     ANNOUNCEMENT_STATUSES.find((s) => s.value === ann.status)

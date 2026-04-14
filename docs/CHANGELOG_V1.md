@@ -345,12 +345,46 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - Webhook trigger placement: pre-rate-limit for onboarding accessibility
 - Think holistically when modifying flows
 
+### Evaluation System (2026-04-14)
+- ✅ **3 evaluation form types**: Shop Evaluation (ประเมินร้านค้า), Dorm Re-application (ยื่นขออยู่หอต่อ), Document Upload (อัปโหลดผลลงทะเบียนเรียน)
+- ✅ **Shop evaluation**: Multi-step flow (5 shops), 4 criteria per shop (ความสะอาด, คุณภาพสินค้า, ราคา, ข้อเสนอแนะ), 1-5 rating scale, skip/undo per criterion
+- ✅ **Dorm re-application**: 2-step flow — conditions review + personal info verification → submit
+- ✅ **Document upload**: Single-step — file upload zone (JPEG/PDF, 10MB max) → submit
+- ✅ **Shared UI components**: StepIndicator, RatingScale, CriterionCard, EvaluationHeader, StickyBottomBar, PersonalInfoCard, DocumentUploadZone
+- ✅ **Completion tracking**: Already-submitted evaluation shows completion notice with submitted date
+- ✅ **Integration with events**: Evaluation events show "ทำแบบประเมิน" CTA on events list
+
+**Database** (4 new tables):
+- `evaluation_forms` — form config per event (form_type, config JSONB, total_steps)
+- `evaluation_criteria` — rating/textarea questions
+- `evaluation_responses` — per-criterion per-step per-student responses
+- `evaluation_submissions` — overall progress tracking (in_progress/completed/skipped)
+- Migration: `20260414_evaluation_system.sql` with seed data (3 events, 5 shops, 4 criteria)
+
+**API Routes**:
+- `GET /api/student/evaluation/[formId]` — form config + criteria + submission
+- `POST /api/student/evaluation/[formId]` — save step responses
+- `POST /api/student/evaluation/[formId]/submit` — mark as completed
+- `POST /api/student/evaluation/[formId]/upload` — file upload to Supabase storage
+
+**Components** (10 files in `src/components/student/evaluation/`):
+- step-indicator, rating-scale, criterion-card, evaluation-header, sticky-bottom-bar
+- personal-info-card, document-upload-zone, shop-evaluation-content
+- dorm-reapplication-content, document-upload-content, evaluation-page-content
+
+**Lessons Learned**:
+- Fixed bottom bar inside `(student)` route group needs `bottom-[72px]` to sit above bottom nav
+- TanStack Query `invalidateQueries` during multi-step async flows causes re-renders → use direct `fetch()` instead
+- `useRef` for busy guards avoids React state batching leaving buttons disabled
+- `profiles.id` is the FK to `auth.users`, NOT `profiles.auth_id`
+- Seed data dates must be in the future for events to appear in "upcoming" tab
+
 ---
 
 ## Database Summary (V1)
 
 ### Tables Created
-24 migrations · 40+ tables
+25 migrations · 44+ tables
 
 **Core Auth & Users**:
 - `profiles`, `user_roles`, `buildings`, `rooms`, `beds`
@@ -360,6 +394,9 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 
 **AI & Knowledge**:
 - `documents`, `knowledge_folders`, `document_tags`, `document_tag_assignments`, `repair_templates`
+
+**Evaluation**:
+- `evaluation_forms`, `evaluation_criteria`, `evaluation_responses`, `evaluation_submissions`
 
 **Chatbot**:
 - `ai_chat_sessions`, `ai_chat_messages`, `chat_escalations`
@@ -376,7 +413,7 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 ## API Routes Summary (V1)
 
 ### Student APIs (`/api/student/`)
-- bills, insights, maintenance/[id]/cancel, notifications, parcels
+- bills, evaluation/[formId] (GET/POST), evaluation/[formId]/submit, evaluation/[formId]/upload, insights, maintenance/[id]/cancel, notifications, parcels
 
 ### Admin APIs (`/api/admin/`)
 - ai, announcements, bills, booking, knowledge (6 sub-routes), live-chat, maintenance, parcels, roles, scores, settings, students
@@ -426,8 +463,8 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - `knowledge-store` — knowledge base state
 - `maintenance-store` — maintenance state
 
-### TanStack Query Hooks (25)
-- use-user, use-notifications, use-insights, use-permissions, use-bills, use-score, use-events, use-parcels, use-maintenance-tickets, use-my-tickets, use-chat, use-knowledge, use-knowledge-query, use-announcements, use-buildings, use-dashboard-stats, use-documents, use-realtime, use-role-management, use-students, use-tags, use-technicians, use-templates, use-ai-settings, use-escalations
+### TanStack Query Hooks (26)
+- use-user, use-notifications, use-insights, use-permissions, use-bills, use-score, use-events, use-evaluation, use-parcels, use-maintenance-tickets, use-my-tickets, use-chat, use-knowledge, use-knowledge-query, use-announcements, use-buildings, use-dashboard-stats, use-documents, use-realtime, use-role-management, use-students, use-tags, use-technicians, use-templates, use-ai-settings, use-escalations
 
 ---
 
@@ -444,6 +481,9 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - Next.js 16: root layout MUST have `<html>` + `<body>`
 - `useSearchParams()` requires `<Suspense>` boundary
 - iOS Safari modal scroll-lock: NEVER use `overflow: hidden` on `body`
+- Fixed bottom bar inside `(student)` route group needs `bottom-[72px]` — bottom nav covers `bottom-0` elements
+- TanStack Query `invalidateQueries` during multi-step async flows causes component re-renders → use direct `fetch()` instead of mutations
+- React state-based loading (`isPending`, `useState`) can leave buttons stuck disabled due to batching → use `useRef` for busy guards
 
 ### LINE
 - Login vs Messaging API are SEPARATE channels
@@ -493,6 +533,9 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 ---
 
 ## What's Next: V2 Roadmap
+
+### Phase 7.7: Evaluation System ✅ (2026-04-14)
+- See "Evaluation System" in Additional Features section above
 
 ### Phase 8: Reports (NOT STARTED)
 - Admin analytics dashboards

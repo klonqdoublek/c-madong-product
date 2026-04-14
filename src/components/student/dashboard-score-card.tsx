@@ -56,7 +56,7 @@ export function DashboardScoreCard() {
         {/* Category mini progress bars */}
         {scoreData.categories && scoreData.categories.length > 0 && (
           <div className="mt-3 space-y-1.5">
-            {scoreData.categories.map((cat) => {
+            {scoreData.categories.map((cat: any) => {
               const pct = cat.max_score > 0 ? (cat.score / cat.max_score) * 100 : 0;
               return (
                 <div key={cat.category_id} className="flex items-center gap-2">

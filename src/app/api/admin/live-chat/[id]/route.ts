@@ -21,7 +21,7 @@ async function verifyAdmin(adminDb: ReturnType<typeof createAdminClient>, userId
     .select("role, display_name, full_name_th")
     .eq("id", userId)
     .single()
-  if (!profile || !ADMIN_ROLES.includes(profile.role)) return null
+  if (!profile || !ADMIN_ROLES.includes(profile.role!)) return null
   return profile
 }
 

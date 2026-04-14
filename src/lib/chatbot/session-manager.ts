@@ -51,7 +51,7 @@ export async function updateSessionState(
   const supabase = createAdminClient()
   await supabase
     .from("chatbot_sessions")
-    .update({ state, state_data: stateData, updated_at: new Date().toISOString() })
+    .update({ state, state_data: stateData as any, updated_at: new Date().toISOString() })
     .eq("line_uid", lineUid)
 }
 

@@ -99,7 +99,7 @@ export function TagManagementDialog({
                   <span className="flex items-center gap-2 text-sm">
                     <span
                       className="inline-block h-3 w-3 rounded-full"
-                      style={{ backgroundColor: tag.color }}
+                      style={{ backgroundColor: tag.color ?? undefined }}
                     />
                     {tag.name}
                   </span>

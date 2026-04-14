@@ -1,7 +1,7 @@
 import type { NotificationType } from "@/lib/supabase/types";
 
 /** Priority weights by notification type */
-const PRIORITY_MAP: Record<NotificationType, number> = {
+const PRIORITY_MAP: Partial<Record<NotificationType, number>> = {
   bill_overdue: 100,
   bill_due: 80,
   event_reminder: 85,

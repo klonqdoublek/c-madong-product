@@ -40,7 +40,7 @@ export function usePermissions(): UsePermissionsReturn {
 
   const userRoles = useMemo(() => {
     if (!profile) return [];
-    return [mapLegacyRole(profile.role)];
+    return [mapLegacyRole(profile.role ?? "student")];
   }, [profile]);
 
   // Create permission checker
@@ -59,7 +59,7 @@ export function useRoles(): AppRole[] {
 
   return useMemo(() => {
     if (!profile) return [];
-    return [mapLegacyRole(profile.role)];
+    return [mapLegacyRole(profile.role ?? "student")];
   }, [profile]);
 }
 

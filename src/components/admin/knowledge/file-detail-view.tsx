@@ -84,7 +84,7 @@ export function FileDetailView() {
                 <Badge key={tag.id} variant="secondary" className="gap-1 text-xs">
                   <span
                     className="inline-block h-2 w-2 rounded-full"
-                    style={{ backgroundColor: tag.color }}
+                    style={{ backgroundColor: tag.color ?? undefined }}
                   />
                   {tag.name}
                 </Badge>

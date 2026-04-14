@@ -5,16 +5,8 @@ export type MaintenanceRequest = Database["public"]["Tables"]["maintenance_reque
 export type Technician = Database["public"]["Tables"]["technicians"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
-// AI Vision fields not yet in generated Supabase types (Phase 4.5 columns)
-interface AiVisionFields {
-  ai_provider: string | null;
-  ai_confidence: number | null;
-  template_id: string | null;
-  damage_details: string | null;
-}
-
 // Ticket with joined relations (for list/detail views)
-export interface MaintenanceTicketWithRelations extends MaintenanceRequest, Partial<AiVisionFields> {
+export interface MaintenanceTicketWithRelations extends MaintenanceRequest {
   requester?: Pick<Profile, "id" | "full_name_th" | "full_name_en" | "avatar_url" | "room_id" | "building_id"> | null;
   technician?: Pick<Technician, "id" | "display_name" | "specialty"> | null;
   building_name?: string | null;

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const { data: types, error: typesError } = await supabase
       .rpc("has_role", {
         p_user_id: "00000000-0000-0000-0000-000000000000",
-        p_role: "admin",
+        p_role: "super_admin",
       });
 
     // Test 2: List user_roles table (if empty, that's ok)
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     // Test 4: Check if we can query the types directly
-    const { data: pgTypes, error: pgTypesError } = await supabase
+    const { data: pgTypes, error: pgTypesError } = await (supabase as any)
       .from("pg_type")
       .select("typname")
       .in("typname", ["app_role", "building_scope", "building_code"]);

@@ -62,7 +62,7 @@ interface RecentAnnouncement {
   id: string;
   title_th: string | null;
   title_en: string | null;
-  status: string;
+  status: string | null;
   created_at: string;
   sent_at: string | null;
 }

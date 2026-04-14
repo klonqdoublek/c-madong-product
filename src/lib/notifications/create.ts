@@ -30,7 +30,7 @@ export async function createNotification(
         body_en: input.body_en ?? "",
         action_url: input.action_url ?? null,
         priority: input.priority ?? 50,
-        metadata: input.metadata ?? {},
+        metadata: (input.metadata ?? {}) as any,
       })
       .select("id")
       .single();
@@ -63,7 +63,7 @@ export async function createNotificationBatch(
       body_en: input.body_en ?? "",
       action_url: input.action_url ?? null,
       priority: input.priority ?? 50,
-      metadata: input.metadata ?? {},
+      metadata: (input.metadata ?? {}) as any,
     }));
 
     const { error, count } = await adminDb

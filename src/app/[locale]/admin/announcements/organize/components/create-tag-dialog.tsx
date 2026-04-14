@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -11,11 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface CreateTagDialogProps {
-  open: boolean;
-  onClose: () => void;
-}
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useCreateTag } from "@/hooks/use-announcement-organize";
 
 const TAG_COLORS = [
   "#3b82f6", // blue
@@ -30,43 +29,84 @@ const TAG_COLORS = [
   "#6366f1", // indigo
 ];
 
+interface CreateTagDialogProps {
+  open: boolean;
+  onClose: () => void;
+}
+
 export function CreateTagDialog({ open, onClose }: CreateTagDialogProps) {
+  const t = useTranslations("admin.announcementsPage.organize.tag");
   const [name, setName] = useState("");
   const [color, setColor] = useState(TAG_COLORS[0]);
 
+  const createTag = useCreateTag();
+
   function handleCreate() {
-    console.log("Create tag:", { name, color });
-    alert(`✅ สร้าง tag "${name}" แล้ว (Mock)`);
+    if (!name.trim()) {
+      toast.error(t("nameRequired"));
+      return;
+    }
+
+    createTag.mutate(
+      { name: name.trim(), color },
+      {
+        onSuccess: () => {
+          toast.success(t("createSuccess"));
+          resetForm();
+          onClose();
+        },
+        onError: (error) => {
+          // Handle duplicate tag name (409)
+          if (error.message === "Tag name already exists") {
+            toast.error(t("nameExists"));
+          } else {
+            toast.error(error.message || "Failed to create tag");
+          }
+        },
+      }
+    );
+  }
+
+  function resetForm() {
     setName("");
     setColor(TAG_COLORS[0]);
-    onClose();
+  }
+
+  function handleOpenChange(open: boolean) {
+    if (!open) {
+      resetForm();
+      onClose();
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>สร้าง Tag ใหม่</DialogTitle>
+          <DialogTitle>{t("create")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
+          {/* Tag Name */}
           <div>
-            <Label htmlFor="tag-name">ชื่อ Tag</Label>
+            <Label htmlFor="tag-name">{t("name")}</Label>
             <Input
               id="tag-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="เช่น ค่าห้อง, กิจกรรม, ฉุกเฉิน"
+              placeholder={t("namePlaceholder")}
               className="mt-1.5"
             />
           </div>
 
+          {/* Color Selection */}
           <div>
-            <Label>สี</Label>
+            <Label>{t("color")}</Label>
             <div className="mt-2 grid grid-cols-10 gap-2">
               {TAG_COLORS.map((c) => (
                 <button
                   key={c}
+                  type="button"
                   onClick={() => setColor(c)}
                   className={`h-10 w-10 rounded-lg border-2 transition-all ${
                     color === c
@@ -81,22 +121,26 @@ export function CreateTagDialog({ open, onClose }: CreateTagDialogProps) {
 
           {/* Preview */}
           <div className="rounded-lg border bg-muted/50 p-4">
-            <Label className="mb-2 block text-xs">Preview</Label>
+            <Label className="mb-2 block text-xs text-muted-foreground">ตัวอย่าง</Label>
             <div
               className="inline-flex rounded-full px-3 py-1 text-sm font-medium text-white"
               style={{ backgroundColor: color }}
             >
-              {name || "Tag name"}
+              {name || t("namePlaceholder")}
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             ยกเลิก
           </Button>
-          <Button onClick={handleCreate} disabled={!name.trim()}>
-            สร้าง Tag
+          <Button
+            onClick={handleCreate}
+            disabled={!name.trim() || createTag.isPending}
+          >
+            {createTag.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

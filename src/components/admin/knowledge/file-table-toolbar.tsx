@@ -83,7 +83,7 @@ export function FileTableToolbar({
                   <span className="flex items-center gap-1.5">
                     <span
                       className="inline-block h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: tag.color }}
+                      style={{ backgroundColor: tag.color ?? undefined }}
                     />
                     {tag.name}
                   </span>

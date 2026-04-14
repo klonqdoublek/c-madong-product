@@ -36,7 +36,7 @@ export async function PATCH(
     "admin_staff", "service", "activity",
     "technician_head", "technician", "technician_it",
   ];
-  if (!profile || !STAFF_ROLES.includes(profile.role)) {
+  if (!profile || !STAFF_ROLES.includes(profile.role!)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

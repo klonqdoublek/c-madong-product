@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import type { MaintenanceStatus } from "@/lib/supabase/types";
 import {
   Dialog,
   DialogContent,
@@ -99,7 +100,7 @@ export function TicketDetailModal({
                     <span>{formatDistanceToNow(ticket.created_at)}</span>
                   </div>
                 </div>
-                <StatusBadge status={ticket.status} />
+                <StatusBadge status={ticket.status as MaintenanceStatus} />
               </div>
             </DialogHeader>
 
@@ -309,7 +310,7 @@ export function TicketDetailModal({
               </h4>
               <StatusTransition
                 ticketId={ticket.id}
-                currentStatus={ticket.status}
+                currentStatus={ticket.status as MaintenanceStatus}
               />
             </div>
 

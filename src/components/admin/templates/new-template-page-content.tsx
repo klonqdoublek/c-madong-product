@@ -31,7 +31,7 @@ export function NewTemplatePageContent() {
       category,
       message_type: messageType,
       content: messageType === "text" ? content : null,
-      flex_json: messageType === "flex" ? flexJson : null,
+      flex_json: (messageType === "flex" ? flexJson : null) as any,
     });
     router.push("/admin/templates");
   }

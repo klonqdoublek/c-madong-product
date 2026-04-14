@@ -7,7 +7,20 @@ import type { Database } from "@/lib/supabase/types";
 
 type ScoreEntry = Database["public"]["Tables"]["score_entries"]["Row"];
 type ScoreCategory = Database["public"]["Tables"]["score_categories"]["Row"];
-type CompositeScoreResult = Database["public"]["Functions"]["get_composite_score"]["Returns"];
+// The DB function returns Json; define the actual shape for type safety
+interface CompositeScoreResult {
+  composite_score: number;
+  categories: Array<{
+    category_id: string;
+    category_name: string;
+    name: string;
+    score: number;
+    max_score: number;
+    weight: number;
+    [key: string]: any;
+  }>;
+  [key: string]: any;
+}
 
 const SCORE_KEY = "scores";
 const MY_SCORE_KEY = "my-score";

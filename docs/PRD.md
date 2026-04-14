@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.2
-> **Last Updated**: 2026-04-13
+> **Version**: 2.3
+> **Last Updated**: 2026-04-14
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -914,6 +914,38 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 - PIN history (ป้องกันตั้งซ้ำของเก่า)
 - Admin reset PIN ผ่าน dashboard (user ใช้ LINE OAuth เองได้)
 - PIN complexity rules (ห้าม 000000, 123456) — พิจารณาภายหลัง
+
+---
+
+### Phase 7.7: Evaluation System (แบบประเมิน) — DEPLOYED ✅ (2026-04-14)
+
+**Goal**: ระบบแบบประเมินสำหรับกิจกรรมหอพัก — ประเมินร้านค้า, ยื่นขออยู่หอต่อ, อัปโหลดเอกสาร ผูกกับ `dorm_events` ผ่าน `event_type="evaluation"`
+
+**3 Form Types**:
+1. **Shop Evaluation** (ประเมินร้านค้า) — Multi-step: 5 shops × 4 criteria each (rating 1-5 + textarea), skip/undo per criterion
+2. **Dorm Re-application** (ยื่นขออยู่หอต่อ) — 2-step: conditions review → personal info verification → submit
+3. **Document Upload** (อัปโหลดผลลงทะเบียนเรียน CR54) — Single-step: file upload (JPEG/PDF, 10MB) → submit
+
+**Database** (Migration: `20260414_evaluation_system.sql`):
+- `evaluation_forms` — one per event (form_type, config JSONB, total_steps)
+- `evaluation_criteria` — rating/textarea questions per form
+- `evaluation_responses` — per criterion × step × student
+- `evaluation_submissions` — progress tracking (in_progress/completed/skipped)
+- Seed data: 3 evaluation events, 5 shops, 4 criteria, storage bucket `evaluation-uploads`
+
+**API Routes** (`api/student/evaluation/[formId]/`):
+- `GET /` — form config + criteria + submission status
+- `POST /` — save/update step responses (upsert)
+- `POST /submit` — mark as completed
+- `POST /upload` — file upload to Supabase storage
+
+**Hooks** (`src/hooks/use-evaluation.ts`): 6 hooks (useEvaluationForm, useMySubmission, useMyResponses, useSaveStepResponses, useCompleteEvaluation, useUploadEvaluationFile)
+
+**UI** (10 components in `src/components/student/evaluation/`):
+- Shared: StepIndicator, RatingScale, CriterionCard, EvaluationHeader, StickyBottomBar, PersonalInfoCard, DocumentUploadZone
+- Content: ShopEvaluationContent, DormReapplicationContent, DocumentUploadContent, EvaluationPageContent
+
+**Route**: `src/app/[locale]/(student)/events/[id]/evaluate/page.tsx`
 
 ---
 

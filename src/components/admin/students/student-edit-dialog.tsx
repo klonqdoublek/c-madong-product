@@ -162,7 +162,7 @@ export function StudentEditDialog({ student, open, onClose }: Props) {
                   }`}
                   style={
                     tags.includes(tag.name)
-                      ? { backgroundColor: tag.color }
+                      ? { backgroundColor: tag.color ?? undefined }
                       : undefined
                   }
                 >

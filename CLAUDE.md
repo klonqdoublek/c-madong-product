@@ -5,7 +5,37 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-13)
+## Recent Changes (2026-04-14)
+
+### Evaluation System (แบบประเมิน) — DEPLOYED
+
+**3 Evaluation Form Types** tied to `dorm_events` via `event_type="evaluation"`:
+1. **Shop Evaluation** — Multi-step (5 shops × 4 criteria), rating 1-5 + textarea, skip/undo per criterion
+2. **Dorm Re-application** — 2-step: conditions + personal info → confirm → submit
+3. **Document Upload** — File upload (JPEG/PDF, 10MB) → submit
+
+**Database** (Migration: `20260414_evaluation_system.sql`):
+- 4 tables: `evaluation_forms`, `evaluation_criteria`, `evaluation_responses`, `evaluation_submissions`
+- Seed: 3 events, 5 shops, 4 criteria, storage bucket `evaluation-uploads`
+
+**Files Created**:
+- `src/hooks/use-evaluation.ts` — 6 hooks
+- `src/app/[locale]/(student)/events/[id]/evaluate/page.tsx` — route
+- `src/app/api/student/evaluation/[formId]/` — 3 API routes (GET/POST, submit, upload)
+- `src/components/student/evaluation/` — 10 components (step-indicator, rating-scale, criterion-card, evaluation-header, sticky-bottom-bar, personal-info-card, document-upload-zone, shop-evaluation-content, dorm-reapplication-content, document-upload-content, evaluation-page-content)
+
+**Files Modified**:
+- `src/components/student/events/events-page-content.tsx` — "ทำแบบประเมิน" CTA for evaluation events
+- `src/messages/th.json`, `en.json` — ~25 evaluation i18n keys
+
+**Key Patterns**:
+- `busyRef` (useRef) for multi-step submit guard — avoids React state batching leaving buttons disabled
+- Direct `fetch()` instead of TanStack mutations for multi-step save+submit — avoids invalidation re-renders
+- StickyBottomBar uses `bottom-[72px]` to sit above bottom nav in `(student)` route group
+
+---
+
+## Changes (2026-04-13)
 
 ### Context-Specific Quick Reply Menus for Onboarding Carousel — DEPLOYED
 

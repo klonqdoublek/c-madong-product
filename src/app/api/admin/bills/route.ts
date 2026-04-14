@@ -10,7 +10,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createBillSchema } from "@/lib/validators/billing";
 import { z } from "zod/v4";
-import type { BillStatus } from "@/lib/supabase/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     if (status && status !== "all") {
-      query = query.eq("status", status as BillStatus);
+      query = query.eq("status", status as "pending" | "paid" | "overdue" | "cancelled");
     }
     if (buildingId) {
       query = query.eq("building_id", buildingId);

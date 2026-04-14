@@ -20,7 +20,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
-import type { EventType } from "@/lib/supabase/types";
+import type { EventType, AttendanceStatus } from "@/lib/supabase/types";
 
 export function EventDetailContent({ eventId }: { eventId: string }) {
   const t = useTranslations("events");
@@ -196,10 +196,10 @@ export function EventDetailContent({ eventId }: { eventId: string }) {
           <p className="text-xs text-muted-foreground">{tDetail("myAttendance")}</p>
           <span
             className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-              ATTENDANCE_STATUS_CONFIG[myAttendance.status]?.color ?? ""
+              ATTENDANCE_STATUS_CONFIG[myAttendance.status as AttendanceStatus]?.color ?? ""
             }`}
           >
-            {ATTENDANCE_STATUS_CONFIG[myAttendance.status]?.labelTh ?? myAttendance.status}
+            {ATTENDANCE_STATUS_CONFIG[myAttendance.status as AttendanceStatus]?.labelTh ?? myAttendance.status}
           </span>
         </div>
       )}

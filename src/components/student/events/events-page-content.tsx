@@ -43,7 +43,7 @@ export function EventsPageContent() {
     (myAttendance ?? []).map((a) => [a.event_id, a])
   );
 
-  const filterByType = <T extends { event_type: EventType }>(events: T[]) => {
+  const filterByType = <T extends { event_type: string }>(events: T[]) => {
     if (typeFilter === "all") return events;
     return events.filter((e) => e.event_type === typeFilter);
   };

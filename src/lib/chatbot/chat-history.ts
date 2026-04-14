@@ -34,7 +34,7 @@ export async function saveMessage(
     content: message.content,
     intent: message.intent ?? null,
     line_uid: lineUid,
-    metadata: message.metadata ?? {},
+    metadata: (message.metadata ?? {}) as any,
   })
 }
 

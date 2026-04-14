@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role!)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role!)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -266,7 +266,7 @@ export async function DELETE(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role)) {
+    if (!profile || !ROLE_MANAGER_ROLES.includes(profile.role!)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
