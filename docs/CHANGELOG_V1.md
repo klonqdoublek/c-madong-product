@@ -345,6 +345,34 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - Webhook trigger placement: pre-rate-limit for onboarding accessibility
 - Think holistically when modifying flows
 
+### Announcements Organize (2026-04-15)
+- ✅ **Full backend wiring** of `/admin/announcements/organize` mockup → real database
+- ✅ **3 new tables**: `announcement_folders` (hierarchical), `announcement_tags` (UNIQUE), `announcement_tag_assignments` (junction)
+- ✅ **Folder management**: Create, edit, delete with parent-child hierarchy + Lucide icons
+- ✅ **Tag management**: Color-coded tags with UNIQUE constraint + 409 duplicate handling
+- ✅ **Bulk operations**: Move to folder, add tags, archive (soft delete), restore
+- ✅ **Archive system**: `archived_at` timestamp, filter toggle, restore functionality
+- ✅ **Cover image upload**: Drag-and-drop with Supabase Storage bucket `announcement-covers`
+- ✅ **14 TanStack Query hooks** in `use-announcement-organize.ts`
+- ✅ **7 API routes**: folders CRUD, tags CRUD, bulk operations, upload-cover
+- ✅ **Dynamic Lucide icons**: `DynamicLucideIcon` renderer + `LucideIconPicker` (50 curated icons)
+- ✅ **~65 i18n keys** added for formal Thai/English UI text
+- ✅ **Type regeneration**: 25+ cascading type errors fixed after `supabase gen types`
+
+**Database** (Migration: `20260415_announcement_folders_tags.sql`):
+- `announcement_folders` — hierarchical (parent_id FK), Lucide icon name, color, sort_order
+- `announcement_tags` — UNIQUE name, color
+- `announcement_tag_assignments` — many-to-many junction
+- `announcements` altered: +`folder_id` (FK, ON DELETE SET NULL), +`archived_at` (TIMESTAMPTZ)
+- RLS: authenticated SELECT, admin-only ALL
+- Seed: 6 folders + 5 tags
+
+**Lessons Learned**:
+- `supabase gen types` wipes custom type aliases — always re-add after regeneration
+- `profile.role` became nullable in generated types — fix with `!` assertions or `?? "student"` fallback
+- `tag.color` nullable → use `?? undefined` for CSS style props
+- Budget for type cascading errors when regenerating — use batch fixes not one-by-one
+
 ### Evaluation System (2026-04-14)
 - ✅ **3 evaluation form types**: Shop Evaluation (ประเมินร้านค้า), Dorm Re-application (ยื่นขออยู่หอต่อ), Document Upload (อัปโหลดผลลงทะเบียนเรียน)
 - ✅ **Shop evaluation**: Multi-step flow (5 shops), 4 criteria per shop (ความสะอาด, คุณภาพสินค้า, ราคา, ข้อเสนอแนะ), 1-5 rating scale, skip/undo per criterion
@@ -384,7 +412,7 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 ## Database Summary (V1)
 
 ### Tables Created
-25 migrations · 44+ tables
+26 migrations · 47+ tables
 
 **Core Auth & Users**:
 - `profiles`, `user_roles`, `buildings`, `rooms`, `beds`
@@ -403,6 +431,7 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 
 **Notifications**:
 - `notifications`, `announcement_bookmarks`, `announcement_registrations`, `announcement_reads`
+- `announcement_folders`, `announcement_tags`, `announcement_tag_assignments`
 
 ### Extensions
 - `pgvector` — for embeddings
@@ -416,7 +445,7 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - bills, evaluation/[formId] (GET/POST), evaluation/[formId]/submit, evaluation/[formId]/upload, insights, maintenance/[id]/cancel, notifications, parcels
 
 ### Admin APIs (`/api/admin/`)
-- ai, announcements, bills, booking, knowledge (6 sub-routes), live-chat, maintenance, parcels, roles, scores, settings, students
+- ai, announcements (+ folders, tags, bulk, upload-cover), bills, booking, knowledge (6 sub-routes), live-chat, maintenance, parcels, roles, scores, settings, students
 
 ### Shared APIs (`/api/`)
 - auth (9 routes), chat, chat/escalate, chat/history, chat/messages, chatbot (LINE webhook), flex, maintenance, webhooks
@@ -463,8 +492,8 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 - `knowledge-store` — knowledge base state
 - `maintenance-store` — maintenance state
 
-### TanStack Query Hooks (26)
-- use-user, use-notifications, use-insights, use-permissions, use-bills, use-score, use-events, use-evaluation, use-parcels, use-maintenance-tickets, use-my-tickets, use-chat, use-knowledge, use-knowledge-query, use-announcements, use-buildings, use-dashboard-stats, use-documents, use-realtime, use-role-management, use-students, use-tags, use-technicians, use-templates, use-ai-settings, use-escalations
+### TanStack Query Hooks (27)
+- use-user, use-notifications, use-insights, use-permissions, use-bills, use-score, use-events, use-evaluation, use-parcels, use-maintenance-tickets, use-my-tickets, use-chat, use-knowledge, use-knowledge-query, use-announcements, use-announcement-organize, use-buildings, use-dashboard-stats, use-documents, use-realtime, use-role-management, use-students, use-tags, use-technicians, use-templates, use-ai-settings, use-escalations
 
 ---
 
@@ -536,6 +565,9 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 
 ### Phase 7.7: Evaluation System ✅ (2026-04-14)
 - See "Evaluation System" in Additional Features section above
+
+### Announcements Organize ✅ (2026-04-15)
+- See "Announcements Organize" in Additional Features section above
 
 ### Phase 8: Reports (NOT STARTED)
 - Admin analytics dashboards

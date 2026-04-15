@@ -218,7 +218,20 @@ C-Madong Platform
 - [ ] AI-assisted Thai copy generation
 - [ ] Send via LINE Messaging API
 
-#### US-4.3: Template Management (Admin)
+#### US-4.3: Announcement Organization (Admin) ✅ DEPLOYED (2026-04-15)
+> **As an** admin, **I want to** organize announcements into folders and tags, **so that** I can manage large volumes of announcements efficiently.
+
+**Features:**
+- [x] Hierarchical folder management (parent-child nesting) with Lucide icons
+- [x] Color-coded tag system with UNIQUE constraint
+- [x] Bulk operations: move to folder, add tags, archive, restore
+- [x] Soft-delete archive system (archived_at timestamp with restore)
+- [x] Cover image upload with drag-and-drop (Supabase Storage)
+- [x] Searchable icon picker (50 curated Lucide icons)
+- [x] Filter by folder, tag, status (active/archived)
+- [x] Formal Thai/English i18n (~65 keys)
+
+#### US-4.4: Template Management (Admin)
 > **As a** staff member, **I want to** save message templates, **so that** I can reuse them for recurring announcements.
 
 **Features:**

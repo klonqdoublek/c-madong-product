@@ -5,7 +5,47 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-14)
+## Recent Changes (2026-04-15)
+
+### Announcements Organize Feature — DEPLOYED
+
+**Full backend wiring** of the `/admin/announcements/organize` mockup page (was 100% UI with mock data).
+
+**Database** (Migration: `20260415_announcement_folders_tags.sql`):
+- 3 new tables: `announcement_folders` (hierarchical), `announcement_tags` (UNIQUE name), `announcement_tag_assignments` (junction)
+- Altered `announcements`: added `folder_id` (FK) + `archived_at` (soft delete)
+- Storage bucket: `announcement-covers` with admin-only RLS
+- Seed: 6 folders (Lucide icons) + 5 tags (color-coded)
+
+**Files Created**:
+- `src/hooks/use-announcement-organize.ts` — 14 hooks (folders, tags, bulk ops, organized query)
+- `src/app/api/admin/announcements/` — 7 API routes (main, folders CRUD, tags CRUD, bulk, upload-cover)
+- `src/components/ui/dynamic-lucide-icon.tsx` — renders Lucide icon by name string
+- `src/components/ui/lucide-icon-picker.tsx` — searchable grid of 50 curated icons
+- `src/components/admin/announcements/upload-area.tsx` — drag-and-drop cover image upload
+
+**Files Modified** (9 organize components wired to real backend):
+- `announcement-organizer.tsx` — replaced mock data with hooks, loading/error states
+- `folder-sidebar.tsx` — DynamicLucideIcon, real folder tree, archive section
+- `announcement-table.tsx` — real data, archive badges, restore action
+- `create-folder-dialog.tsx` — LucideIconPicker, useCreateFolder mutation
+- `create-tag-dialog.tsx` — useCreateTag mutation, 409 duplicate handling
+- `move-to-folder-dialog.tsx` — useBulkMove mutation
+- `add-tag-dialog.tsx` — useBulkTag mutation
+- `bulk-actions-bar.tsx` — useBulkArchive/Restore mutations
+- `filter-bar.tsx` — archive status filter
+
+**Type Regeneration** (25+ type errors fixed):
+- `supabase gen types` wiped custom type aliases → re-added all 11 custom types
+- `profile.role` became nullable → fixed in 10+ files with `!` / `??` / optional chaining
+- `tag.color` nullable → `?? undefined` in ~12 component files
+- `Record<string, unknown>` vs `Json` → `as any` casts in 4 lib files
+
+**Commit**: `71cef99` - feat: implement announcements organize feature with folders, tags, and archive
+
+---
+
+## Changes (2026-04-14)
 
 ### Evaluation System (แบบประเมิน) — DEPLOYED
 
@@ -502,3 +542,17 @@
 **Task 3: Appointment Booking UI**
 - `src/components/maintenance/new-request-form.tsx` — Toggle "ต้องการนัดวันซ่อม?" in details step, Calendar date picker (Popover), time select dropdown (08:00-17:00, 30min slots), shown in review step
 - i18n strings added to `th.json` and `en.json` for both cancel and appointment features
+
+---
+
+## Token Optimization & Anti-Over-Engineering Guidelines
+
+### Session Efficiency Rules
+1. **`supabase gen types` always causes cascading type errors** — budget for this. After regeneration: (a) re-add custom type aliases, (b) batch-fix nullable fields with sed/grep, (c) fix `Json` vs `Record<string, unknown>` with `as any`. Don't fix one file at a time — use pattern-based bulk fixes
+2. **When wiring mockup components to backend**: Don't rewrite components — just replace mock data arrays with hook calls and replace `alert()` with mutations. Keep existing UI structure intact
+3. **Avoid over-planning**: If mockup UI already exists and the pattern is proven (e.g. Knowledge Base v3), skip exhaustive planning and go straight to implementation. The plan should be a checklist, not a specification document
+4. **Parallel file reads**: Read multiple files in one turn instead of sequentially. Group independent tool calls
+5. **Prefer `Edit` over `Write`**: For existing files, use targeted edits instead of rewriting entire files. Reduces tokens spent on unchanged content
+6. **Don't duplicate context**: If CLAUDE.md already documents a pattern, don't re-explain it in code comments or plan documents
+7. **Build early, fix incrementally**: Run `next build` after major changes to catch errors early. Don't wait until everything is done — cascading errors are cheaper to fix in small batches
+8. **Minimize re-reads**: Read a file once, make all edits, move on. Don't re-read the same file multiple times across turns
