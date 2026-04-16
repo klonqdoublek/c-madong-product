@@ -112,7 +112,7 @@ export function UploadDocumentDialog({
             <input
               ref={fileRef}
               type="file"
-              accept=".txt,.md,.pdf,.doc,.docx"
+              accept=".txt,.md,.pdf,.docx"
               onChange={handleFileChange}
               className="hidden"
             />

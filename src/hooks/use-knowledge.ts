@@ -324,7 +324,10 @@ export function useUploadKnowledgeDocument() {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error("Upload failed");
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Upload failed");
+      }
       return res.json();
     },
     onSuccess: () => {

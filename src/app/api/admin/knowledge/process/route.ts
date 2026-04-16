@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  DocumentExtractionError,
+  extractDocumentText,
+} from "@/lib/knowledge/extract-document-text";
 
 // Allow up to 60s for processing (Pro plan), Hobby = 10s
 export const maxDuration = 60;
@@ -30,8 +34,62 @@ export async function POST(request: Request) {
       .update({ status: "processing" })
       .eq("id", documentId);
 
+    let content = typeof doc.content === "string" ? doc.content.trim() : "";
+
+    if (!content && doc.file_path) {
+      const { data: fileData, error: downloadError } = await supabase.storage
+        .from("dorm-knowledge")
+        .download(doc.file_path);
+
+      if (downloadError || !fileData) {
+        await supabase
+          .from("documents")
+          .update({ status: "error" })
+          .eq("id", documentId);
+        return NextResponse.json(
+          { error: "Stored file could not be loaded for processing" },
+          { status: 500 }
+        );
+      }
+
+      try {
+        content = await extractDocumentText({
+          fileName: doc.filename ?? doc.title,
+          contentType: doc.content_type,
+          buffer: await fileData.arrayBuffer(),
+        });
+
+        await supabase
+          .from("documents")
+          .update({ content })
+          .eq("id", documentId);
+      } catch (error) {
+        const message =
+          error instanceof DocumentExtractionError
+            ? error.message
+            : "Failed to extract text from stored document";
+
+        await supabase
+          .from("documents")
+          .update({ status: "error" })
+          .eq("id", documentId);
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+    }
+
+    if (!content) {
+      await supabase
+        .from("documents")
+        .update({ status: "error" })
+        .eq("id", documentId);
+      return NextResponse.json(
+        { error: "Document has no extractable text content" },
+        { status: 400 }
+      );
+    }
+
     // Chunk content
-    const chunks = chunkText(doc.content, 500, 50);
+    const chunks = chunkText(content, 500, 50);
 
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {

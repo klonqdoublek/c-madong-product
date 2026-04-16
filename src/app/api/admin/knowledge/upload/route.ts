@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { extractText } from "unpdf";
+import {
+  DocumentExtractionError,
+  extractDocumentText,
+  isSupportedKnowledgeFile,
+} from "@/lib/knowledge/extract-document-text";
 
 // Allow up to 60s for upload + processing
 export const maxDuration = 60;
@@ -17,9 +21,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const supabase = createAdminClient();
+    if (!isSupportedKnowledgeFile(file.name, file.type)) {
+      return NextResponse.json(
+        { error: "Unsupported file type. Upload a TXT, MD, PDF, or DOCX document." },
+        { status: 400 }
+      );
+    }
 
-    // Upload to storage — use sanitized path (Supabase Storage doesn't support non-ASCII)
+    const supabase = createAdminClient();
+    const buffer = await file.arrayBuffer();
+
+    // Extract text content
+    let content = "";
+    try {
+      content = await extractDocumentText({
+        fileName: file.name,
+        contentType: file.type,
+        buffer,
+      });
+    } catch (error) {
+      console.error("[Upload] Text extraction error:", error);
+
+      const message =
+        error instanceof DocumentExtractionError
+          ? error.message
+          : "Failed to extract text from the uploaded document";
+
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
+
+    // Upload to storage only after extraction succeeds
     const ext = file.name.includes(".") ? file.name.split(".").pop() : "txt";
     const filePath = `${Date.now()}_${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const { error: uploadError } = await supabase.storage
@@ -28,21 +59,6 @@ export async function POST(request: Request) {
 
     if (uploadError) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 });
-    }
-
-    // Extract text content
-    let content = "";
-    const lowerName = file.name.toLowerCase();
-    if (file.type.startsWith("text/") || lowerName.endsWith(".txt") || lowerName.endsWith(".md")) {
-      content = await file.text();
-    } else if (lowerName.endsWith(".pdf") || file.type === "application/pdf") {
-      try {
-        const buffer = new Uint8Array(await file.arrayBuffer());
-        const { text } = await extractText(buffer, { mergePages: true });
-        content = text;
-      } catch (err) {
-        console.error("[Upload] PDF parse error:", err);
-      }
     }
 
     // Insert document record
@@ -54,7 +70,7 @@ export async function POST(request: Request) {
         filename: file.name,
         file_path: filePath,
         content_type: file.type,
-        status: content ? "pending" : "pending",
+        status: "pending",
         folder_id: folderId || null,
       })
       .select()
@@ -111,6 +127,11 @@ async function processDocument(supabase: SupabaseClient, documentId: string, con
   }
 
   const chunks = chunkText(content, 500, 50);
+
+  if (chunks.length === 0) {
+    await supabase.from("documents").update({ status: "error" }).eq("id", documentId);
+    return;
+  }
 
   // Delete existing sections
   await supabase.from("document_sections").delete().eq("document_id", documentId);
