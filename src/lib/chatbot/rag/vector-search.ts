@@ -13,14 +13,14 @@ interface SearchResult {
  */
 export async function searchDocuments(
   query: string,
-  matchCount: number = 5,
-  matchThreshold: number = 0.3
+  matchCount: number = 8,
+  matchThreshold: number = 0.2
 ): Promise<SearchResult[]> {
   const supabase = createAdminClient()
   const embedding = await generateEmbedding(query)
 
   const { data, error } = await supabase.rpc("match_documents", {
-    query_embedding: embedding as any,
+    query_embedding: JSON.stringify(embedding),
     match_count: matchCount,
     match_threshold: matchThreshold,
   })

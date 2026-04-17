@@ -4,10 +4,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const SYSTEM_PROMPT = `คุณคือผู้ช่วยตอบคำถามของเจ้าหน้าที่หอพักนิสิตจุฬาลงกรณ์มหาวิทยาลัย
 
 กฎสำคัญ:
-- ตอบเฉพาะสิ่งที่ถูกถามเท่านั้น ห้ามเอาข้อมูลอื่นมาใส่เพิ่ม
+- ตอบจากบริบทที่ให้มาเท่านั้น ห้ามแต่งเติมข้อมูลที่ไม่มีในบริบท
 - ตอบกระชับ ตรงประเด็น ใช้ภาษาไทยที่เข้าใจง่าย
-- ถ้าในบริบทไม่มีข้อมูลที่เกี่ยวข้องกับคำถาม ให้บอกว่า "ไม่พบข้อมูลที่เกี่ยวข้องในเอกสาร"
-- ห้ามแต่งเติมข้อมูลที่ไม่มีในบริบท`;
+- ถ้าคำตอบอยู่ในบริบทแม้จะไม่ตรงคำถามทั้งหมด ให้สรุปข้อมูลที่เกี่ยวข้องมากที่สุด
+- ถ้าในบริบทไม่มีข้อมูลที่เกี่ยวข้องเลย ให้บอกว่า "ไม่พบข้อมูลที่เกี่ยวข้องในเอกสาร"
+- อ้างอิงหมายเลขข้อ/มาตรา/ส่วนจากเอกสารต้นฉบับเมื่อเป็นไปได้`;
 
 export async function POST(request: Request) {
   try {
@@ -48,40 +49,39 @@ export async function POST(request: Request) {
     // Search similar documents
     const supabase = createAdminClient();
 
-    // If documentId specified, search only within that document's sections
+    // If documentId specified, search ONLY within that document's sections
     if (documentId) {
-      const { data: sections } = await supabase
-        .from("document_sections")
-        .select("id, content")
-        .eq("document_id", documentId);
+      // Use dedicated per-document RPC — searches within this document only
+      // Lower threshold (0.15) + more results (8) for better recall on Thai text
+      const { data: docMatches, error: docMatchError } = await (supabase as any).rpc(
+        "match_document_sections",
+        {
+          query_embedding: JSON.stringify(queryEmbedding),
+          target_document_id: documentId,
+          match_count: 8,
+          match_threshold: 0.15,
+        }
+      );
 
-      if (!sections || sections.length === 0) {
+      if (docMatchError) {
+        console.error("[Query] Per-document search error:", docMatchError);
+        return NextResponse.json({ error: docMatchError.message }, { status: 500 });
+      }
+
+      const matches = (docMatches ?? []) as { id: string; content: string; similarity: number }[];
+
+      if (matches.length === 0) {
         return NextResponse.json({
-          answer: "ไม่พบเนื้อหาในเอกสารนี้",
+          answer: "ไม่พบเนื้อหาในเอกสารนี้ที่ตรงกับคำถาม",
           sources: [],
         });
       }
 
-      // Use match_documents but filter results to only this document
-      const { data: allMatches } = await supabase.rpc("match_documents", {
-        query_embedding: JSON.stringify(queryEmbedding),
-        match_count: 10,
-        match_threshold: 0.3,
-      });
-
-      const sectionIds = new Set(sections.map((s) => s.id));
-      const filteredMatches = (allMatches ?? []).filter(
-        (m: { id: string }) => sectionIds.has(m.id)
-      ).slice(0, 3);
-
-      const docContext = filteredMatches.map((m: { content: string }) => m.content).join("\n\n");
-
-      if (!docContext) {
-        return NextResponse.json({
-          answer: "ไม่พบข้อมูลที่เกี่ยวข้องในเอกสารนี้",
-          sources: [],
-        });
-      }
+      // Take top 5 sections for richer context
+      const topMatches = matches.slice(0, 5);
+      const docContext = topMatches
+        .map((m, i) => `[ส่วนที่ ${i + 1}] ${m.content}`)
+        .join("\n\n");
 
       const chatRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
@@ -95,11 +95,11 @@ export async function POST(request: Request) {
             { role: "system", content: SYSTEM_PROMPT },
             {
               role: "user",
-              content: `บริบทจากเอกสาร:\n${docContext}\n\nคำถาม: ${question}`,
+              content: `บริบทจากเอกสาร (${topMatches.length} ส่วน):\n\n${docContext}\n\nคำถาม: ${question}`,
             },
           ],
           temperature: 0.3,
-          max_tokens: 500,
+          max_tokens: 800,
         }),
       });
 
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         answer,
-        sources: filteredMatches.map((m: { content: string; similarity: number }) => ({
+        sources: topMatches.map((m) => ({
           content: m.content,
           similarity: m.similarity,
         })),
