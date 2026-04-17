@@ -5,7 +5,35 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-15)
+## Recent Changes (2026-04-17)
+
+### Chatbot RAG Accuracy Fix — DEPLOYED
+
+**Root Cause Analysis** — LINE chatbot couldn't answer knowledge base questions (hallucinated or said "ไม่เจอ"), while admin KB per-doc Q&A worked fine.
+
+**3 Root Causes Found**:
+1. **`match_documents` RPC missing `document_title`** — chatbot `answer-generator.ts` expected `document_title` but RPC returned only 4 columns → context showed `undefined: content` → LLM answered poorly
+2. **No `status='ready'` filter** — RPC returned chunks from unprocessed/failed documents
+3. **Intent misclassification** — "คาเฟ่ชื่ออะไร" sometimes classified as `chitchat` instead of `knowledge` → routed to chitchat handler → LLM hallucinated fake names ("The Coffee House", "Chula Cafe")
+
+**Fixes Applied**:
+- Migration `20260417_fix_match_documents_rpc.sql`: Added `document_title` to return type + `AND d.status = 'ready'` filter + new `match_document_sections` RPC for per-doc search
+- `vector-search.ts`: Threshold `0.3→0.2`, match count `5→8`, embedding format `as any→JSON.stringify()`
+- `system-prompts.ts`: Intent prompt expanded with ร้านอาหาร/คาเฟ่/สถานที่ keywords + "ข้อเท็จจริง = knowledge เสมอ" rule
+- `system-prompts.ts`: Hallucination guard on both chitchat + dynamic prompts — "ห้ามแต่งชื่อร้าน/สถานที่"
+- `admin/knowledge/query/route.ts`: Uses `match_document_sections` RPC for per-doc search (threshold 0.15, count 8)
+
+**Debug Process** (for future RAG issues):
+1. Check `document_sections` have embeddings: `SELECT COUNT(*) FROM document_sections`
+2. Test RPC: `supabase.rpc("match_documents", {query_embedding, match_count: 8, match_threshold: 0.2})`
+3. Verify intent: Test `classifyIntent()` with actual user messages
+4. Check context assembly: Print what `answer-generator.ts` sends to LLM
+
+**Commit**: `6fdaded` — fix: improve chatbot RAG accuracy and prevent hallucination
+
+---
+
+## Changes (2026-04-15)
 
 ### Announcements Organize Feature — DEPLOYED
 
@@ -544,6 +572,16 @@
 - i18n strings added to `th.json` and `en.json` for both cancel and appointment features
 
 ---
+
+### RAG / Knowledge Base
+- **`match_documents` RPC must return `document_title`** — chatbot `answer-generator.ts` builds context as `[1] title: content`. Without title → `undefined` in context → LLM answers poorly
+- **`status='ready'` filter required** — without it, RPC returns chunks from processing/failed documents
+- **Thai text needs low similarity threshold** — 0.3 misses many relevant chunks. Use 0.2 for global search, 0.15 for per-document search
+- **Intent misclassification → hallucination** — if factual question ("คาเฟ่ชื่ออะไร") routes to chitchat instead of knowledge, LLM fabricates answers. Intent prompt must explicitly list factual categories (ร้านอาหาร, เวลาเปิดปิด, etc.) as knowledge
+- **Chitchat prompt needs hallucination guard** — without "ห้ามแต่งชื่อร้าน/สถานที่", LLM invents plausible-sounding names ("The Coffee House", "Chula Cafe")
+- **Document chunking affects retrieval** — if relevant info (e.g. "X-Cafe") is buried mid-chunk with unrelated content, similarity score drops. Consider re-chunking documents with better boundaries
+- **Two RPC functions**: `match_documents` (global, 8 results, threshold 0.2) vs `match_document_sections` (per-doc, 8 results, threshold 0.15). Admin per-doc Q&A uses the latter
+- **Debug RAG issues locally**: Use `scripts/` test scripts with `createClient(url, serviceRoleKey)` to query `document_sections` and test RPC directly
 
 ## Token Optimization & Anti-Over-Engineering Guidelines
 

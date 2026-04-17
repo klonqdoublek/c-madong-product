@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.3
-> **Last Updated**: 2026-04-14
+> **Version**: 2.4
+> **Last Updated**: 2026-04-17
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -421,6 +421,7 @@ C-Madong Platform
 - Intent router (OpenAI gpt-4o-mini classification)
 - Session management + chat history
 - RAG integration (pgvector embeddings → gpt-4o-mini answer) — tested end-to-end on LINE ✅
+- RAG accuracy fix (2026-04-17): `match_documents` RPC returns `document_title` + filters `status='ready'`, dedicated `match_document_sections` RPC for per-doc search, threshold 0.3→0.2, match count 5→8, hallucination guard on chitchat prompts ✅
 - Quick Reply menu (trigger: "น้องซีมะโด่ง", "เมนู", "help") with 4 action buttons ✅
 - Image support
 - All AI: OpenAI gpt-4o-mini (switched from Gemini — free tier quota exhausted)
@@ -1068,13 +1069,16 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 - ✅ Live Chat Handoff (student escalation, admin queue, polling-based real-time)
 - ✅ Announcements v2 (bookmark, register, read tracking, docs, saved section)
 - ✅ Emergency Contact (animated hero, draggable bottom sheet, 5 tabs, 19 contacts)
+- ✅ Evaluation System (3 form types: shop eval, dorm reapplication, doc upload)
+- ✅ Announcements Organize (folders, tags, bulk ops, archive, cover upload)
+- ✅ RAG Accuracy Fix (RPC fixes, intent classification, anti-hallucination guard)
 
 #### Technical Metrics (V1)
 - **Pages**: 36 (student + admin)
 - **API Routes**: 60+
 - **Database Tables**: 40+
 - **LINE Integrations**: 17 (Flex + webhook)
-- **Migrations**: 24 files
+- **Migrations**: 27 files
 - **Components**: 100+ custom components
 - **State Hooks**: 25 TanStack Query hooks
 - **Stores**: 6 Zustand stores
