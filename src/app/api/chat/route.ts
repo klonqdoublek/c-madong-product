@@ -142,7 +142,7 @@ export async function POST(request: Request) {
         break;
       }
       case "knowledge": {
-        const result = await handleKnowledge(message);
+        const result = await handleKnowledge(message, identifier);
         replyText = result.text ?? "ขอโทษนะคะ ซีมะโด่งหาคำตอบไม่ได้ตอนนี้";
         break;
       }

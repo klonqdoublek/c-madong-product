@@ -71,6 +71,40 @@ export async function resetSession(lineUid: string): Promise<ChatSession> {
   return data as ChatSession
 }
 
+/** Get session without creating */
+export async function getSession(lineUid: string): Promise<ChatSession | null> {
+  if (IS_DEMO) return mockSession(lineUid)
+
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from("chatbot_sessions")
+    .select("*")
+    .eq("line_uid", lineUid)
+    .single()
+
+  return data as ChatSession | null
+}
+
+/** Update session state_data fields (merge) */
+export async function updateSession(
+  lineUid: string,
+  updates: Record<string, unknown>
+): Promise<void> {
+  if (IS_DEMO) return
+
+  const supabase = createAdminClient()
+  const session = await getSession(lineUid)
+  const currentData = session?.state_data || {}
+
+  await supabase
+    .from("chatbot_sessions")
+    .update({
+      state_data: { ...currentData, ...updates } as any,
+      updated_at: new Date().toISOString()
+    })
+    .eq("line_uid", lineUid)
+}
+
 /** Clear session entirely (on unfollow) */
 export async function clearSession(lineUid: string): Promise<void> {
   if (IS_DEMO) return

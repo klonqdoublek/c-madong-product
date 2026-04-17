@@ -7,6 +7,40 @@
 
 ## Recent Changes (2026-04-17)
 
+### Chatbot Smart Fallback Enhancement — IMPLEMENTED
+
+**Problem**: Repetitive "ไม่เจอ" message when RAG returns 0 results → poor UX, no helpful next steps
+
+**Solution**: Smart fallback system with 3 components:
+1. **Message Rotation** — 5 personality tones × 4 topics = 20 variants, prevents repetition
+2. **Topic Detection** — Keyword matching (<1ms) classifies query into: rules, billing, facilities, repair, unknown
+3. **Smart Suggestions** — Context-aware quick replies based on user activity (unpaid bills, pending repairs, etc.)
+4. **Graceful Escalation** — After 7 consecutive failures, suggests live chat
+
+**Implementation**:
+- 3 new files: `fallback/messages.ts` (rotation logic), `fallback/topic-detector.ts` (keyword matching), `fallback/smart-suggestions.ts` (context fetcher + priority matrix)
+- Modified 5 files: `answer-generator.ts` (returns `{ text, quickReply }`), `knowledge.ts` (passes lineUid), `webhook-handler.ts` (passes lineUid), `session-manager.ts` (getSession/updateSession helpers), `api/chat/route.ts` (passes identifier)
+- Feature flag: `ENABLE_SMART_FALLBACK=true` + `SMART_FALLBACK_ROLLOUT_PERCENTAGE=10` (canary → 50 → 100)
+- Context fetch: 500ms timeout, parallel queries (bills, repairs, parcels, events), graceful degradation to static suggestions
+- Session state: `fallback_count`, `last_fallback_index`, `last_fallback_topic` in `chatbot_sessions.state_data`
+
+**Rollout Plan**:
+- Week 1: 10% canary → monitor errors, latency, collect 100+ interactions
+- Week 2: 50% expansion → A/B test re-query rate, escalation rate
+- Week 3: 100% rollout → track KPIs for 2 weeks
+
+**Success Metrics**:
+- Re-query rate: baseline 10% → target >30% (3x improvement)
+- Escalation rate: baseline 15% → target <7% (2x reduction)
+- Suggestion click rate: target >40%
+
+**Files**:
+- NEW: `src/lib/chatbot/fallback/` (3 files)
+- MODIFIED: `rag/answer-generator.ts`, `handlers/knowledge.ts`, `webhook-handler.ts`, `session-manager.ts`, `api/chat/route.ts`
+- ENV: `.env.local.example` (+2 feature flags)
+
+---
+
 ### Chatbot RAG Accuracy Fix — DEPLOYED
 
 **Root Cause Analysis** — LINE chatbot couldn't answer knowledge base questions (hallucinated or said "ไม่เจอ"), while admin KB per-doc Q&A worked fine.
