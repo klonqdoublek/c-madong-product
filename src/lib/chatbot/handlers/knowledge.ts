@@ -33,7 +33,7 @@ export async function handleKnowledge(
     // Timeout fallback with smart suggestions
     const topic = detectTopic(message)
     const fallbackMsg = await selectFallbackMessage(lineUid, topic, 'timeout')
-    const suggestions = getSmartSuggestions(topic)
+    const suggestions = getSmartSuggestions()
 
     return {
       type: "text",

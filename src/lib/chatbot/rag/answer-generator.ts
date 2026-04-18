@@ -17,7 +17,7 @@ interface RAGAnswerResult {
 async function buildFallbackResult(question: string, lineUid: string): Promise<RAGAnswerResult> {
   const topic = detectTopic(question)
   const message = await selectFallbackMessage(lineUid, topic)
-  const suggestions = getSmartSuggestions(topic)
+  const suggestions = getSmartSuggestions()
   await updateRotationState(lineUid, topic)
 
   return {
