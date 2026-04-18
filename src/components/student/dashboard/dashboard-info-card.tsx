@@ -2,18 +2,11 @@
 
 import { useUser } from "@/hooks/use-user";
 import { useInsights } from "@/hooks/use-insights";
+import { useBuildings, useRooms, useBeds } from "@/hooks/use-buildings";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Search, Sparkles, Calendar, Building2, BedDouble } from "lucide-react";
 import Image from "next/image";
-
-const BUILDING_NAMES: Record<string, string> = {
-  chuanchom: "ชวนชม",
-  pudtan: "พุดตาน",
-  pudson: "พุดซ้อน",
-  champa: "จำปา",
-  champee: "จำปี",
-};
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -35,14 +28,16 @@ export function DashboardInfoCard() {
   const t = useTranslations("dashboard");
   const { profile } = useUser();
   const { data: insights } = useInsights();
+  const { data: buildings } = useBuildings();
+  const { data: rooms } = useRooms(profile?.building_id ?? null);
+  const { data: beds } = useBeds(profile?.room_id ?? null);
 
   const displayName = profile?.display_name || profile?.full_name_th || "---";
-  const buildingName = profile?.building_id
-    ? BUILDING_NAMES[profile.building_id] || profile.building_id
-    : "---";
-  const roomBed = profile?.room_id
-    ? `${String(profile.room_id).slice(-4)} ${profile?.bed_id || ""}`
-    : "----";
+  const building = (buildings ?? []).find((b) => b.id === profile?.building_id);
+  const buildingName = building?.name_th || "---";
+  const room = (rooms ?? []).find((r) => r.id === profile?.room_id);
+  const bed = (beds ?? []).find((b) => b.id === profile?.bed_id);
+  const roomBed = room ? `${room.room_number} ${bed?.bed_label || ""}` : "----";
 
   const pending = (insights ?? []).filter((i) => !i.dismissed_at);
   const first = pending[0];
@@ -72,11 +67,9 @@ export function DashboardInfoCard() {
             {/* Avatar */}
             <div className="size-[46px] overflow-hidden rounded-full bg-white/30 flex-shrink-0">
               {profile?.avatar_url ? (
-                <Image
+                <img
                   src={profile.avatar_url}
                   alt=""
-                  width={46}
-                  height={46}
                   className="size-full object-cover"
                 />
               ) : (
