@@ -47,11 +47,7 @@ const SUGGESTION_MAP: Record<ChatIntent, QuickReplyItem[]> = {
   knowledge: [
     {
       type: "action",
-      action: { type: "message", label: "แจ้งซ่อม", text: "แจ้งซ่อม" },
-    },
-    {
-      type: "action",
-      action: { type: "message", label: "เช็คคะแนน", text: "เช็คคะแนน" },
+      action: { type: "message", label: "💬 คุยกับเจ้าหน้าที่", text: "ขอคุยกับเจ้าหน้าที่" },
     },
   ],
   parcel: [
