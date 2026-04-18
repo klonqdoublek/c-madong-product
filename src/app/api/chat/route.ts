@@ -134,6 +134,8 @@ export async function POST(request: Request) {
     }
 
     let replyText: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let replyQuickReply: { items: any[] } | undefined;
 
     switch (intent) {
       case "repair": {
@@ -144,6 +146,7 @@ export async function POST(request: Request) {
       case "knowledge": {
         const result = await handleKnowledge(message, identifier);
         replyText = result.text ?? "ขอโทษนะคะ ซีมะโด่งหาคำตอบไม่ได้ตอนนี้";
+        replyQuickReply = result.quickReply;
         break;
       }
       case "score": {
@@ -208,7 +211,10 @@ export async function POST(request: Request) {
       intent,
     });
 
-    return NextResponse.json({ reply: replyText });
+    return NextResponse.json({
+      reply: replyText,
+      ...(replyQuickReply && { suggestions: replyQuickReply.items.map(i => i.action.label) }),
+    });
   } catch (error) {
     console.error("[Chat API] Error:", error);
     return NextResponse.json(

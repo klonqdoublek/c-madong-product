@@ -2,7 +2,7 @@ import { generateRAGAnswer } from "../rag/answer-generator"
 import { AI_TIMEOUT_MS } from "../constants"
 import { detectTopic } from "../fallback/topic-detector"
 import { selectFallbackMessage } from "../fallback/messages"
-import { generateSmartSuggestions } from "../fallback/smart-suggestions"
+import { getSmartSuggestions } from "../fallback/smart-suggestions"
 import type { HandlerResponse } from "../types"
 
 /** Handle knowledge intent using RAG pipeline */
@@ -33,13 +33,12 @@ export async function handleKnowledge(
     // Timeout fallback with smart suggestions
     const topic = detectTopic(message)
     const fallbackMsg = await selectFallbackMessage(lineUid, topic, 'timeout')
-    const suggestions = await generateSmartSuggestions(lineUid, topic, message)
-      .catch(() => [])
+    const suggestions = getSmartSuggestions(topic)
 
     return {
       type: "text",
       text: fallbackMsg || "อุ๊ปส์! ซีมะโด่งหาคำตอบไม่ทันน้า ลองใหม่อีกทีนะ",
-      quickReply: suggestions.length > 0 ? { items: suggestions } : undefined
+      quickReply: { items: suggestions }
     }
   }
 }

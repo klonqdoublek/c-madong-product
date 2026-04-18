@@ -189,6 +189,7 @@ export function useChat() {
           updateMessage(loadingId, {
             content: data.reply,
             isLoading: false,
+            suggestions: data.suggestions,
           })
         } else {
           removeMessage(loadingId)

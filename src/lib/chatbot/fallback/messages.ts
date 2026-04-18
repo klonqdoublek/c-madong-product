@@ -58,8 +58,6 @@ const FALLBACK_MESSAGES: Record<TopicCategory, Record<PersonalityTone, string>> 
 
 const PERSONALITY_TONES: PersonalityTone[] = ['apologetic', 'encouraging', 'friendly', 'helpful', 'playful']
 
-const ESCALATION_MESSAGE = 'ดูเหมือนซีมะโด่งช่วยไม่ได้เท่าไหร่น้า 😅 ต้องการคุยกับเจ้าหน้าที่มั้ย?'
-
 /**
  * Get current fallback state from session
  */
@@ -88,11 +86,6 @@ export async function selectFallbackMessage(
   variant?: 'timeout' | 'default'
 ): Promise<string> {
   const state = await getFallbackState(lineUid)
-
-  // Escalation trigger (7th consecutive failure)
-  if (state.count >= 7) {
-    return ESCALATION_MESSAGE
-  }
 
   // Timeout variant (generic fallback)
   if (variant === 'timeout') {

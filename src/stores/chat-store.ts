@@ -7,6 +7,7 @@ export interface ChatMessage {
   timestamp: number
   isLoading?: boolean
   senderType?: "ai" | "user" | "admin" | "system"
+  suggestions?: string[]
 }
 
 type ChatView = "chat" | "history"

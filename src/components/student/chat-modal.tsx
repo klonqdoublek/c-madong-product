@@ -275,6 +275,19 @@ export function ChatModal() {
               <p className="whitespace-pre-wrap">{msg.content}</p>
             )}
           </div>
+          {!isUser && msg.suggestions && msg.suggestions.length > 0 && !msg.isLoading && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {msg.suggestions.map((label) => (
+                <button
+                  key={label}
+                  onClick={() => sendMessage(label)}
+                  className="rounded-full border border-primary/30 bg-cu-light-pink/50 px-2.5 py-1 text-[11px] font-medium text-primary transition-colors hover:bg-cu-light-pink"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
           {compact && (
             <p
               className={`mt-0.5 text-[10px] text-muted-foreground ${
