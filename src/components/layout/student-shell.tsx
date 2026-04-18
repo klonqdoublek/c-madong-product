@@ -5,11 +5,22 @@ import { usePathname } from "@/i18n/navigation";
 import { BottomNav } from "./bottom-nav";
 import { NotificationModal } from "@/components/student/notification-modal";
 import { ChatModal } from "@/components/student/chat-modal";
+import { ChatFAB } from "@/components/student/chat-fab";
+
+const NAV_ROUTES = ["/dashboard", "/profile/dorm-card", "/events", "/profile"];
+
+function shouldShowNav(pathname: string): boolean {
+  return NAV_ROUTES.some((r) => {
+    if (r === "/profile") return pathname === "/profile";
+    return pathname === r || pathname.startsWith(r + "/");
+  });
+}
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const [isLiff, setIsLiff] = useState(false);
   const pathname = usePathname();
   const isDashboard = pathname === "/dashboard";
+  const showNav = !isLiff && shouldShowNav(pathname);
 
   useEffect(() => {
     setIsLiff(sessionStorage.getItem("c-madong-liff") === "1");
@@ -17,13 +28,13 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      {/* Modals available on all pages */}
       {!isDashboard && <NotificationModal />}
       <ChatModal />
-      <main className={`flex-1 ${isLiff ? "" : "pb-24 md:pb-0"}`}>
+      <main className={`flex-1 ${isLiff ? "" : showNav ? "pb-28 md:pb-0" : "pb-6 md:pb-0"}`}>
         {children}
       </main>
-      {!isLiff && <BottomNav />}
+      {!isLiff && <ChatFAB showNav={showNav} />}
+      <BottomNav visible={showNav} />
     </div>
   );
 }

@@ -29,7 +29,9 @@
     "contact": "Contact",
     "emergency": "Emergency",
     "myAccount": "My Account",
-    "askNongC": "Ask C"
+    "askNongC": "Ask C",
+    "dormCard": "Dorm Card",
+    "calendar": "Calendar"
   },
   "auth": {
     "login": "Login",
@@ -101,9 +103,12 @@
     "menuEmergency": "Emergency",
     "menuInfo": "Info",
     "menuContact": "Contact",
-    "menuReview": "Review",
+    "menuReview": "Evaluate",
     "menuScore": "Score",
     "menuEvents": "Events",
+    "menuCalendar": "Calendar",
+    "menuDocs": "Documents",
+    "menuHelp": "Help",
     "myStatus": "My Status",
     "dormScore": "Dorm Score",
     "viewDormCard": "View Dorm Card",

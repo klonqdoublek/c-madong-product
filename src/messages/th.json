@@ -29,7 +29,9 @@
     "contact": "ติดต่อ",
     "emergency": "ฉุกเฉิน",
     "myAccount": "บัญชีของฉัน",
-    "askNongC": "ถามน้องซี"
+    "askNongC": "ถามน้องซี",
+    "dormCard": "บัตรหอพัก",
+    "calendar": "ปฏิทิน"
   },
   "auth": {
     "login": "เข้าสู่ระบบ",
@@ -101,9 +103,12 @@
     "menuEmergency": "ฉุกเฉิน",
     "menuInfo": "ข้อมูล",
     "menuContact": "ติดต่อ",
-    "menuReview": "ประเมิน",
+    "menuReview": "แบบประเมิน",
     "menuScore": "คะแนน",
     "menuEvents": "กิจกรรม",
+    "menuCalendar": "ปฏิทิน",
+    "menuDocs": "เอกสาร",
+    "menuHelp": "ช่วยเหลือ",
     "myStatus": "สถานะของฉัน",
     "dormScore": "คะแนนหอพัก",
     "viewDormCard": "ดูบัตรหอพัก",
