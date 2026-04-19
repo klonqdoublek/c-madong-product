@@ -1,7 +1,32 @@
-# C-Madong Product — V1 Changelog
+# C-Madong Product — Changelog
 
-> **Version 1.0.0** Release Date: 2026-04-10
-> First production release with complete core features
+> **Version 2.0.0** Release Date: 2026-04-20
+> Enhanced UX with Information & Documents pages, complete quick menu navigation
+
+---
+
+## 🎯 V2 Updates (2026-04-20)
+
+### What's New in V2
+- ✅ Complete dashboard quick menu navigation (all 12 buttons functional)
+- ✅ Building Information page with enhanced UX design
+- ✅ Documents library page with categorization
+- ✅ Professional UI/UX enhancements throughout
+  - Cursor pointer on all interactive elements
+  - Smooth 200ms transitions
+  - Hover scale transforms
+  - Gradient backgrounds with colored shadows
+  - 44px minimum touch targets
+  - Backdrop blur effects
+
+### Breaking Changes
+None - backward compatible with V1
+
+---
+
+## 🎯 V1 Overview (2026-04-10)
+
+> **Version 1.0.0** — First production release
 
 ---
 
@@ -593,3 +618,59 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 **C-Madong V1** — Built with ❤️ by Khaoklong
 Tech Stack: Next.js 16 · Supabase · LINE · OpenAI · TailwindCSS
 Production: https://c-madong-product.vercel.app
+
+## Quick Menu Navigation + Information Pages (DEPLOYED — 2026-04-20)
+
+### Features
+- ✅ All 12 dashboard quick menu buttons wired to real pages
+- ✅ Building Information page (`/information`)
+  - Sticky building tabs (5 buildings) with backdrop blur
+  - Hero image with hover scale effect
+  - Building logo card with gradient background
+  - 4 quick action buttons (roster, repair, LINE openchat, calendar)
+  - Address card with copy-to-clipboard functionality
+  - 4 info chips (hours, workdays, location, phone) with individual hover shadows
+  - Documents bullet list with smooth transitions
+  - Fixed floating contact bar above bottom nav with staff photo + 2 action buttons
+- ✅ Documents page (`/documents`)
+  - 3 category tabs (rules, forms, guides)
+  - Document list with icons + descriptions
+  - 6 mock documents across categories
+  - Empty state handling
+- ✅ i18n support: 25 new keys (information.* + documents.* namespaces)
+
+### UX Enhancements
+- Cursor pointer on all interactive elements
+- Smooth 200ms transitions throughout
+- Hover scale transforms (105% on cards, 95% on active buttons)
+- Group hover effects for nested icon/text combinations
+- Gradient backgrounds with colored shadows (shadow-primary/30)
+- Touch targets minimum 44px for accessibility
+- Backdrop blur on sticky elements (tabs + contact bar)
+- Icon color transitions (primary/70 → primary on hover)
+- Ring borders with subtle opacity
+- Shadow elevation system (sm → md → lg → xl)
+
+### Quick Menu Routing
+| Button | Route | Status |
+|--------|-------|--------|
+| ค่าหอพัก | `/billing` | Working |
+| แจ้งซ่อม | `/maintenance` | Working |
+| พัสดุ | `/parcels` | Working |
+| ข่าวสาร | `/announcements` | Working |
+| ฉุกเฉิน | `/emergency` | Working |
+| ปฏิทิน | `/events` | Working |
+| ข้อมูล | `/information` | **NEW** |
+| แบบประเมิน | `/events` | Working |
+| คะแนน | `/score` | Working |
+| ติดต่อ | `/emergency` | Working |
+| เอกสาร | `/documents` | **NEW** |
+| ช่วยเหลือ | `/guide/getting-started` | Working |
+
+### Files Changed
+- Modified: `dashboard-quick-menu.tsx`, `th.json`, `en.json`
+- Created: 4 files (2 pages + 2 components)
+- Commit: `5892ce3`
+
+---
+
