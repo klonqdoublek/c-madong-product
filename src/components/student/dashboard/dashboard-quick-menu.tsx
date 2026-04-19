@@ -72,12 +72,12 @@ export function DashboardQuickMenu() {
                 <Link
                   key={item.labelKey}
                   href={item.href}
-                  className="flex flex-col items-center gap-0.5"
+                  className="flex flex-col items-center gap-1.5"
                 >
                   <div className="flex h-[65px] w-[70px] items-center justify-center rounded-lg border border-black/5 bg-[#FFFEF5]">
                     <Icon className="size-6 text-primary" />
                   </div>
-                  <span className="max-h-[19px] overflow-hidden text-ellipsis whitespace-nowrap text-center text-xs font-bold text-cu-grey">
+                    <span className="min-h-[22px] leading-5 overflow-hidden text-ellipsis whitespace-nowrap text-center text-xs font-bold text-cu-grey">
                     {t(item.labelKey)}
                   </span>
                 </Link>
@@ -89,7 +89,7 @@ export function DashboardQuickMenu() {
 
       {/* Pagination dots */}
       {TOTAL_PAGES > 1 && (
-        <div className="mt-3 flex items-center justify-center gap-[3px]">
+        <div className="mt-4 flex items-center justify-center gap-[3px]">
           {Array.from({ length: TOTAL_PAGES }).map((_, i) => (
             <div
               key={i}

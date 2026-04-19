@@ -7,6 +7,32 @@
 
 ## Recent Changes (2026-04-19)
 
+### Chatbot Quick Reply UX — DEPLOYED
+
+**Problem**: Quick replies after chatbot responses inconsistent with context. After repair flow → showed "คะแนนหอ" + "กิจกรรม" (unrelated). ALL postback responses (button taps in Flex) had ZERO quick replies → dead-end UX.
+
+**Solution**: Context-aware quick reply menus per intent + per postback action. Every response ends with relevant navigation options + "เมนูหลัก" escape hatch.
+
+**Files Modified**:
+- `src/lib/chatbot/suggestions.ts` — rewritten with 2 functions: `getQuickReplyForIntent()` (6 intent menus) + `getQuickReplyForPostback()` (11 postback menus)
+- `src/lib/chatbot/handlers/postback.ts` — 10 handlers updated (repair_confirm, repair_cancel, repair_book, repair_track, repair_cancel_ticket, repair_history, confirm_parcel_received, confirm_payment, remind_bill, event_register). All now use `replyMessage()` with quickReply
+- `src/lib/chatbot/webhook-handler.ts` — changed import `getSuggestionsForIntent` → `getQuickReplyForIntent`, auto-append "เมนูหลัก" to handler-provided quick replies
+
+**Quick Reply Menus**:
+- **repair**: 📸 ส่งรูปเลย | 📋 ดูประวัติ | 🏠 เมนูหลัก
+- **score**: 🎉 กิจกรรมที่ได้คะแนน | 📋 กฎหอพัก | 🏠 เมนูหลัก
+- **events**: 📊 เช็คคะแนนหอ | 📦 เช็คพัสดุ | 🏠 เมนูหลัก
+- **parcel**: 🔧 แจ้งซ่อม | 📊 คะแนนหอ | 🏠 เมนูหลัก
+- **repair_confirm** (after ticket created): 🔍 ติดตามสถานะ | 📋 ดูประวัติ | 🏠 เมนูหลัก
+- **repair_track** (after viewing status): 📋 ดูประวัติ | 🔧 แจ้งซ่อมใหม่ | 🏠 เมนูหลัก
+- (+9 more postback menus)
+
+**Pattern**: Every chatbot response (text/Flex) now has contextual quick reply → no dead ends.
+
+**Deploy**: Vercel prod, 2m build, HTTP 200
+
+---
+
 ### Home v2 Dashboard — DEPLOYED
 
 Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551).

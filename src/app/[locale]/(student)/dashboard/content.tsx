@@ -24,7 +24,7 @@ export function DashboardPageContent() {
         </div>
 
         {/* Bordered card wrapping quick menu */}
-        <div className="mx-auto mt-3 w-[363px] max-w-full rounded-xl border border-black/10 bg-[#FFFBF1] p-4 shadow-sm">
+        <div className="mx-auto mb-6 mt-4 w-[363px] max-w-full rounded-xl border border-black/10 bg-[#FFFBF1] p-4 shadow-sm">
           <DashboardQuickMenu />
         </div>
       </div>

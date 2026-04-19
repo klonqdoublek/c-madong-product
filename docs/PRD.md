@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.4
-> **Last Updated**: 2026-04-17
+> **Version**: 2.5
+> **Last Updated**: 2026-04-19
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -1095,6 +1095,7 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 - ✅ Evaluation System (3 form types: shop eval, dorm reapplication, doc upload)
 - ✅ Announcements Organize (folders, tags, bulk ops, archive, cover upload)
 - ✅ RAG Accuracy Fix (RPC fixes, intent classification, anti-hallucination guard)
+- ✅ Chatbot Quick Reply UX (context-aware menus per intent/postback, auto-append main menu, 11 postback menus)
 
 #### Technical Metrics (V1)
 - **Pages**: 36 (student + admin)
