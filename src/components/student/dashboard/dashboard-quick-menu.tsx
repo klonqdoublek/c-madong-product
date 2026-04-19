@@ -27,14 +27,14 @@ const PAGES = [
     { icon: Megaphone, labelKey: "menuNews" as const, href: "/announcements" },
     { icon: ShieldAlert, labelKey: "menuEmergency" as const, href: "/emergency" },
     { icon: CalendarDays, labelKey: "menuCalendar" as const, href: "/events" },
-    { icon: Info, labelKey: "menuInfo" as const, href: "#" },
-    { icon: ClipboardCheck, labelKey: "menuReview" as const, href: "#" },
+    { icon: Info, labelKey: "menuInfo" as const, href: "/information" },
+    { icon: ClipboardCheck, labelKey: "menuReview" as const, href: "/events" },
   ],
   [
     { icon: Star, labelKey: "menuScore" as const, href: "/score" },
-    { icon: Phone, labelKey: "menuContact" as const, href: "#" },
-    { icon: FileText, labelKey: "menuDocs" as const, href: "#" },
-    { icon: HelpCircle, labelKey: "menuHelp" as const, href: "#" },
+    { icon: Phone, labelKey: "menuContact" as const, href: "/emergency" },
+    { icon: FileText, labelKey: "menuDocs" as const, href: "/documents" },
+    { icon: HelpCircle, labelKey: "menuHelp" as const, href: "/guide/getting-started" },
   ],
 ];
 

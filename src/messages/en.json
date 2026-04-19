@@ -308,6 +308,34 @@
     "noSavedAnnouncements": "No saved announcements",
     "savedViewAll": "View all"
   },
+  "information": {
+    "title": "Dormitory Information",
+    "dormitory": "Student Dormitory",
+    "roster": "Roster",
+    "reportIssue": "Report Issue",
+    "openchat": "LINE Openchat",
+    "calendar": "Building Calendar",
+    "address": "Address",
+    "openHours": "Opening Hours",
+    "workdays": "Working Days",
+    "location": "Location",
+    "campus": "Chulalongkorn Campus",
+    "phone": "Contact Number",
+    "about": "About the Dormitory",
+    "documents": "Documents & Regulations",
+    "map": "Map",
+    "mapPlaceholder": "Dormitory Map",
+    "contact": "Contact Staff",
+    "call": "Call",
+    "message": "Message"
+  },
+  "documents": {
+    "title": "Documents",
+    "catRules": "Rules & Regulations",
+    "catForms": "Forms",
+    "catGuides": "Guides",
+    "noDocuments": "No documents in this category"
+  },
   "admin": {
     "breadcrumb": {
       "dashboard": "Dashboard",

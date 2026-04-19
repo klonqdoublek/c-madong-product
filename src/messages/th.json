@@ -308,6 +308,34 @@
     "noSavedAnnouncements": "ยังไม่มีประกาศที่บันทึกไว้",
     "savedViewAll": "ดูทั้งหมด"
   },
+  "information": {
+    "title": "ข้อมูลหอพัก",
+    "dormitory": "หอพักนิสิต",
+    "roster": "รายชื่อ",
+    "reportIssue": "แจ้งปัญหา",
+    "openchat": "LINE Openchat",
+    "calendar": "ปฏิทินตึก",
+    "address": "ที่อยู่",
+    "openHours": "เวลาเปิด-ปิด",
+    "workdays": "วันทำการ",
+    "location": "สถานที่ตั้ง",
+    "campus": "ภายในวิทยาเขตจุฬาฯ",
+    "phone": "เบอร์ติดต่อ",
+    "about": "เกี่ยวกับหอพัก",
+    "documents": "เอกสาร ข้อระเบียบ หอพัก",
+    "map": "แผนที่",
+    "mapPlaceholder": "แผนที่หอพัก",
+    "contact": "ติดต่อเจ้าหน้าที่",
+    "call": "โทร",
+    "message": "ส่งข้อความ"
+  },
+  "documents": {
+    "title": "เอกสาร",
+    "catRules": "กฎระเบียบ",
+    "catForms": "แบบฟอร์ม",
+    "catGuides": "คู่มือ",
+    "noDocuments": "ไม่มีเอกสารในหมวดนี้"
+  },
   "admin": {
     "breadcrumb": {
       "dashboard": "Dashboard",
