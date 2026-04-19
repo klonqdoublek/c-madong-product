@@ -343,6 +343,8 @@
     "knowledgeBaseNav": "Knowledge Base",
     "sidebarTitle": "Student Dormitory",
     "sidebarSubtitle": "Chulalongkorn University",
+    "expandSidebar": "Expand Menu",
+    "collapseSidebar": "Collapse Menu",
     "navOverview": "Overview",
     "navAnnouncementCenter": "Announcements",
     "navAllAnnouncements": "All Announcements",

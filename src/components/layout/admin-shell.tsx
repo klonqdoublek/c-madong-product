@@ -37,15 +37,14 @@ import {
   Package,
   Headset,
   FolderTree,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 
 const LEGACY_ROLE_MAP: Record<string, AppRole> = {
   admin: "super_admin",
   staff: "admin_staff",
 };
-
-// Pages that should collapse the admin sidebar
-const COLLAPSED_SIDEBAR_PATHS = ["/admin/knowledge-base"];
 
 interface NavItem {
   href: string;
@@ -71,13 +70,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/th/login";
   };
-  const { sidebarOpen, setSidebarOpen, toggleSidebar, adminSidebarCollapsed, setAdminSidebarCollapsed } = useUIStore();
-
-  // Auto-collapse sidebar when on knowledge base page
-  const shouldCollapse = COLLAPSED_SIDEBAR_PATHS.some((p) => pathname.startsWith(p));
-  useEffect(() => {
-    setAdminSidebarCollapsed(shouldCollapse);
-  }, [shouldCollapse, setAdminSidebarCollapsed]);
+  const { sidebarOpen, setSidebarOpen, toggleSidebar, adminSidebarCollapsed, toggleAdminSidebar } = useUIStore();
 
   // Track which collapsible groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
@@ -202,11 +195,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const collapsedSidebar = (
     <TooltipProvider delayDuration={0}>
       <div className="flex h-full flex-col items-center">
-        {/* Logo icon */}
-        <div className="flex h-16 w-full items-center justify-center">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
+        {/* Logo icon + Expand button */}
+        <div className="flex w-full flex-col items-center border-b border-white/10 py-3">
+          <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
             <Building2 className="h-5 w-5 text-white" />
           </div>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={toggleAdminSidebar}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 transition-all hover:bg-white/10 hover:text-white hover:scale-105"
+              >
+                <PanelLeftOpen className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{t("expandSidebar")}</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Nav icons */}
@@ -316,7 +321,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // ── Full sidebar ──────────────────────────────────────────────
   const fullSidebar = (
     <div className="flex h-full flex-col">
-      {/* Logo */}
+      {/* Logo + Collapse button */}
       <div className="flex items-center gap-3 px-4 py-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
           <Building2 className="h-5 w-5 text-white" />
@@ -329,6 +334,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             {t("sidebarSubtitle")}
           </p>
         </div>
+        <button
+          onClick={toggleAdminSidebar}
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        >
+          <PanelLeftClose className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Nav */}
@@ -490,7 +501,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             C-Madong Admin
           </span>
         </header>
-        <main className={cn("flex-1", adminSidebarCollapsed ? "" : "p-4 lg:p-8")}>
+        <main className="flex-1 p-4 lg:p-8">
           {children}
         </main>
       </div>

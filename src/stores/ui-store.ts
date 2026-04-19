@@ -6,6 +6,7 @@ interface UIState {
   toggleSidebar: () => void;
   adminSidebarCollapsed: boolean;
   setAdminSidebarCollapsed: (collapsed: boolean) => void;
+  toggleAdminSidebar: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -14,4 +15,5 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   adminSidebarCollapsed: false,
   setAdminSidebarCollapsed: (collapsed) => set({ adminSidebarCollapsed: collapsed }),
+  toggleAdminSidebar: () => set((s) => ({ adminSidebarCollapsed: !s.adminSidebarCollapsed })),
 }));
