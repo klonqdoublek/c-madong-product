@@ -51,7 +51,7 @@ export function DashboardInfoCard() {
     : "";
 
   return (
-    <div className="relative mx-auto w-[300px]" style={{ height: first ? 199 : 130 }}>
+    <div className="relative mx-auto w-[320px]" style={{ height: first ? 180 : 130 }}>
       {/* Pink gradient card — top layer with user info */}
       <div
         className="absolute inset-x-0 top-0 h-[180px] rounded-xl border border-black/10"

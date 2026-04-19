@@ -5,7 +5,50 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
-## Recent Changes (2026-04-17)
+## Recent Changes (2026-04-19)
+
+### Home v2 Dashboard — DEPLOYED
+
+Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551).
+
+**What Changed**:
+- Replaced old dashboard (header + action cards + status card + announcements) with new layered design
+- Hero background: dorm photo (dormitory-hero-1440x900.jpg) with opacity-50 + pink gradient
+- Layered info card: pink gradient card (180px) overlapped by cream card at top-[69px]
+- Info card shows: avatar, greeting, building/room (resolved via useBuildings/useRooms/useBeds), adaptive UX with pending insights
+- Quick menu: 4×2 carousel in bordered container, snap scroll, pagination dots
+- Calendar section: mini calendar grid + upcoming 3 events sidebar
+- Announcements carousel: horizontal snap scroll with cover images
+- Events list: today badge + compact rows
+- Nav bar redesign: full-width pink `rounded-t-[26px]`, 5 items (หน้าหลัก, บัตรหอพัก, ปฏิทิน, แจ้งเตือน, บัญชีของฉัน)
+- Bell in nav opens notification modal (not page route)
+- Chat FAB: 56px white circle, position adapts (`bottom-[104px]` when nav visible)
+
+**Components Created**:
+- `dashboard-hero.tsx` — background only, no content overlay
+- `dashboard-info-card.tsx` — layered card with absolute positioning
+- `dashboard-quick-menu.tsx` — carousel with scroll detection
+- `dashboard-calendar.tsx` — mini grid + upcoming sidebar
+- `dashboard-announcements-carousel.tsx` — horizontal scroll
+- `dashboard-events-list.tsx` — today badge + rows
+- `chat-fab.tsx` — floating mascot button
+
+**Components Modified**:
+- `bottom-nav.tsx` — rewritten for 5-item layout, bell button
+- `student-shell.tsx` — conditional nav visibility, dynamic padding
+- `dashboard/content.tsx` — new layout structure
+
+**Bug Fixes**:
+- Building/room showing UUIDs → added FK resolution via hooks
+- LINE avatar not showing → changed next/image to plain img
+- Type errors → used direct field access (`event.event_date` not `as`)
+- Field name fix → `cover_image` not `cover_url`
+
+**Commits**: 3b889b2 (initial implementation), 62566b8 (Figma fixes)
+
+---
+
+## Changes (2026-04-17)
 
 ### Chatbot Smart Fallback Enhancement — IMPLEMENTED
 

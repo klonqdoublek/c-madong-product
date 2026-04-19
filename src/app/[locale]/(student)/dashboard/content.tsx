@@ -17,7 +17,7 @@ export function DashboardPageContent() {
       <DashboardHero />
 
       {/* Main card — bordered container with info card overlapping top */}
-      <div className="relative z-10 -mt-[200px] px-4">
+      <div className="relative z-15 -mt-[200px] px-4">
         {/* Info card — overlaps hero */}
         <div className="pt-[80px]">
           <DashboardInfoCard />

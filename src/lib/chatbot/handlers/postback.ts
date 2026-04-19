@@ -1,8 +1,9 @@
-import { replyTextMessage, replyFlexMessage } from "@/lib/line/client"
+import { replyTextMessage, replyFlexMessage, replyMessage } from "@/lib/line/client"
 import { getOrCreateSession, resetSession } from "../session-manager"
 import { createRepairTicket, getReporterContext } from "./repair"
 import { buildTicketCreatingFlex } from "../flex-builders/repair-status"
 import { buildRepairTrackingFlex } from "@/lib/line/flex-builders/repair-tracking"
+import { getQuickReplyForPostback } from "../suggestions"
 import type { RepairDetection } from "../types"
 import type { RepairTimelineStep } from "@/lib/line/flex-builders/repair-tracking"
 
@@ -29,24 +30,27 @@ export async function handlePostback(
       break
 
     case "remind_bill":
-      await replyTextMessage(
-        replyToken,
-        "ได้เลยจ้า! ซีมะโด่งจะเตือนอีกครั้งนะ 🔔"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ได้เลยจ้า! ซีมะโด่งจะเตือนอีกครั้งนะ 🔔",
+        quickReply: { items: getQuickReplyForPostback("remind_bill") },
+      })
       break
 
     case "confirm_payment":
-      await replyTextMessage(
-        replyToken,
-        "บันทึกแล้วจ้า ทางหอจะตรวจสอบให้นะ ✅"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "บันทึกแล้วจ้า ทางหอจะตรวจสอบให้นะ ✅",
+        quickReply: { items: getQuickReplyForPostback("confirm_payment") },
+      })
       break
 
     case "event_register":
-      await replyTextMessage(
-        replyToken,
-        "ลงทะเบียนกิจกรรมเรียบร้อยจ้า! 🎉 เจอกันวันงานน้า"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ลงทะเบียนกิจกรรมเรียบร้อยจ้า! 🎉 เจอกันวันงานน้า",
+        quickReply: { items: getQuickReplyForPostback("event_register") },
+      })
       break
 
     case "repair_book":
@@ -108,9 +112,8 @@ async function handleRepairConfirm(
       // Fetch reporter context for the Flex card
       const context = await getReporterContext(lineUid)
       // Show "สร้างใบแจ้งซ่อมใหม่" flex with booking CTA (Design 28:370)
-      await replyFlexMessage(
-        replyToken,
-        buildTicketCreatingFlex(
+      await replyMessage(replyToken, {
+        ...buildTicketCreatingFlex(
           {
             id: ticket.id,
             category: detection.category,
@@ -122,20 +125,23 @@ async function handleRepairConfirm(
             photoCount: photos.length,
           },
           context.reporterName
-        )
-      )
+        ),
+        quickReply: { items: getQuickReplyForPostback("repair_confirm") },
+      } as Record<string, unknown>)
     } catch (err) {
       console.error("[Postback] Flex reply failed:", err)
-      await replyTextMessage(
-        replyToken,
-        `📝 สร้างใบแจ้งซ่อมแล้วจ้า! หมายเลข #${ticket.id.slice(0, 8).toUpperCase()}\nนัดหมายกับช่างได้ในแอปนะ`
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: `📝 สร้างใบแจ้งซ่อมแล้วจ้า! หมายเลข #${ticket.id.slice(0, 8).toUpperCase()}\nนัดหมายกับช่างได้ในแอปนะ`,
+        quickReply: { items: getQuickReplyForPostback("repair_confirm") },
+      })
     }
   } else {
-    await replyTextMessage(
-      replyToken,
-      "อุ๊ปส์! สร้างใบแจ้งซ่อมไม่สำเร็จน้า 😅 ลองลงทะเบียนในแอปก่อนแล้วแจ้งซ่อมใหม่อีกทีนะ"
-    )
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! สร้างใบแจ้งซ่อมไม่สำเร็จน้า 😅 ลองลงทะเบียนในแอปก่อนแล้วแจ้งซ่อมใหม่อีกทีนะ",
+      quickReply: { items: getQuickReplyForPostback("repair_confirm") },
+    })
   }
 
   await resetSession(lineUid)
@@ -166,10 +172,11 @@ async function handleRepairCancel(
   lineUid: string
 ): Promise<void> {
   await resetSession(lineUid)
-  await replyTextMessage(
-    replyToken,
-    "ยกเลิกแจ้งซ่อมแล้วนะ ✌️ ถ้าอยากแจ้งใหม่ก็พิมพ์มาได้เลยจ้า"
-  )
+  await replyMessage(replyToken, {
+    type: "text",
+    text: "ยกเลิกแจ้งซ่อมแล้วนะ ✌️ ถ้าอยากแจ้งใหม่ก็พิมพ์มาได้เลยจ้า",
+    quickReply: { items: getQuickReplyForPostback("repair_cancel") },
+  })
 }
 
 const SPECIALTY_LABELS: Record<string, string> = {
@@ -209,10 +216,11 @@ async function handleRepairBook(
 
       const ticket = tickets?.find((t) => t.id.startsWith(shortId.toLowerCase()))
       if (ticket) {
-        await replyTextMessage(
-          replyToken,
-          `🗓️ เลือกวันเวลานัดหมายได้เลยจ้า!\n\n${WEB_BASE}/booking/${ticket.id}`
-        )
+        await replyMessage(replyToken, {
+          type: "text",
+          text: `🗓️ เลือกวันเวลานัดหมายได้เลยจ้า!\n\n${WEB_BASE}/booking/${ticket.id}`,
+          quickReply: { items: getQuickReplyForPostback("repair_book") },
+        })
         return
       }
     }
@@ -220,10 +228,11 @@ async function handleRepairBook(
     console.error("[Postback] Repair book lookup error:", err)
   }
 
-  await replyTextMessage(
-    replyToken,
-    "🗓️ นัดหมายวันเวลาซ่อมได้ในแอปเลยนะจ้า!\nเปิดแอปหอพัก > แจ้งซ่อม > เลือกใบแจ้งซ่อม > นัดหมาย"
-  )
+  await replyMessage(replyToken, {
+    type: "text",
+    text: "🗓️ นัดหมายวันเวลาซ่อมได้ในแอปเลยนะจ้า!\nเปิดแอปหอพัก > แจ้งซ่อม > เลือกใบแจ้งซ่อม > นัดหมาย",
+    quickReply: { items: getQuickReplyForPostback("repair_book") },
+  })
 }
 
 async function handleRepairTrack(
@@ -243,7 +252,11 @@ async function handleRepairTrack(
       .single()
 
     if (!profile) {
-      await replyTextMessage(replyToken, "หาข้อมูลไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "หาข้อมูลไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ",
+        quickReply: { items: getQuickReplyForPostback("repair_track") },
+      })
       return
     }
 
@@ -265,7 +278,11 @@ async function handleRepairTrack(
     }
 
     if (!ticket) {
-      await replyTextMessage(replyToken, "ไม่พบใบแจ้งซ่อมน้า 🤔 ลองแจ้งซ่อมใหม่ได้เลย")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ไม่พบใบแจ้งซ่อมน้า 🤔 ลองแจ้งซ่อมใหม่ได้เลย",
+        quickReply: { items: getQuickReplyForPostback("repair_track") },
+      })
       return
     }
 
@@ -350,17 +367,21 @@ async function handleRepairTrack(
     }
 
     const displayName = profile.display_name ?? "คุณ"
-    await replyFlexMessage(
-      replyToken,
-      buildRepairTrackingFlex({
+    await replyMessage(replyToken, {
+      ...buildRepairTrackingFlex({
         displayName,
         ticketId: ticket.id,
         steps,
-      })
-    )
+      }),
+      quickReply: { items: getQuickReplyForPostback("repair_track") },
+    } as Record<string, unknown>)
   } catch (err) {
     console.error("[Postback] Repair track error:", err)
-    await replyTextMessage(replyToken, "อุ๊ปส์! ดึงข้อมูลไม่ได้น้า 😅 ลองอีกทีนะ")
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! ดึงข้อมูลไม่ได้น้า 😅 ลองอีกทีนะ",
+      quickReply: { items: getQuickReplyForPostback("repair_track") },
+    })
   }
 }
 
@@ -384,13 +405,21 @@ async function handleRepairCancelTicket(
       .single()
 
     if (!profile) {
-      await replyTextMessage(replyToken, "หาข้อมูลไม่เจอน้า 🤔")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "หาข้อมูลไม่เจอน้า 🤔",
+        quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+      })
       return
     }
 
     const shortId = params.get("id")
     if (!shortId) {
-      await replyTextMessage(replyToken, "ไม่พบหมายเลขใบแจ้งซ่อมน้า 🤔")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ไม่พบหมายเลขใบแจ้งซ่อมน้า 🤔",
+        quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+      })
       return
     }
 
@@ -404,15 +433,20 @@ async function handleRepairCancelTicket(
 
     const ticket = tickets?.find((t) => t.id.startsWith(shortId.toLowerCase()))
     if (!ticket) {
-      await replyTextMessage(replyToken, "ไม่พบใบแจ้งซ่อมน้า 🤔")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ไม่พบใบแจ้งซ่อมน้า 🤔",
+        quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+      })
       return
     }
 
     if (ticket.status !== "pending" && ticket.status !== "acknowledged") {
-      await replyTextMessage(
-        replyToken,
-        "ยกเลิกไม่ได้แล้วน้า 😅 เพราะช่างกำลังดำเนินการอยู่"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ยกเลิกไม่ได้แล้วน้า 😅 เพราะช่างกำลังดำเนินการอยู่",
+        quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+      })
       return
     }
 
@@ -421,13 +455,18 @@ async function handleRepairCancelTicket(
       .update({ status: "cancelled" })
       .eq("id", ticket.id)
 
-    await replyTextMessage(
-      replyToken,
-      `ยกเลิกใบแจ้งซ่อม #${shortId} เรียบร้อยแล้วจ้า ✅\nถ้าอยากแจ้งใหม่ก็พิมพ์มาได้เลยนะ`
-    )
+    await replyMessage(replyToken, {
+      type: "text",
+      text: `ยกเลิกใบแจ้งซ่อม #${shortId} เรียบร้อยแล้วจ้า ✅\nถ้าอยากแจ้งใหม่ก็พิมพ์มาได้เลยนะ`,
+      quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+    })
   } catch (err) {
     console.error("[Postback] Cancel ticket error:", err)
-    await replyTextMessage(replyToken, "อุ๊ปส์! ยกเลิกไม่ได้น้า 😅 ลองอีกทีนะ")
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! ยกเลิกไม่ได้น้า 😅 ลองอีกทีนะ",
+      quickReply: { items: getQuickReplyForPostback("repair_cancel_ticket") },
+    })
   }
 }
 
@@ -446,7 +485,11 @@ async function handleRepairHistory(
       .single()
 
     if (!profile) {
-      await replyTextMessage(replyToken, "หาข้อมูลไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "หาข้อมูลไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ",
+        quickReply: { items: getQuickReplyForPostback("repair_history") },
+      })
       return
     }
 
@@ -458,7 +501,11 @@ async function handleRepairHistory(
       .limit(5)
 
     if (!tickets || tickets.length === 0) {
-      await replyTextMessage(replyToken, "ยังไม่มีประวัติแจ้งซ่อมน้า 📝")
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ยังไม่มีประวัติแจ้งซ่อมน้า 📝",
+        quickReply: { items: getQuickReplyForPostback("repair_history") },
+      })
       return
     }
 
@@ -480,13 +527,18 @@ async function handleRepairHistory(
       return `${i + 1}. ${emoji} #${shortId} ${t.title}\n   ${date}`
     })
 
-    await replyTextMessage(
-      replyToken,
-      `📋 ประวัติแจ้งซ่อมล่าสุด\n\n${lines.join("\n\n")}`
-    )
+    await replyMessage(replyToken, {
+      type: "text",
+      text: `📋 ประวัติแจ้งซ่อมล่าสุด\n\n${lines.join("\n\n")}`,
+      quickReply: { items: getQuickReplyForPostback("repair_history") },
+    })
   } catch (err) {
     console.error("[Postback] Repair history error:", err)
-    await replyTextMessage(replyToken, "อุ๊ปส์! ดึงประวัติไม่ได้น้า 😅")
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! ดึงประวัติไม่ได้น้า 😅",
+      quickReply: { items: getQuickReplyForPostback("repair_history") },
+    })
   }
 }
 
@@ -506,10 +558,11 @@ async function handleConfirmParcelReceived(
       .single()
 
     if (!profile) {
-      await replyTextMessage(
-        replyToken,
-        "หาข้อมูลน้องไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "หาข้อมูลน้องไม่เจอน้า 🤔 ลงทะเบียนในแอปก่อนนะ",
+        quickReply: { items: getQuickReplyForPostback("confirm_parcel_received") },
+      })
       return
     }
 
@@ -526,21 +579,24 @@ async function handleConfirmParcelReceived(
 
     const count = updated?.length ?? 0
     if (count > 0) {
-      await replyTextMessage(
-        replyToken,
-        `รับพัสดุเรียบร้อยแล้วจ้า ✅ (${count} ชิ้น)\nขอบคุณที่มารับนะ!`
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: `รับพัสดุเรียบร้อยแล้วจ้า ✅ (${count} ชิ้น)\nขอบคุณที่มารับนะ!`,
+        quickReply: { items: getQuickReplyForPostback("confirm_parcel_received") },
+      })
     } else {
-      await replyTextMessage(
-        replyToken,
-        "ตอนนี้ไม่มีพัสดุรอรับแล้วน้า 📦✨"
-      )
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ตอนนี้ไม่มีพัสดุรอรับแล้วน้า 📦✨",
+        quickReply: { items: getQuickReplyForPostback("confirm_parcel_received") },
+      })
     }
   } catch (err) {
     console.error("[Postback] Confirm parcel received error:", err)
-    await replyTextMessage(
-      replyToken,
-      "อุ๊ปส์! อัปเดตไม่ได้น้า 😅 ลองอีกทีนะ"
-    )
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! อัปเดตไม่ได้น้า 😅 ลองอีกทีนะ",
+      quickReply: { items: getQuickReplyForPostback("confirm_parcel_received") },
+    })
   }
 }

@@ -694,19 +694,42 @@ VisionAgent (photo analysis)
 - Bulk attendance import (CSV/QR scan)
 - Export scores (CSV)
 
-### Student Dashboard Redesign (Figma → Code, 2026-03-15)
+### Home v2 Dashboard ✅ DEPLOYED (2026-04-19)
 
-Redesigned student home page from Figma design (node 189:1102):
-- **DashboardHeader**: Profile avatar, personalized greeting ("สวัสดี, [name] :)"), notification bell with badge, search bar pill
-- **DashboardActionCards**: Horizontal scroll "ที่ต้องดำเนินการ" section — featured pink gradient card with urgency/deadline badges + secondary outline cards (static mock data, ready for real integration)
-- **DashboardStatusCard**: Combined room info (pink header bar with room number, bed, building) + score progress bar (segmented by category with legend)
-- **Quick Menu Grid**: 4x2 grid with `bg-cu-light-pink` tiles — ค่าหอพัก, แจ้งซ่อม, พัสดุ, ข่าวสาร, ฉุกเฉิน, ข้อมูล, ติดต่อ, ประเมิน
-- **DashboardAnnouncements**: Events list with color-coded date badges (primary→light pink→tint), importance badges, time labels
-- **Footer**: Pink wave SVG decoration + "RCU.C-MADONG" + "Version 1.0"
-- **Bottom nav updated**: Mascot center icon ("ถามน้องซี"), ฉุกเฉิน replaces แจ้งซ่อม, บัญชีของฉัน replaces โปรไฟล์
-- **StudentShell**: Global Header hidden on dashboard page (dashboard has its own DashboardHeader)
+Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551):
 
-**Files**: `dashboard/content.tsx`, `dashboard-header.tsx`, `dashboard-action-cards.tsx`, `dashboard-status-card.tsx`, `dashboard-announcements.tsx`
+**Hero Section** (`dashboard-hero.tsx`) — Dorm photo background (dormitory-hero-1440x900.jpg) with opacity-50 + pink gradient overlay
+
+**Layered Info Card** (`dashboard-info-card.tsx`) — Card-within-card design:
+- Pink gradient card (180px, top-0): Avatar + greeting + building/room icons
+- Cream card (overlaps at top-[69px]): Adaptive UX (Sparkles icon + pending insights + countdown + "ทำเลย" CTA)
+- Data resolved via useBuildings/useRooms/useBeds (UUID→readable names)
+- LINE avatar uses plain img (not next/image) for CDN compatibility
+
+**Quick Menu** (`dashboard-quick-menu.tsx`) — 4×2 carousel in bordered container:
+- 2 pages (8+4 items), snap scroll with pagination dots
+- Items: ค่าหอพัก, แจ้งซ่อม, พัสดุ, ข่าวสาร, ฉุกเฉิน, ปฏิทิน, ข้อมูล, แบบประเมิน
+
+**Calendar** (`dashboard-calendar.tsx`) — Mini calendar + upcoming sidebar:
+- Left: Month grid with today circle + event dots
+- Right: Next 3 events (date + title)
+
+**Announcements Carousel** (`dashboard-announcements-carousel.tsx`) — Horizontal snap scroll with cover images, pinned badges
+
+**Events List** (`dashboard-events-list.tsx`) — Today badge + compact event rows
+
+**Nav Bar Redesign** (`bottom-nav.tsx`) — Full-width pink bar, rounded-t-[26px]:
+- 5 items: หน้าหลัก, บัตรหอพัก, ปฏิทิน, แจ้งเตือน (bell with badge), บัญชีของฉัน
+- Bell opens notification modal (not page route)
+- Conditional visibility on 5 routes only
+
+**Chat FAB** (`chat-fab.tsx`) — 56px white circle, mascot icon:
+- Position adapts: `bottom-[104px]` when nav visible, `bottom-6` when hidden
+- Replaces old center mascot button
+
+**Layout** (`content.tsx`) — Hero → info card (-mt-[200px] overlap) → quick menu container → calendar → announcements → events → footer
+
+**Commits**: 3b889b2 (initial), 62566b8 (Figma fixes)
 
 ### Student Profile Page ✅ DEPLOYED (2026-03-24)
 

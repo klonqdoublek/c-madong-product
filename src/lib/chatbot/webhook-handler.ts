@@ -3,7 +3,7 @@ import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
 import { getConversationContext, incrementAndMaybeSummarize } from "./context-manager"
-import { getSuggestionsForIntent } from "./suggestions"
+import { getQuickReplyForIntent } from "./suggestions"
 import { RATE_LIMIT_PER_MINUTE } from "./constants"
 import { isMenuTrigger, MAIN_MENU_QUICK_REPLY } from "./quick-reply"
 import {
@@ -55,24 +55,35 @@ function isEscalationRequest(message: string): boolean {
   return ESCALATION_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
 }
 
+/** Keywords for parcel — checked BEFORE repair status to avoid false matches */
+const PARCEL_KEYWORDS = [
+  "พัสดุ",
+  "parcel",
+  "package",
+  "ของมาส่ง",
+  "เช็คพัสดุ",
+  "รับพัสดุ",
+  "มีพัสดุ",
+  "กล่อง",
+  "ซอง",
+  "ส่งของ",
+  "ติดตามพัสดุ",
+  "สถานะพัสดุ",
+]
+
 /** Keywords that mean "check repair status" — should NOT create a new ticket */
 const REPAIR_STATUS_KEYWORDS = [
   "สถานะแจ้งซ่อม",
   "สถานะการซ่อม",
   "สถานะงานซ่อม",
-  "ติดตามสถานะ",
-  "ติดตามการซ่อม",
   "ติดตามสถานะซ่อม",
-  "เช็คสถานะ",
+  "ติดตามการซ่อม",
   "เช็คสถานะซ่อม",
-  "ดูสถานะ",
   "ดูสถานะซ่อม",
   "ประวัติแจ้งซ่อม",
   "ประวัติการซ่อม",
   "ดูประวัติซ่อม",
   "งานซ่อม",
-  "track",
-  "status",
 ]
 
 function isRepairTriggerOnly(message: string): boolean {
@@ -80,8 +91,15 @@ function isRepairTriggerOnly(message: string): boolean {
   return REPAIR_TRIGGER_PHRASES.some((phrase) => trimmed === phrase.toLowerCase())
 }
 
+function isParcelRelated(message: string): boolean {
+  const lower = message.trim().toLowerCase()
+  return PARCEL_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
+}
+
 function isRepairStatusCheck(message: string): boolean {
   const lower = message.trim().toLowerCase()
+  // If message mentions parcel, it's NOT a repair status check
+  if (isParcelRelated(lower)) return false
   return REPAIR_STATUS_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
 }
 
@@ -309,6 +327,14 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   // Get session
   const session = await getOrCreateSession(lineUid)
 
+  // If user asks about parcels, route directly — skip AI classification
+  if (isParcelRelated(message)) {
+    const response = await handleParcel(lineUid)
+    await sendResponse(event.replyToken, response)
+    await saveMessages(lineUid, session.id, message, response, "parcel")
+    return
+  }
+
   // If user asks about repair status, always route to history — even mid-flow
   if (isRepairStatusCheck(message)) {
     try {
@@ -383,16 +409,23 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   }
 
   // If in active flow (repair confirming/editing/collecting photos), route to repair handler
+  // BUT if user clearly wants a different feature (parcel, score, events), break out of repair flow
   if (
     session.state === "repair_confirming" ||
     session.state === "repair_editing" ||
     session.state === "repair_collecting_photos"
   ) {
-    // User sent a new text while in repair flow — treat as new repair description
-    const response = await handleRepair(message, lineUid)
-    await sendResponse(event.replyToken, response)
-    await saveMessages(lineUid, session.id, message, response)
-    return
+    // Check if user wants to escape repair flow for another intent
+    if (isParcelRelated(message) || isMenuTrigger(message)) {
+      // Reset session and let normal flow handle it
+      await resetSession(lineUid)
+    } else {
+      // User sent a new text while in repair flow — treat as new repair description
+      const response = await handleRepair(message, lineUid)
+      await sendResponse(event.replyToken, response)
+      await saveMessages(lineUid, session.id, message, response)
+      return
+    }
   }
 
   // Classify intent
@@ -476,9 +509,20 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
 
   // Append suggestion Quick Replies if handler didn't already set them
   if (!response.quickReply && intent !== "chitchat") {
-    const suggestions = getSuggestionsForIntent(intent as ChatIntent)
+    const suggestions = getQuickReplyForIntent(intent as ChatIntent)
     if (suggestions) {
       response = { ...response, quickReply: { items: suggestions } }
+    }
+  } else if (response.quickReply && intent !== "chitchat") {
+    // Handler set quick reply — auto-append "เมนูหลัก" if not present
+    const hasMenu = response.quickReply.items.some(
+      (item) => item.action.type === "message" && item.action.text === "เมนู"
+    )
+    if (!hasMenu) {
+      response.quickReply.items.push({
+        type: "action",
+        action: { type: "message", label: "🏠 เมนูหลัก", text: "เมนู" },
+      })
     }
   }
 
