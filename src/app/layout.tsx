@@ -8,13 +8,7 @@ export const metadata: Metadata = {
   description: "ระบบบริหารจัดการหอพักจุฬาลงกรณ์มหาวิทยาลัย",
 };
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  minimumScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+export const viewport = "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, user-scalable=no";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
