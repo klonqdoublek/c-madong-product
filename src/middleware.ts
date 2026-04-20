@@ -108,6 +108,10 @@ export async function middleware(request: NextRequest) {
     ) {
       return response;
     }
+    // Guide pages are accessible to logged-in users too
+    if (strippedPath.startsWith("/guide")) {
+      return response;
+    }
     // Already logged in, redirect away from login/register
     const dashboardUrl = new URL(`/${locale}/dashboard`, request.url);
     return NextResponse.redirect(dashboardUrl);
