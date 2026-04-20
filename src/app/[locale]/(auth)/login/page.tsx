@@ -206,7 +206,7 @@ function LoginContent() {
               {t("freshmanQuestion")}
             </p>
             <a
-              href="#"
+              href="https://c-madong-product.vercel.app/th/guide/getting-started"
               className="mt-1 inline-block text-primary underline decoration-solid"
             >
               {t("viewGuide")}
