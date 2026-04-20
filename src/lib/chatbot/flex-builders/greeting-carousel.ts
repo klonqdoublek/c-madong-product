@@ -321,11 +321,10 @@ const HOWTO_BANNERS = {
   contact: `${BANNER_BASE}/howto-1-contact.jpg`,
   gettingStarted: `${BANNER_BASE}/howto-2-getting-started.jpg`,
   shortcuts: `${BANNER_BASE}/howto-3-shortcuts.jpg`,
-  account: `${BANNER_BASE}/howto-4-account.jpg`,
   faq: `${BANNER_BASE}/howto-5-faq.jpg`,
 }
 
-/** 5-bubble how-to carousel — shown when user taps "ดูเพิ่มเติม" on card 6 */
+/** 4-bubble how-to carousel — shown when user taps "ดูเพิ่มเติม" on card 6 */
 export function buildHowToCarousel(): FlexMessagePayload {
   const bubbles = [
     // 1 — ติดต่อสอบถาม (pink)
@@ -343,12 +342,7 @@ export function buildHowToCarousel(): FlexMessagePayload {
       bannerUrl: HOWTO_BANNERS.shortcuts,
       action: { type: "uri", label: "ดูคีย์ลัดทั้งหมด", uri: `${WEB_BASE}/guide/shortcuts` },
     }),
-    // 4 — เกี่ยวกับบัญชี (cream)
-    buildOnboardingBubble({
-      bannerUrl: HOWTO_BANNERS.account,
-      action: { type: "uri", label: "ดูข้อมูลบัญชี", uri: `${WEB_BASE}/guide/account` },
-    }),
-    // 5 — คำถามที่พบบ่อย (pink)
+    // 4 — คำถามที่พบบ่อย (cream)
     buildOnboardingBubble({
       bannerUrl: HOWTO_BANNERS.faq,
       action: { type: "uri", label: "ดูคำถามที่พบบ่อย", uri: `${WEB_BASE}/guide/faq` },
