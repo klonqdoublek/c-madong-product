@@ -6,7 +6,11 @@ export function getQuickReplyForIntent(intent: ChatIntent): QuickReplyItem[] | u
     repair: [
       {
         type: "action",
-        action: { type: "message", label: "📸 ส่งรูปเลย", text: "แจ้งซ่อม" },
+        action: { type: "camera", label: "📸 ถ่ายรูปเลย" },
+      },
+      {
+        type: "action",
+        action: { type: "cameraRoll", label: "🖼️ เลือกรูปจากอัลบั้ม" },
       },
       {
         type: "action",

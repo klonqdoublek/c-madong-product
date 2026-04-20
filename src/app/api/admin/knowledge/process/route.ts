@@ -4,6 +4,7 @@ import {
   DocumentExtractionError,
   extractDocumentText,
 } from "@/lib/knowledge/extract-document-text";
+import { chunkText } from "@/lib/knowledge/chunk-text";
 
 // Allow up to 60s for processing (Pro plan), Hobby = 10s
 export const maxDuration = 60;
@@ -88,8 +89,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Chunk content
-    const chunks = chunkText(content, 500, 50);
+    // Chunk content (sentence-aware, 800 chars max, 100 overlap)
+    const chunks = chunkText(content, 800, 100);
 
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
@@ -172,13 +173,3 @@ export async function POST(request: Request) {
   }
 }
 
-function chunkText(text: string, chunkSize: number, overlap: number): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-  while (start < text.length) {
-    const end = Math.min(start + chunkSize, text.length);
-    chunks.push(text.slice(start, end));
-    start += chunkSize - overlap;
-  }
-  return chunks;
-}

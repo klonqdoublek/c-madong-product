@@ -50,7 +50,7 @@ export async function generateRAGAnswer(question: string, lineUid: string): Prom
     model: RAG_CHAT_MODEL,
     messages: [{ role: "user", content: prompt }],
     temperature: 0.3,
-    max_tokens: 500,
+    max_tokens: 300,
   })
 
   const answer = completion.choices[0]?.message?.content?.trim()

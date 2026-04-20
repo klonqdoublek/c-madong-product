@@ -50,7 +50,7 @@ export async function handleChitchat(
         { role: "user", content: message },
       ],
       temperature: options?.temperature ?? 0.7,
-      max_tokens: 200,
+      max_tokens: 150,
     }, { signal: controller.signal })
 
     clearTimeout(timeout)

@@ -111,7 +111,7 @@ export interface QuickReplyItem {
   type: "action"
   imageUrl?: string
   action: {
-    type: "message" | "postback" | "uri"
+    type: "message" | "postback" | "uri" | "camera" | "cameraRoll"
     label: string
     text?: string
     data?: string

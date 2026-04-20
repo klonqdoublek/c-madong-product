@@ -6,6 +6,7 @@ import {
   extractDocumentText,
   isSupportedKnowledgeFile,
 } from "@/lib/knowledge/extract-document-text";
+import { chunkText } from "@/lib/knowledge/chunk-text";
 
 // Allow up to 60s for upload + processing
 export const maxDuration = 60;
@@ -126,7 +127,7 @@ async function processDocument(supabase: SupabaseClient, documentId: string, con
     return;
   }
 
-  const chunks = chunkText(content, 500, 50);
+  const chunks = chunkText(content, 800, 100);
 
   if (chunks.length === 0) {
     await supabase.from("documents").update({ status: "error" }).eq("id", documentId);
@@ -182,13 +183,3 @@ async function processDocument(supabase: SupabaseClient, documentId: string, con
   await supabase.from("documents").update({ status: "ready" }).eq("id", documentId);
 }
 
-function chunkText(text: string, chunkSize: number, overlap: number): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-  while (start < text.length) {
-    const end = Math.min(start + chunkSize, text.length);
-    chunks.push(text.slice(start, end));
-    start += chunkSize - overlap;
-  }
-  return chunks;
-}

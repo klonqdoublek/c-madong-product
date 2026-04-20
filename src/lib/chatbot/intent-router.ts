@@ -10,11 +10,7 @@ import { getAISetting } from "@/lib/ai/settings"
  * Falls back to keyword detection if AI fails or times out.
  */
 export async function classifyIntent(message: string): Promise<IntentResult> {
-  // Fast-path: keyword detection for repair messages
-  if (isRepairRelated(message)) {
-    return { intent: "repair", confidence: 0.9 }
-  }
-
+  // AI classification is primary — keywords are fallback only
   try {
     const openai = getOpenAIClient()
     const controller = new AbortController()
@@ -27,7 +23,7 @@ export async function classifyIntent(message: string): Promise<IntentResult> {
         { role: "user", content: message },
       ],
       temperature: 0.1,
-      max_tokens: 100,
+      max_tokens: 150,
     }, { signal: controller.signal })
 
     clearTimeout(timeout)
@@ -36,7 +32,12 @@ export async function classifyIntent(message: string): Promise<IntentResult> {
     const parsed = parseIntentJson(text)
     if (parsed) return parsed
   } catch {
-    // AI failed — fall through to default
+    // AI failed — fall through to keyword detection
+  }
+
+  // Keyword fallback: only when AI fails/times out, with lower confidence
+  if (isRepairRelated(message)) {
+    return { intent: "repair", confidence: 0.7 }
   }
 
   return { intent: "chitchat", confidence: 0.5 }

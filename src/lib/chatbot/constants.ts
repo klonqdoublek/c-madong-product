@@ -6,16 +6,18 @@ export const REPAIR_KEYWORDS: Record<string, string[]> = {
     "ท่อน้ำ", "ห้องน้ำรั่ว", "อ่างล้างหน้า", "ท่อแตก", "สุขภัณฑ์",
   ],
   electrical: [
-    "ไฟ", "ปลั๊ก", "สวิตช์", "หลอดไฟ", "ไฟดับ", "ไฟกระพริบ",
+    "ปลั๊ก", "สวิตช์", "หลอดไฟ", "ไฟดับ", "ไฟกระพริบ",
     "เต้ารับ", "สายไฟ", "ไฟฟ้า", "ฟิวส์",
+    "ไฟเสีย", "ไฟไม่ติด",
   ],
   aircon: [
     "แอร์", "เครื่องปรับอากาศ", "แอร์ไม่เย็น", "แอร์รั่ว", "แอร์เสีย",
     "แอร์มีกลิ่น", "รีโมทแอร์", "แอร์ไม่ทำงาน",
   ],
   furniture: [
-    "เตียง", "โต๊ะ", "ตู้", "เก้าอี้", "ชั้นวาง", "ลิ้นชัก",
+    "เตียง", "โต๊ะ", "เก้าอี้", "ชั้นวาง", "ลิ้นชัก",
     "ประตู", "หน้าต่าง", "กลอน", "บานเลื่อน",
+    "ตู้เสื้อผ้า", "ตู้พัง", "ตู้เสีย", "ตู้ล็อคไม่ได้",
   ],
   pest: [
     "แมลง", "มด", "แมลงสาบ", "หนู", "ปลวก", "ยุง",
@@ -25,7 +27,8 @@ export const REPAIR_KEYWORDS: Record<string, string[]> = {
     "เน็ตช้า", "ต่อเน็ตไม่ได้",
   ],
   other: [
-    "ซ่อม", "พัง", "เสีย", "ชำรุด", "หัก", "แตก",
+    "แจ้งซ่อม", "พัง", "ชำรุด", "หัก", "แตก",
+    "เสียหาย", "ใช้ไม่ได้", "ไม่ทำงาน",
   ],
 }
 
@@ -64,9 +67,19 @@ export function detectRepairCategory(
   return null
 }
 
-/** Check if message contains any repair-related keyword */
+/** Words that indicate NON-repair context — skip repair detection if present */
+const REPAIR_EXCLUSION_PATTERNS = [
+  "ค่าไฟ", "ค่าน้ำ", "ค่าหอ", "ค่าห้อง",  // billing
+  "ซื้อ", "ขาย", "ราคา",                     // buying/commerce
+  "สถานะ", "ประวัติ", "ติดตาม",               // status check
+  "เสียใจ", "เสียดาย", "เสียเงิน", "เสียเวลา", // non-repair usage of "เสีย"
+]
+
+/** Check if message contains any repair-related keyword (with exclusion filter) */
 export function isRepairRelated(text: string): boolean {
   const lower = text.toLowerCase()
+  // If message contains exclusion patterns, don't classify as repair
+  if (REPAIR_EXCLUSION_PATTERNS.some((ex) => lower.includes(ex))) return false
   return ALL_REPAIR_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
 }
 

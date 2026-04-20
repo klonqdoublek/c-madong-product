@@ -103,6 +103,16 @@ function isRepairStatusCheck(message: string): boolean {
   return REPAIR_STATUS_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
 }
 
+/** Generic status check — "ติดตามสถานะ" without specifying what (ซ่อม/พัสดุ/ค่า) */
+function isGenericStatusCheck(message: string): boolean {
+  const lower = message.trim().toLowerCase()
+  const genericPhrases = ["ติดตามสถานะ", "เช็คสถานะ", "ดูสถานะ"]
+  if (!genericPhrases.some((p) => lower.includes(p))) return false
+  // If message has specific context, it's NOT generic
+  const specificContexts = ["ซ่อม", "พัสดุ", "ค่า", "หอ", "กิจกรรม", "repair", "parcel"]
+  return !specificContexts.some((ctx) => lower.includes(ctx))
+}
+
 const IS_DEMO = !process.env.NEXT_PUBLIC_SUPABASE_URL
 const LIFF_URL = process.env.NEXT_PUBLIC_LINE_LIFF_ID
   ? `https://liff.line.me/${process.env.NEXT_PUBLIC_LINE_LIFF_ID}`
@@ -335,6 +345,23 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
     return
   }
 
+  // Generic "ติดตามสถานะ" without context → show disambiguation menu
+  if (isGenericStatusCheck(message)) {
+    const disambiguationQuickReply: import("./types").QuickReplyItem[] = [
+      { type: "action", action: { type: "message", label: "🔧 สถานะแจ้งซ่อม", text: "สถานะแจ้งซ่อม" } },
+      { type: "action", action: { type: "message", label: "📦 สถานะพัสดุ", text: "พัสดุ" } },
+      { type: "action", action: { type: "message", label: "💰 ค่าหอพัก", text: "ค่าหอ" } },
+      { type: "action", action: { type: "message", label: "🎉 กิจกรรม", text: "กิจกรรมหอ" } },
+    ]
+    await sendResponse(event.replyToken, {
+      type: "text",
+      text: "อยากเช็คสถานะอะไรจ้า? เลือกได้เลย 👇",
+      quickReply: { items: disambiguationQuickReply },
+    })
+    await saveMessages(lineUid, session.id, message, { type: "text", text: "disambiguation menu" })
+    return
+  }
+
   // If user asks about repair status, always route to history — even mid-flow
   if (isRepairStatusCheck(message)) {
     try {
@@ -429,7 +456,7 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   }
 
   // Classify intent
-  const { intent } = await classifyIntent(message)
+  const { intent, extractedInfo } = await classifyIntent(message)
 
   // Get conversation context for enhanced responses
   const context = await getConversationContext(lineUid, session.id)
@@ -440,7 +467,8 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   switch (intent) {
     case "repair":
       // Check if user is asking about repair STATUS (not creating a new one)
-      if (isRepairStatusCheck(message)) {
+      // Use AI subtype first, then keyword fallback
+      if (extractedInfo?.subtype === "status_check" || isRepairStatusCheck(message)) {
         response = {
           type: "text",
           text: "📋 ดูสถานะแจ้งซ่อมได้เลยจ้า!\n\nกดปุ่ม \"🔍 ติดตามสถานะ\" ในการ์ดแจ้งซ่อม หรือพิมพ์ \"ประวัติแจ้งซ่อม\" เพื่อดูรายการทั้งหมดนะ",
@@ -620,10 +648,33 @@ async function handleImageMessage(
   }
 }
 
+/** Truncate text at Thai sentence boundary for mobile readability */
+function truncateResponse(text: string, maxLength = 2000): string {
+  if (text.length <= maxLength) return text
+  // Find last sentence boundary before maxLength
+  const truncated = text.slice(0, maxLength)
+  const lastBoundary = Math.max(
+    truncated.lastIndexOf("จ้า"),
+    truncated.lastIndexOf("น้า"),
+    truncated.lastIndexOf("นะ"),
+    truncated.lastIndexOf("\n"),
+    truncated.lastIndexOf(". "),
+    truncated.lastIndexOf("。"),
+  )
+  if (lastBoundary > maxLength * 0.5) {
+    return truncated.slice(0, lastBoundary + 3).trim()
+  }
+  return truncated.trim() + "..."
+}
+
 async function sendResponse(
   replyToken: string,
   response: HandlerResponse
 ): Promise<void> {
+  // Truncate text responses for mobile readability
+  if (response.text) {
+    response = { ...response, text: truncateResponse(response.text) }
+  }
   try {
     if (response.quickReply) {
       // Use raw replyMessage to attach quickReply to any message type
