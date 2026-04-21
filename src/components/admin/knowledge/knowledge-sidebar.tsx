@@ -156,7 +156,7 @@ export function KnowledgeSidebar({
 
   // ── Expanded mode: full sidebar ─────────────────────────────
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r bg-card">
+    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r">
       {/* Title header + collapse button */}
       <div className="flex items-start justify-between border-b px-4 py-4">
         <div className="min-w-0">
@@ -220,6 +220,8 @@ export function KnowledgeSidebar({
 
       {/* Quick Actions */}
       <div className="space-y-1 border-t p-3">
+              <h3 className="font-heading px-2 py-1 text-sm font-semibold text-muted-foreground">เมนูอื่น
+              </h3>
         <QuickAction
           icon={Settings}
           label={t("sidebar.manageFiles")}
