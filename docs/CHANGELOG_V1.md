@@ -1,11 +1,62 @@
 # C-Madong Product — Changelog
 
-> **Version 2.0.0** Release Date: 2026-04-20
-> Enhanced UX with Information & Documents pages, complete quick menu navigation
+> **Version 2.1.0** Release Date: 2026-04-21
+> Chatbot accuracy improvements — intent classification, RAG, response optimization
 
 ---
 
-## 🎯 V2 Updates (2026-04-20)
+## 🎯 V2.1 Updates (2026-04-21)
+
+### Chatbot Improvements (3 Phases)
+
+**Phase 1: Intent Misclassification Fix**
+- ✅ AI classification now primary, keywords demoted to fallback (confidence 0.7 not 0.9)
+- ✅ Removed overly broad keywords causing false positives:
+  - `"ไฟ"` → `"ไฟเสีย"`, `"ไฟไม่ติด"` (avoids matching "ค่าไฟ")
+  - `"ตู้"` → `"ตู้พัง"`, `"ตู้ล็อคไม่ได้"` (avoids matching "ตู้เย็น" buying queries)
+  - `"ซ่อม"` → `"แจ้งซ่อม"` (compound only)
+  - `"เสีย"` → `"เสียหาย"`, `"ใช้ไม่ได้"` (avoids "เสียใจ")
+- ✅ Added exclusion patterns: billing (ค่าไฟ/ค่าน้ำ), buying (ซื้อ), status checks (สถานะ/ติดตาม)
+- ✅ Enhanced intent prompt with disambiguation examples + `extractedInfo.subtype` for `new_request` vs `status_check`
+- ✅ Generic "ติดตามสถานะ" now shows disambiguation menu (repair/parcel/billing/events)
+- ✅ Camera quick replies: `type: "camera"` opens camera, `type: "cameraRoll"` opens gallery on LINE
+
+**Phase 2: RAG Accuracy**
+- ✅ Sentence-aware chunking — splits at Thai boundaries (`.`, `\n`), 800 chars max (was 500), 100 overlap
+- ✅ New shared chunker: `src/lib/knowledge/chunk-text.ts` with naive fallback
+- ✅ Improved RAG prompt: explicit irrelevance rule, anti-hallucination, source citation, bullet format
+- ✅ Reduced max_tokens: 500 → 300 for knowledge responses
+
+**Phase 3: Response Length Optimization**
+- ✅ Brevity rules: 1-2 sentences max (not over 3 lines)
+- ✅ Emoji bullets allowed (• or 1. 2. 3.), markdown syntax forbidden
+- ✅ Chitchat max_tokens: 200 → 150
+- ✅ Truncation safety net: 2000 char limit, finds Thai sentence boundary
+
+### Files Changed
+**13 files modified:**
+- `intent-router.ts` — AI primary, keyword fallback
+- `constants.ts` — keyword fixes + exclusion patterns
+- `system-prompts.ts` — intent + RAG + chitchat prompts enhanced
+- `types.ts` — camera/cameraRoll action types
+- `suggestions.ts` — camera quick reply buttons
+- `webhook-handler.ts` — disambiguation menu + truncation + subtype routing
+- `upload/route.ts` + `process/route.ts` — use shared chunker (800, 100)
+- `answer-generator.ts` — max_tokens 300
+- `chitchat.ts` — max_tokens 150
+
+**1 file created:**
+- `src/lib/knowledge/chunk-text.ts` — sentence-aware chunking
+
+### Post-Deploy Action Required
+Admin must reprocess existing docs from Knowledge Base UI to get new sentence-aware chunks.
+
+### Breaking Changes
+None - backward compatible with V2.0
+
+---
+
+## 🎯 V2.0 Updates (2026-04-20)
 
 ### What's New in V2
 - ✅ Complete dashboard quick menu navigation (all 12 buttons functional)
