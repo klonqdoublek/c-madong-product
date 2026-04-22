@@ -51,25 +51,19 @@ export function KanbanColumn({ status, tickets, labelKey }: KanbanColumnProps) {
       ref={setNodeRef}
       className={cn(
         "flex w-[280px] shrink-0 flex-col rounded-lg border bg-muted/30 transition-all duration-200",
-        isActive ? "bg-primary/10 border-primary ring-4 ring-primary/10 shadow-lg scale-[1.01]" : "border-transparent"
+        isActive ? "bg-primary/10 border-primary ring-4 ring-primary/10 shadow-lg scale-[1.01]" : "border-default"
       )}
     >
       {/* Column header */}
       <div className={cn(
         "flex items-center gap-2 border-b px-3 py-2 transition-colors",
-        isActive ? "bg-primary/10 border-primary/20" : "bg-transparent"
+        isActive ? "bg-primary/5" : "bg-transparent"
       )}>
         <span className={cn("size-2 rounded-full", config.dotColor)} />
-        <span className={cn(
-          "text-sm font-semibold transition-colors",
-          isActive ? "text-primary" : "text-foreground"
-        )}>
+        <span className="text-sm font-medium">
           {t(labelKey)}
         </span>
-        <span className={cn(
-          "ml-auto rounded-full px-2 py-0.5 text-xs font-bold transition-colors",
-          isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-        )}>
+        <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
           {tickets.length}
         </span>
       </div>
