@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { th } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -11,8 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Clock, CheckCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarDays, Clock, CheckCircle } from "lucide-react";
 import { APPOINTMENT_HOURS } from "@/lib/utils/constants";
+import { cn } from "@/lib/utils";
 
 interface BookingPageContentProps {
   ticketId: string;
@@ -20,18 +29,12 @@ interface BookingPageContentProps {
 
 export function BookingPageContent({ ticketId }: BookingPageContentProps) {
   const t = useTranslations();
-  const [selectedDate, setSelectedDate] = useState("");
+  const tb = useTranslations("booking");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Generate next 14 days
-  const dates = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() + i + 1); // start from tomorrow
-    return d.toISOString().split("T")[0];
-  });
 
   const handleSubmit = async () => {
     if (!selectedDate || !selectedTime) return;
@@ -45,7 +48,7 @@ export function BookingPageContent({ ticketId }: BookingPageContentProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ticket_id: ticketId,
-          date: selectedDate,
+          date: format(selectedDate, "yyyy-MM-dd"),
           time: selectedTime,
         }),
       });
@@ -76,7 +79,7 @@ export function BookingPageContent({ ticketId }: BookingPageContentProps) {
               {t("booking.successDescription")}
             </p>
             <p className="font-medium">
-              {selectedDate} @ {selectedTime}
+              {selectedDate && format(selectedDate, "PPP", { locale: th })} @ {selectedTime}
             </p>
           </CardContent>
         </Card>
@@ -97,38 +100,49 @@ export function BookingPageContent({ ticketId }: BookingPageContentProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Date picker */}
-          <div>
-            <label className="mb-1 flex items-center gap-2 text-sm font-medium">
-              <Calendar className="size-4" />
-              {t("booking.selectDate")}
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-sm font-medium">
+              <CalendarDays className="size-4" />
+              {tb("selectDate")}
             </label>
-            <Select value={selectedDate} onValueChange={setSelectedDate}>
-              <SelectTrigger>
-                <SelectValue placeholder={t("booking.selectDate")} />
-              </SelectTrigger>
-              <SelectContent>
-                {dates.map((date) => (
-                  <SelectItem key={date} value={date}>
-                    {new Date(date + "T00:00:00").toLocaleDateString("th-TH", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal gap-2",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  {selectedDate
+                    ? format(selectedDate, "PPP", { locale: th })
+                    : tb("selectDate")}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => 
+                    date < new Date(new Date().setHours(0, 0, 0, 0)) || // Past dates
+                    date > new Date(new Date().setDate(new Date().getDate() + 30)) // Limit to 30 days ahead
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Time picker */}
-          <div>
-            <label className="mb-1 flex items-center gap-2 text-sm font-medium">
+          <div className="space-y-1.5">
+            <label className="flex items-center gap-2 text-sm font-medium">
               <Clock className="size-4" />
-              {t("booking.selectTime")}
+              {tb("selectTime")}
             </label>
             <Select value={selectedTime} onValueChange={setSelectedTime}>
               <SelectTrigger>
-                <SelectValue placeholder={t("booking.selectTime")} />
+                <SelectValue placeholder={tb("selectTime")} />
               </SelectTrigger>
               <SelectContent>
                 {APPOINTMENT_HOURS.map((time) => (
