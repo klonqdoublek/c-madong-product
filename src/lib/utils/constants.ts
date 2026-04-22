@@ -66,7 +66,6 @@ export const TECHNICIAN_SPECIALTIES = [
   "electrical",
   "plumbing",
   "air_conditioning",
-  "aircon",
   "general",
   "furniture",
   "internet",
