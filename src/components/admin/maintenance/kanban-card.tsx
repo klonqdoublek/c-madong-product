@@ -12,9 +12,10 @@ import { User, MapPin } from "lucide-react";
 
 interface KanbanCardProps {
   ticket: MaintenanceTicketWithRelations;
+  isOverlay?: boolean;
 }
 
-export function KanbanCard({ ticket }: KanbanCardProps) {
+export function KanbanCard({ ticket, isOverlay }: KanbanCardProps) {
   const { setSelectedTicketId } = useMaintenanceStore();
 
   const {
@@ -24,22 +25,44 @@ export function KanbanCard({ ticket }: KanbanCardProps) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: ticket.id, data: { ticket } });
+  } = useSortable({ 
+    id: ticket.id, 
+    data: { 
+      type: "Card",
+      ticket 
+    },
+    disabled: isOverlay
+  });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: CSS.Translate.toString(transform),
     transition,
   };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isDragging || isOverlay) return;
+    setSelectedTicketId(ticket.id);
+  };
+
+  if (isDragging && !isOverlay) {
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="h-[120px] w-full rounded-lg border-2 border-dashed border-primary/20 bg-muted/50"
+      />
+    );
+  }
 
   return (
     <Card
       ref={setNodeRef}
       style={style}
       className={cn(
-        "cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-50 shadow-lg"
+        "group relative cursor-grab active:cursor-grabbing hover:border-primary/50 transition-colors",
+        isOverlay && "cursor-grabbing shadow-2xl border-primary ring-1 ring-primary/20",
       )}
-      onClick={() => setSelectedTicketId(ticket.id)}
+      onClick={handleClick}
       {...attributes}
       {...listeners}
     >
