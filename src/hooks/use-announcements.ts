@@ -61,9 +61,14 @@ export function usePublishedAnnouncements(search?: string) {
   return useQuery({
     queryKey: ["published-announcements", search],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       let query = supabase
         .from("announcements")
-        .select("*")
+        .select(`
+          *,
+          announcement_reads(id)
+        `)
         .eq("status", "sent")
         .order("is_pinned", { ascending: false })
         .order("published_at", { ascending: false });
@@ -76,7 +81,12 @@ export function usePublishedAnnouncements(search?: string) {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      
+      // Transform to include is_read boolean
+      return (data ?? []).map((a: any) => ({
+        ...a,
+        is_read: user ? a.announcement_reads?.some((r: any) => r.user_id === user.id) || a.announcement_reads?.length > 0 : false
+      }));
     },
   });
 }
@@ -233,6 +243,30 @@ export function useMarkAnnouncementRead(announcementId: string) {
     markRead();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcementId]);
+}
+
+export function useMarkReadMutation() {
+  const supabase = useSupabase();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (announcementId: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
+      const { error } = await (supabase as any)
+        .from("announcement_reads")
+        .upsert(
+          { announcement_id: announcementId, user_id: user.id },
+          { onConflict: "announcement_id,user_id" }
+        );
+      if (error) throw error;
+    },
+    onSuccess: (_, announcementId) => {
+      queryClient.invalidateQueries({ queryKey: ["published-announcements"] });
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENTS_KEY] });
+    },
+  });
 }
 
 export function useIsBookmarked(announcementId: string) {
