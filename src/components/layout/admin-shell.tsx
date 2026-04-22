@@ -488,7 +488,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content — offset for fixed sidebar on desktop */}
-      <div className={cn("flex flex-1 flex-col bg-muted/30 transition-all duration-300", sidebarMargin)}>
+      <div className={cn("flex flex-1 flex-col min-w-0 bg-muted/30 transition-all duration-300", sidebarMargin)}>
         {/* Mobile header */}
         <header className="sticky top-0 z-30 flex h-14 items-center border-b bg-white/80 px-4 backdrop-blur-sm lg:hidden">
           <button
@@ -501,7 +501,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             C-Madong Admin
           </span>
         </header>
-        <main className="flex-1 p-4 lg:p-8">
+        <main className="flex-1 p-4 lg:p-8 min-w-0 overflow-x-hidden">
           {children}
         </main>
       </div>

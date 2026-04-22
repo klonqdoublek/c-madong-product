@@ -34,18 +34,19 @@ export function MaintenancePageContent() {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col space-y-4 min-w-0">
       <AdminBreadcrumb />
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-heading text-2xl font-bold">
           {t("admin.serviceDesk.title")}
         </h1>
         <Tabs
           value={viewMode}
           onValueChange={(v) => setViewMode(v as "list" | "kanban")}
+          className="w-full sm:w-auto"
         >
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-2 sm:w-auto">
             <TabsTrigger value="list" className="gap-1.5">
               <LayoutList className="size-4" />
               {t("admin.serviceDesk.listView")}
@@ -65,11 +66,13 @@ export function MaintenancePageContent() {
       <TicketFilters />
 
       {/* Content */}
-      {viewMode === "list" ? (
-        <TicketListView tickets={tickets} isLoading={isLoading} />
-      ) : (
-        <KanbanBoard tickets={tickets} isLoading={isLoading} />
-      )}
+      <div className="flex-1 min-h-0 min-w-0 overflow-hidden rounded-xl">
+        {viewMode === "list" ? (
+          <TicketListView tickets={tickets} isLoading={isLoading} />
+        ) : (
+          <KanbanBoard tickets={tickets} isLoading={isLoading} />
+        )}
+      </div>
 
       {/* Detail Modal */}
       <TicketDetailModal

@@ -19,6 +19,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
   plumbing: Droplets,
   furniture: Armchair,
   air_conditioning: AirVent,
+  aircon: AirVent,
   internet: Wifi,
   door_lock: Lock,
   pest: Bug,
