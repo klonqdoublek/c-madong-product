@@ -1,11 +1,18 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useInsights } from "@/hooks/use-insights";
 import { useResidenceInfo } from "@/hooks/use-buildings";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Search, Sparkles, Calendar, Building2, BedDouble } from "lucide-react";
+import type { Database } from "@/lib/supabase/types";
+
+type Insight = Database["public"]["Tables"]["ai_insights"]["Row"];
+
+const AUTO_ADVANCE_MS = 5000;
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -21,6 +28,238 @@ function daysUntil(dateStr: string): number {
   const now = new Date();
   const target = new Date(dateStr);
   return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
+}
+
+function SkeletonBar({
+  className,
+  tone = "cream",
+}: {
+  className: string;
+  tone?: "cream" | "white" | "pink";
+}) {
+  const toneClass =
+    tone === "white"
+      ? "bg-white/20"
+      : tone === "pink"
+        ? "bg-primary/20"
+        : "bg-[#E8DFC8]";
+
+  return <div className={`skeleton-sweep rounded-full ${toneClass} ${className}`} />;
+}
+
+function ActionSlide({
+  insight,
+  t,
+}: {
+  insight: Insight;
+  t: ReturnType<typeof useTranslations<"dashboard">>;
+}) {
+  const deadline = insight.deadline;
+  const remaining = deadline ? daysUntil(deadline) : null;
+  const dateRange = deadline
+    ? `${formatThaiDate(insight.created_at)} - ${formatThaiDate(deadline)}`
+    : formatThaiDate(insight.created_at);
+
+  return (
+    <div className="w-full shrink-0 snap-center">
+      <div className="flex min-h-[74px] flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-end">
+            {remaining !== null && (
+              <p className="text-[10px] font-bold text-primary">
+                เหลืออีก {remaining} วัน!
+              </p>
+            )}
+          </div>
+
+          <p className="mt-1 line-clamp-2 min-h-[38px] font-heading text-base leading-tight font-bold text-primary">
+            {insight.title_th}
+          </p>
+
+          <div className="mt-1 flex items-center gap-1">
+            <Calendar className="size-3 text-cu-grey" />
+            <p className="text-[10px] text-cu-grey">{dateRange}</p>
+          </div>
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-3">
+          {insight.action_url ? (
+            <Link
+              href={insight.action_url}
+              className="flex items-center justify-center rounded-full bg-primary px-6 py-1.5 text-sm font-bold text-white"
+            >
+              {t("doNow")}
+            </Link>
+          ) : (
+            <button className="flex items-center justify-center rounded-full bg-primary px-6 py-1.5 text-sm font-bold text-white">
+              {t("doNow")}
+            </button>
+          )}
+          <button className="shrink-0 text-xs font-bold text-cu-grey underline">
+            ดูรายละเอียด
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ActionCardCarousel({
+  items,
+  t,
+}: {
+  items: Insight[];
+  t: ReturnType<typeof useTranslations<"dashboard">>;
+}) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    startScrollLeft: 0,
+  });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const scrollToIndex = useCallback(
+    (index: number, behavior: ScrollBehavior = "smooth") => {
+      const container = scrollRef.current;
+      if (!container) return;
+
+      const nextIndex = Math.max(0, Math.min(index, items.length - 1));
+      container.scrollTo({
+        left: container.clientWidth * nextIndex,
+        behavior,
+      });
+      setActiveIndex(nextIndex);
+    },
+    [items.length]
+  );
+
+  useEffect(() => {
+    setActiveIndex((current) => Math.min(current, items.length - 1));
+  }, [items.length]);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const width = container.clientWidth || 1;
+      const nextIndex = Math.round(container.scrollLeft / width);
+      setActiveIndex(Math.max(0, Math.min(nextIndex, items.length - 1)));
+    };
+
+    handleScroll();
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [items.length]);
+
+  useEffect(() => {
+    if (items.length <= 1 || isDragging || isHovered) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => {
+        const next = (current + 1) % items.length;
+        scrollToIndex(next);
+        return next;
+      });
+    }, AUTO_ADVANCE_MS);
+
+    return () => window.clearInterval(timer);
+  }, [items.length, isDragging, isHovered, scrollToIndex]);
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+    const container = scrollRef.current;
+    if (!container) return;
+
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: container.scrollLeft,
+    };
+
+    setIsDragging(true);
+    container.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const container = scrollRef.current;
+    const dragState = dragStateRef.current;
+
+    if (!container || dragState.pointerId !== event.pointerId || !isDragging) return;
+
+    const deltaX = event.clientX - dragState.startX;
+    container.scrollLeft = dragState.startScrollLeft - deltaX;
+  };
+
+  const endDrag = (pointerId: number) => {
+    const container = scrollRef.current;
+    const dragState = dragStateRef.current;
+
+    if (!container || dragState.pointerId !== pointerId) return;
+
+    if (container.hasPointerCapture(pointerId)) {
+      container.releasePointerCapture(pointerId);
+    }
+
+    const width = container.clientWidth || 1;
+    const nextIndex = Math.round(container.scrollLeft / width);
+    setIsDragging(false);
+    dragState.pointerId = -1;
+    scrollToIndex(nextIndex);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1">
+          <Sparkles className="size-2.5 text-[#52AD7E]" />
+          <p className="text-xs font-bold text-cu-grey">
+            <span className="text-[#52AD7E]">{items.length} รายการ </span>
+            ที่ยังไม่ได้ทำ
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="mt-1"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div
+          ref={scrollRef}
+          className={`scrollbar-hide flex snap-x snap-mandatory overflow-x-auto scroll-smooth [touch-action:pan-y] select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={(event) => endDrag(event.pointerId)}
+          onPointerCancel={(event) => endDrag(event.pointerId)}
+        >
+          {items.map((item) => (
+            <ActionSlide key={item.id} insight={item} t={t} />
+          ))}
+        </div>
+
+        {items.length > 1 && (
+          <div className="mt-2 flex items-center justify-center gap-1.5">
+            {items.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                aria-label={`ไปยังรายการ ${index + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  index === activeIndex ? "w-5 bg-primary" : "w-1.5 bg-primary/25"
+                }`}
+                onClick={() => scrollToIndex(index)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
 }
 
 export function DashboardInfoCard() {
@@ -43,14 +282,6 @@ export function DashboardInfoCard() {
   const first = pending[0];
   const isProfileSectionLoading = isUserLoading || isResidenceLoading;
   const isTaskSectionLoading = isUserLoading || isInsightsLoading;
-
-  const deadline = first?.deadline;
-  const remaining = deadline ? daysUntil(deadline) : null;
-  const dateRange = first
-    ? deadline
-      ? `${formatThaiDate(first.created_at)} - ${formatThaiDate(deadline)}`
-      : formatThaiDate(first.created_at)
-    : "";
 
   return (
     <div className="relative mx-auto h-[180px] w-[320px]">
@@ -85,8 +316,8 @@ export function DashboardInfoCard() {
             <div className="flex flex-col gap-0.5">
               {isProfileSectionLoading ? (
                 <>
-                  <div className="h-5 w-36 animate-pulse rounded-full bg-white/25" />
-                  <div className="mt-1 h-3.5 w-28 animate-pulse rounded-full bg-white/20" />
+                  <SkeletonBar className="h-5 w-36" tone="white" />
+                  <SkeletonBar className="mt-1 h-3.5 w-28" tone="white" />
                 </>
               ) : (
                 <>
@@ -116,64 +347,18 @@ export function DashboardInfoCard() {
         {isTaskSectionLoading ? (
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <div className="h-3.5 w-28 animate-pulse rounded-full bg-[#E8DFC8]" />
-              <div className="h-3 w-16 animate-pulse rounded-full bg-[#F0E6D2]" />
+              <SkeletonBar className="h-3.5 w-28" />
+              <SkeletonBar className="h-3 w-16" />
             </div>
-            <div className="h-5 w-44 animate-pulse rounded-full bg-[#E8DFC8]" />
-            <div className="h-3 w-32 animate-pulse rounded-full bg-[#F0E6D2]" />
+            <SkeletonBar className="h-5 w-44" />
+            <SkeletonBar className="h-3 w-32" />
             <div className="mt-2 flex items-center justify-between">
-              <div className="h-9 w-24 animate-pulse rounded-full bg-primary/20" />
-              <div className="h-3 w-20 animate-pulse rounded-full bg-[#F0E6D2]" />
+              <SkeletonBar className="h-9 w-24" tone="pink" />
+              <SkeletonBar className="h-3 w-20" />
             </div>
           </div>
         ) : first ? (
-          <>
-            {/* Sparkles row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Sparkles className="size-2.5 text-[#52AD7E]" />
-                <p className="text-xs font-bold text-cu-grey">
-                  <span className="text-[#52AD7E]">{pending.length} รายการ </span>
-                  ที่ยังไม่ได้ทำ
-                </p>
-              </div>
-              {remaining !== null && (
-                <p className="text-[10px] font-bold text-primary">
-                  เหลืออีก {remaining} วัน!
-                </p>
-              )}
-            </div>
-
-            {/* Task title */}
-            <p className="mt-1 font-heading text-base font-bold text-primary leading-tight">
-              {first.title_th}
-            </p>
-
-            {/* Date range */}
-            <div className="mt-1 flex items-center gap-1">
-              <Calendar className="size-3 text-cu-grey" />
-              <p className="text-[10px] text-cu-grey">{dateRange}</p>
-            </div>
-
-            {/* CTAs */}
-            <div className="mt-2 flex items-center justify-between">
-              {first.action_url ? (
-                <Link
-                  href={first.action_url}
-                  className="flex items-center justify-center rounded-full bg-primary px-6 py-2 text-sm font-bold text-white"
-                >
-                  {t("doNow")}
-                </Link>
-              ) : (
-                <button className="flex items-center justify-center rounded-full bg-primary px-6 py-2 text-sm font-bold text-white">
-                  {t("doNow")}
-                </button>
-              )}
-              <button className="text-xs font-bold text-cu-grey underline">
-                ดูรายละเอียด
-              </button>
-            </div>
-          </>
+          <ActionCardCarousel items={pending} t={t} />
         ) : (
           <div className="flex items-center gap-1">
             <Sparkles className="size-2.5 text-[#52AD7E]" />

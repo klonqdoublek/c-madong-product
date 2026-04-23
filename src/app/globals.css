@@ -227,6 +227,10 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+@keyframes skeleton-sweep {
+  0% { transform: translateX(-140%); }
+  100% { transform: translateX(140%); }
+}
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out both;
 }
@@ -241,3 +245,24 @@
 .animation-delay-300 { animation-delay: 0.3s; }
 .animation-delay-500 { animation-delay: 0.5s; }
 .animation-delay-700 { animation-delay: 0.7s; }
+
+.skeleton-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 40%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.18) 60%,
+    transparent 100%
+  );
+  animation: skeleton-sweep 1.7s ease-in-out infinite;
+  pointer-events: none;
+}
