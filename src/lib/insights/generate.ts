@@ -6,6 +6,7 @@ type InsightInsert = Database["public"]["Tables"]["ai_insights"]["Insert"];
 
 interface GenerateInsightsOptions {
   userId: string;
+  includeAI?: boolean;
 }
 
 /** Generate or return cached insights for a user */
@@ -13,6 +14,7 @@ export async function generateInsights(
   opts: GenerateInsightsOptions
 ): Promise<InsightRow[]> {
   const adminDb = createAdminClient();
+  const includeAI = opts.includeAI ?? true;
 
   // Check for cached (non-expired, non-dismissed) insights from last hour
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
@@ -40,12 +42,47 @@ export async function generateInsights(
   const insights: InsightInsert[] = [];
 
   // 1. Check overdue bills
-  const { data: overdueBills } = await adminDb
-    .from("bills")
-    .select("id, total_amount, due_date, billing_month")
-    .eq("student_id", opts.userId)
-    .eq("status", "overdue")
-    .limit(3);
+  const now = new Date();
+  const sevenDaysFromNow = new Date(
+    now.getTime() + 7 * 24 * 60 * 60 * 1000
+  ).toISOString();
+  const today = now.toISOString().split("T")[0];
+
+  const [
+    { data: overdueBills },
+    { data: dueBills },
+    { data: openTickets },
+    { data: mandatoryEvents },
+  ] = await Promise.all([
+    adminDb
+      .from("bills")
+      .select("id, total_amount, due_date, billing_month")
+      .eq("student_id", opts.userId)
+      .eq("status", "overdue")
+      .limit(3),
+    adminDb
+      .from("bills")
+      .select("id, total_amount, due_date")
+      .eq("student_id", opts.userId)
+      .eq("status", "pending")
+      .lte("due_date", sevenDaysFromNow)
+      .order("due_date", { ascending: true })
+      .limit(3),
+    adminDb
+      .from("maintenance_requests")
+      .select("id, title, status")
+      .eq("requester_id", opts.userId)
+      .in("status", ["pending", "acknowledged", "in_progress"])
+      .limit(3),
+    adminDb
+      .from("dorm_events")
+      .select("id, title, title_th, start_datetime, event_date")
+      .eq("is_mandatory", true)
+      .in("event_status", ["published", "ongoing"])
+      .gte("event_date", today)
+      .order("event_date", { ascending: true })
+      .limit(2),
+  ]);
 
   if (overdueBills && overdueBills.length > 0) {
     const bill = overdueBills[0];
@@ -65,18 +102,6 @@ export async function generateInsights(
   }
 
   // 2. Check pending bills due within 7 days
-  const sevenDaysFromNow = new Date(
-    Date.now() + 7 * 24 * 60 * 60 * 1000
-  ).toISOString();
-  const { data: dueBills } = await adminDb
-    .from("bills")
-    .select("id, total_amount, due_date")
-    .eq("student_id", opts.userId)
-    .eq("status", "pending")
-    .lte("due_date", sevenDaysFromNow)
-    .order("due_date", { ascending: true })
-    .limit(3);
-
   if (dueBills && dueBills.length > 0) {
     const bill = dueBills[0];
     const daysLeft = Math.ceil(
@@ -98,13 +123,6 @@ export async function generateInsights(
   }
 
   // 3. Check open maintenance tickets
-  const { data: openTickets } = await adminDb
-    .from("maintenance_requests")
-    .select("id, title, status")
-    .eq("requester_id", opts.userId)
-    .in("status", ["pending", "acknowledged", "in_progress"])
-    .limit(3);
-
   if (openTickets && openTickets.length > 0) {
     insights.push({
       user_id: opts.userId,
@@ -121,16 +139,6 @@ export async function generateInsights(
   }
 
   // 4. Check upcoming mandatory events
-  const now = new Date().toISOString();
-  const { data: mandatoryEvents } = await adminDb
-    .from("dorm_events")
-    .select("id, title, title_th, start_datetime, event_date")
-    .eq("is_mandatory", true)
-    .in("event_status", ["published", "ongoing"])
-    .gte("event_date", now.split("T")[0])
-    .order("event_date", { ascending: true })
-    .limit(2);
-
   if (mandatoryEvents && mandatoryEvents.length > 0) {
     const ev = mandatoryEvents[0];
     insights.push({
@@ -149,7 +157,7 @@ export async function generateInsights(
   }
 
   // 5. If fewer than 3 rule-based insights, try AI (only if OpenAI key available)
-  if (insights.length < 3 && process.env.OPENAI_API_KEY) {
+  if (includeAI && insights.length < 3 && process.env.OPENAI_API_KEY) {
     try {
       const aiInsights = await generateAIInsight(opts.userId);
       if (aiInsights) {

@@ -2,11 +2,10 @@
 
 import { useUser } from "@/hooks/use-user";
 import { useInsights } from "@/hooks/use-insights";
-import { useBuildings, useRooms, useBeds } from "@/hooks/use-buildings";
+import { useResidenceInfo } from "@/hooks/use-buildings";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { Search, Sparkles, Calendar, Building2, BedDouble } from "lucide-react";
-import Image from "next/image";
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -26,21 +25,24 @@ function daysUntil(dateStr: string): number {
 
 export function DashboardInfoCard() {
   const t = useTranslations("dashboard");
-  const { profile } = useUser();
-  const { data: insights } = useInsights();
-  const { data: buildings } = useBuildings();
-  const { data: rooms } = useRooms(profile?.building_id ?? null);
-  const { data: beds } = useBeds(profile?.room_id ?? null);
+  const { profile, isLoading: isUserLoading } = useUser();
+  const { data: insights, isLoading: isInsightsLoading } = useInsights();
+  const { data: residence, isLoading: isResidenceLoading } = useResidenceInfo({
+    buildingId: profile?.building_id ?? null,
+    roomId: profile?.room_id ?? null,
+    bedId: profile?.bed_id ?? null,
+  });
 
   const displayName = profile?.display_name || profile?.full_name_th || "---";
-  const building = (buildings ?? []).find((b) => b.id === profile?.building_id);
-  const buildingName = building?.name_th || "---";
-  const room = (rooms ?? []).find((r) => r.id === profile?.room_id);
-  const bed = (beds ?? []).find((b) => b.id === profile?.bed_id);
+  const buildingName = residence?.building?.name_th || "---";
+  const room = residence?.room;
+  const bed = residence?.bed;
   const roomBed = room ? `${room.room_number} ${bed?.bed_label || ""}` : "----";
 
   const pending = (insights ?? []).filter((i) => !i.dismissed_at);
   const first = pending[0];
+  const isProfileSectionLoading = isUserLoading || isResidenceLoading;
+  const isTaskSectionLoading = isUserLoading || isInsightsLoading;
 
   const deadline = first?.deadline;
   const remaining = deadline ? daysUntil(deadline) : null;
@@ -51,7 +53,7 @@ export function DashboardInfoCard() {
     : "";
 
   return (
-    <div className="relative mx-auto w-[320px]" style={{ height: first ? 180 : 130 }}>
+    <div className="relative mx-auto h-[180px] w-[320px]">
       {/* Pink gradient card — top layer with user info */}
       <div
         className="absolute inset-x-0 top-0 h-[180px] rounded-xl border border-black/10"
@@ -81,15 +83,24 @@ export function DashboardInfoCard() {
 
             {/* Name + room */}
             <div className="flex flex-col gap-0.5">
-              <p className="font-heading text-base text-white">
-                สวัสดี, {displayName}!
-              </p>
-              <div className="flex items-center gap-1.5 text-xs text-white">
-                <Building2 className="size-3.5" strokeWidth={1.5} />
-                <span>ตึก{buildingName}</span>
-                <BedDouble className="ml-0.5 size-3.5" strokeWidth={1.5} />
-                <span>{roomBed}</span>
-              </div>
+              {isProfileSectionLoading ? (
+                <>
+                  <div className="h-5 w-36 animate-pulse rounded-full bg-white/25" />
+                  <div className="mt-1 h-3.5 w-28 animate-pulse rounded-full bg-white/20" />
+                </>
+              ) : (
+                <>
+                  <p className="font-heading text-base text-white">
+                    สวัสดี, {displayName}!
+                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-white">
+                    <Building2 className="size-3.5" strokeWidth={1.5} />
+                    <span>ตึก{buildingName}</span>
+                    <BedDouble className="ml-0.5 size-3.5" strokeWidth={1.5} />
+                    <span>{roomBed}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -101,8 +112,21 @@ export function DashboardInfoCard() {
       </div>
 
       {/* Cream card — overlaps pink card from y=69 */}
-      <div className="absolute inset-x-0 top-[69px] rounded-xl border border-black/10 bg-[#FFFBF1] px-4 py-2.5" style={{ minHeight: first ? 130 : 50 }}>
-        {first ? (
+      <div className="absolute inset-x-0 top-[69px] min-h-[111px] rounded-xl border border-black/10 bg-[#FFFBF1] px-4 py-2.5">
+        {isTaskSectionLoading ? (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="h-3.5 w-28 animate-pulse rounded-full bg-[#E8DFC8]" />
+              <div className="h-3 w-16 animate-pulse rounded-full bg-[#F0E6D2]" />
+            </div>
+            <div className="h-5 w-44 animate-pulse rounded-full bg-[#E8DFC8]" />
+            <div className="h-3 w-32 animate-pulse rounded-full bg-[#F0E6D2]" />
+            <div className="mt-2 flex items-center justify-between">
+              <div className="h-9 w-24 animate-pulse rounded-full bg-primary/20" />
+              <div className="h-3 w-20 animate-pulse rounded-full bg-[#F0E6D2]" />
+            </div>
+          </div>
+        ) : first ? (
           <>
             {/* Sparkles row */}
             <div className="flex items-center justify-between">

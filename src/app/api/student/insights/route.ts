@@ -15,7 +15,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const insights = await generateInsights({ userId: user.id });
+    const insights = await generateInsights({
+      userId: user.id,
+      includeAI: false,
+    });
     return NextResponse.json({ data: insights });
   } catch (error) {
     console.error("Error generating insights:", error);
