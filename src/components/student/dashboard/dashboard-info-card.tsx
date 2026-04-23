@@ -113,6 +113,7 @@ function ActionCardCarousel({
   t: ReturnType<typeof useTranslations<"dashboard">>;
 }) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const autoAdvanceTimeoutRef = useRef<number | null>(null);
   const dragStateRef = useRef({
     pointerId: -1,
     startX: 0,
@@ -159,18 +160,26 @@ function ActionCardCarousel({
   }, [items.length]);
 
   useEffect(() => {
+    if (autoAdvanceTimeoutRef.current !== null) {
+      window.clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+
     if (items.length <= 1 || isDragging || isHovered) return;
 
-    const timer = window.setInterval(() => {
-      setActiveIndex((current) => {
-        const next = (current + 1) % items.length;
-        scrollToIndex(next);
-        return next;
-      });
+    autoAdvanceTimeoutRef.current = window.setTimeout(() => {
+      const next = (activeIndex + 1) % items.length;
+      scrollToIndex(next);
+      autoAdvanceTimeoutRef.current = null;
     }, AUTO_ADVANCE_MS);
 
-    return () => window.clearInterval(timer);
-  }, [items.length, isDragging, isHovered, scrollToIndex]);
+    return () => {
+      if (autoAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+    };
+  }, [activeIndex, items.length, isDragging, isHovered, scrollToIndex]);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
