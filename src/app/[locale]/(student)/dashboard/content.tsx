@@ -17,14 +17,14 @@ export function DashboardPageContent() {
       <DashboardHero />
 
       {/* Main card — bordered container with info card overlapping top */}
-      <div className="relative z-15 -mt-[200px] px-4">
+      <div className="relative -mt-[200px] px-4">
         {/* Info card — overlaps hero */}
-        <div className="pt-[80px]">
+        <div className="relative z-[20] pt-[80px]">
           <DashboardInfoCard />
         </div>
 
         {/* Bordered card wrapping quick menu */}
-        <div className="mx-auto mb-6 mt-4 w-[363px] max-w-full rounded-xl border border-black/10 bg-[#FFFBF1] p-4 shadow-sm">
+        <div className="relative z-0 mx-auto mb-6 mt-4 w-[363px] max-w-full rounded-xl border border-black/10 bg-[#FFFBF1] p-4 shadow-sm">
           <DashboardQuickMenu />
         </div>
       </div>

@@ -13,6 +13,7 @@ import type { Database } from "@/lib/supabase/types";
 type Insight = Database["public"]["Tables"]["ai_insights"]["Row"];
 
 const AUTO_ADVANCE_MS = 5000;
+const DRAG_THRESHOLD_PX = 6;
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -116,7 +117,9 @@ function ActionCardCarousel({
     pointerId: -1,
     startX: 0,
     startScrollLeft: 0,
+    hasDragged: false,
   });
+  const suppressClickRef = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -179,9 +182,8 @@ function ActionCardCarousel({
       pointerId: event.pointerId,
       startX: event.clientX,
       startScrollLeft: container.scrollLeft,
+      hasDragged: false,
     };
-
-    setIsDragging(true);
     container.setPointerCapture(event.pointerId);
   };
 
@@ -189,9 +191,17 @@ function ActionCardCarousel({
     const container = scrollRef.current;
     const dragState = dragStateRef.current;
 
-    if (!container || dragState.pointerId !== event.pointerId || !isDragging) return;
-
+    if (!container || dragState.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - dragState.startX;
+    if (!dragState.hasDragged && Math.abs(deltaX) < DRAG_THRESHOLD_PX) return;
+
+    if (!dragState.hasDragged) {
+      dragState.hasDragged = true;
+      suppressClickRef.current = true;
+      setIsDragging(true);
+    }
+
+    event.preventDefault();
     container.scrollLeft = dragState.startScrollLeft - deltaX;
   };
 
@@ -205,11 +215,18 @@ function ActionCardCarousel({
       container.releasePointerCapture(pointerId);
     }
 
+    setIsDragging(false);
     const width = container.clientWidth || 1;
     const nextIndex = Math.round(container.scrollLeft / width);
-    setIsDragging(false);
+    const didDrag = dragState.hasDragged;
     dragState.pointerId = -1;
+    dragState.hasDragged = false;
     scrollToIndex(nextIndex);
+    if (didDrag) {
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    }
   };
 
   return (
@@ -231,11 +248,18 @@ function ActionCardCarousel({
       >
         <div
           ref={scrollRef}
-          className={`scrollbar-hide flex snap-x snap-mandatory overflow-x-auto scroll-smooth [touch-action:pan-y] select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+          className={`scrollbar-hide flex overflow-x-auto [touch-action:pan-y] select-none ${isDragging ? "cursor-grabbing snap-none" : "cursor-grab snap-x snap-mandatory"}`}
+          style={{ scrollBehavior: isDragging ? "auto" : "smooth" }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={(event) => endDrag(event.pointerId)}
           onPointerCancel={(event) => endDrag(event.pointerId)}
+          onClickCapture={(event) => {
+            if (!suppressClickRef.current) return;
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickRef.current = false;
+          }}
         >
           {items.map((item) => (
             <ActionSlide key={item.id} insight={item} t={t} />
