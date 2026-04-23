@@ -699,6 +699,44 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 Tech Stack: Next.js 16 · Supabase · LINE · OpenAI · TailwindCSS
 Production: https://c-madong-product.vercel.app
 
+## Student Menu Nav + Bottom Sheet Arrangement (DEPLOYED — 2026-04-23)
+
+### Features
+- ✅ Bottom nav now uses `หน้าหลัก | เมนู | ปฏิทิน | แจ้งเตือน | บัญชีของฉัน`
+- ✅ Added dedicated `เมนู` trigger in bottom nav with active white/bold state while the sheet is open
+- ✅ New menu bottom sheet opens from the bottom with spring motion and supports drag-down to close
+- ✅ Backdrop stops above the nav bar so the nav shadow remains visible
+- ✅ Rearrange mode supports drag-and-drop menu sorting with draft state
+- ✅ Menu order persists only when user confirms with `เสร็จสิ้น`
+- ✅ Dashboard quick menu now reads from shared persisted menu order
+- ✅ Floating mascot `ถามน้องซี` stays above the menu/backdrop layer across student pages
+
+### UX Details
+- Menu closes automatically on route change and when tapping nav destinations
+- Reordering is cancel-safe: closing the sheet without `เสร็จสิ้น` discards draft changes
+- Menu items are grouped into `หอพัก`, `บัญชี`, and `การตั้งค่า`
+- Bottom sheet sits above the nav bar (`bottom-20`) to avoid covering the nav shadow
+- Mascot z-index raised so it remains visually prominent above modal layering
+
+### Files Changed
+- `src/components/layout/bottom-nav.tsx` — replaced dorm-card nav entry with menu trigger and active-state behavior
+- `src/components/layout/menu-modal.tsx` — new animated bottom sheet with drag-close and drag-and-drop arrangement mode
+- `src/components/layout/student-shell.tsx` — mounted menu modal and auto-close-on-navigation behavior
+- `src/components/student/chat-fab.tsx` — raised layering and persistent `ถามน้องซี` label treatment
+- `src/components/student/dashboard/dashboard-quick-menu.tsx` — switched to store-backed menu order
+- `src/stores/menu-store.ts` — new persisted student menu state and canonical menu item list
+- `src/messages/th.json`, `src/messages/en.json` — added menu/i18n labels for nav and sheet
+
+### Verification
+- TypeScript check passed: `npx tsc --noEmit`
+- Production deploy succeeded on Vercel and was aliased to `https://c-madong-product.vercel.app`
+- Local `npm run build` hit a sandbox-only Google Fonts fetch issue for `Geist` / `Geist Mono`, not an app code error
+
+### Commit
+- `76b6f3b` — `feat(student): adjust menu nav and bottom sheet arrangement`
+
+---
+
 ## Quick Menu Navigation + Information Pages (DEPLOYED — 2026-04-20)
 
 ### Features
@@ -753,4 +791,3 @@ Production: https://c-madong-product.vercel.app
 - Commit: `5892ce3`
 
 ---
-
