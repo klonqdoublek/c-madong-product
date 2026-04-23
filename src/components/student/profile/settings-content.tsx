@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/layout/page-header";
 import { SettingsMenuItem } from "./settings-menu-item";
-import { LogoutButton } from "@/components/student/logout-button";
 import {
   User,
   CreditCard,
@@ -101,11 +100,6 @@ export function SettingsContent() {
             />
           </div>
         </section>
-
-        {/* Logout */}
-        <div className="pt-2">
-          <LogoutButton />
-        </div>
 
         <p className="text-center text-[10px] text-muted-foreground">
           C-Madong v1.0.0

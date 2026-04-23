@@ -39,6 +39,9 @@ yarn-error.log*
 # claude code skills & config
 .agents/
 .claude/
+.gemini/
+agent.md
+admin-dashboard-mockup.html
 *.skill
 
 # typescript

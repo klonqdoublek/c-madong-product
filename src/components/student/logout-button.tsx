@@ -1,13 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 export function LogoutButton() {
   const t = useTranslations("auth");
+  const locale = useLocale();
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/th/login";
+    window.location.href = `/${locale}/login`;
   };
 
   return (

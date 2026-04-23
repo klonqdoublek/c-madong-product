@@ -8,6 +8,7 @@ import { ProfileStatsSection } from "./profile-stats-section";
 import { ProfileScoreSection } from "./profile-score-section";
 import { ProfileSavedSection } from "./profile-saved-section";
 import { SettingsMenuItem } from "./settings-menu-item";
+import { LogoutButton } from "@/components/student/logout-button";
 import { Settings, FileText } from "lucide-react";
 
 export function ProfileContent() {
@@ -71,6 +72,10 @@ export function ProfileContent() {
             label={t("settingsLink")}
             href="/profile/settings"
           />
+
+          <div className="pt-2">
+            <LogoutButton />
+          </div>
         </div>
       </div>
     </div>

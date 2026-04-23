@@ -71,13 +71,13 @@ export function ProfileInfoCard() {
           <IdCard className="h-3.5 w-3.5" />
           {t("viewDormCard")}
         </Link>
-        <button
-          type="button"
+        <Link
+          href="/profile/edit"
           className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-muted-foreground/30 py-2.5 text-xs font-medium text-muted-foreground"
         >
           <Pencil className="h-3.5 w-3.5" />
           {t("editProfile")}
-        </button>
+        </Link>
       </div>
     </div>
   );
