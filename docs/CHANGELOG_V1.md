@@ -1,7 +1,36 @@
 # C-Madong Product — Changelog
 
-> **Version 2.1.0** Release Date: 2026-04-21
-> Chatbot accuracy improvements — intent classification, RAG, response optimization
+> **Version 2.1.1** Release Date: 2026-04-23
+> Dashboard performance — info card loading optimization
+
+---
+
+## 🎯 V2.1.1 Updates (2026-04-23)
+
+### Dashboard Performance Fix
+
+**Root Cause**
+- Info card overfetched residence data — loaded ALL rooms in building + ALL beds in room just to show 1 building/room/bed label
+- Insights API slow — sequential DB queries + optional OpenAI call created waterfall
+- No loading UI — users saw empty state during load
+
+**Optimizations Applied**
+- ✅ New `useResidenceInfo()` hook — fetches exact building/room/bed by ID in parallel (not full collections)
+- ✅ Optimized building/room/bed hooks — select only needed columns, increase `staleTime` 5min cache
+- ✅ Parallelized insight queries — replaced sequential awaits with `Promise.all()`
+- ✅ Disabled AI enrichment for dashboard insights route — no OpenAI wait on first paint
+- ✅ Added loading skeleton UI — fixed 180px height, prevents layout shift
+
+**Files Changed (4)**
+- `src/hooks/use-buildings.ts` — new hook + optimized queries
+- `src/components/student/dashboard/dashboard-info-card.tsx` — loading UI
+- `src/lib/insights/generate.ts` — parallel queries
+- `src/app/api/student/insights/route.ts` — disabled AI enrichment
+
+**Performance Impact**
+- Reduced triple waterfall to parallel queries
+- Eliminated OpenAI latency on dashboard route
+- Fixed layout shift with skeleton UI
 
 ---
 
