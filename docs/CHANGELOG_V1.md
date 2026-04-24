@@ -1,7 +1,121 @@
 # C-Madong Product — Changelog
 
-> **Version 2.1.1** Release Date: 2026-04-23
-> Dashboard performance — info card loading optimization
+> **Version 2.1.3** Release Date: 2026-04-24
+> Knowledge Base AI-assisted upload + versioning + admin feedback analytics
+
+---
+
+## 🎯 V2.1.3 Updates (2026-04-24)
+
+### Knowledge Base — AI-Assisted Upload + Versioning
+
+**AI Suggestion Popup (4-State Dialog)**
+- ✅ Auto-opens after admin uploads a document with loading → main → feedback-default → feedback-detail states
+- ✅ AI (gpt-4o-mini, structured JSON output) analyzes the document and suggests: filename, folder (existing or new), tags (existing or new), confidence %, and summary
+- ✅ Admin can edit any suggested field before accepting, or skip suggestions entirely
+- ✅ Optional feedback step: thumbs up/down + textarea comment stored in new `ai_upload_feedback` table
+
+**Version Control**
+- ✅ Detects new versions two ways: exact filename match OR content similarity ≥ 0.85 via embedding cosine (reuses `match_documents` RPC)
+- ✅ New `documents` columns: `parent_document_id` (self-FK), `is_current`, `version_number`, `ai_suggestion`, `ai_applied_at`
+- ✅ On accept with version match: previous doc flipped to `is_current=false`, new doc linked to root via `parent_document_id`, `version_number` incremented
+- ✅ File detail view shows version history timeline with current version highlighted in pink
+- ✅ Document list API now filters `is_current=true` so superseded versions hide from default view
+
+**UI Polish**
+- ✅ Moved "อัปโหลดเอกสารใหม่" and "สร้างโฟลเดอร์ใหม่" CTAs to the top-right of the folder view content area
+- ✅ Removed duplicated "เมนูอื่นๆ" (Quick Actions) section from the sidebar; only "ถาม-ตอบ" entry retained
+- ✅ Sidebar narrowed from 280px to 260px
+- ✅ Subfolder empty state rewritten as an upload-primary drop zone (drag-and-drop opens upload dialog with file pre-loaded)
+
+**Admin Dashboard — AI Feedback Card**
+- ✅ New "คำแนะนำ AI — ฐานข้อมูล" card on the admin dashboard (30-day window)
+- ✅ Shows total feedback count, satisfaction %, thumbs-down count, and green/red satisfaction bar
+- ✅ Top accepted fields histogram (filename/folder/tags chips)
+- ✅ Most recent 5 comments with thumbs icon, document title, and date
+- ✅ Empty state with a link back to the knowledge base
+
+**Engineering / Tooling**
+- Migration: `supabase/migrations/20260424_knowledge_versioning_ai.sql` — versioning columns + `ai_upload_feedback` table + RLS (admin read/insert)
+- Types regenerated via `supabase gen types`; all 18 custom aliases re-added
+- 5 new API routes under `/api/admin/knowledge/`: `analyze`, `apply-suggestion`, `feedback`, `documents/[id]/versions`
+- 1 new API route: `/api/admin/ai-feedback-stats`
+- 5 new hooks in `use-knowledge.ts`: `useAnalyzeDocument`, `useApplySuggestion`, `useAISuggestionFeedback`, `useDocumentVersions`, `useAIFeedbackStats`
+- New i18n keys: `admin.knowledgeBase.header.*`, `admin.knowledgeBase.ai.*`, `admin.knowledgeBase.version.*`, `admin.knowledgeBase.folder.empty*`, `admin.dashboardPage.aiFeedback.*` (Thai + English)
+- Build: `npm run build` clean, `npx tsc --noEmit` clean
+
+**Files Changed**
+
+NEW:
+- `supabase/migrations/20260424_knowledge_versioning_ai.sql`
+- `src/lib/knowledge/detect-version.ts` — filename + embedding similarity detection
+- `src/lib/knowledge/ai-analyze.ts` — GPT-4o-mini structured JSON analyzer
+- `src/app/api/admin/knowledge/analyze/route.ts`
+- `src/app/api/admin/knowledge/apply-suggestion/route.ts`
+- `src/app/api/admin/knowledge/feedback/route.ts`
+- `src/app/api/admin/knowledge/documents/[id]/versions/route.ts`
+- `src/app/api/admin/ai-feedback-stats/route.ts`
+- `src/components/admin/knowledge/ai-suggestion-dialog.tsx` — 4-state dialog
+- `src/components/admin/dashboard/dashboard-ai-feedback-card.tsx`
+
+MODIFIED:
+- `src/components/admin/knowledge/knowledge-sidebar.tsx` — width 260px, Quick Actions removed
+- `src/components/admin/knowledge/knowledge-page-content.tsx` — AI dialog wired post-upload
+- `src/components/admin/knowledge/folder-view.tsx` — top-right CTAs, drop-zone empty state, current folder title
+- `src/components/admin/knowledge/upload-document-dialog.tsx` — accepts `defaultFile` prop
+- `src/components/admin/knowledge/file-detail-view.tsx` — version history timeline
+- `src/components/admin/knowledge/file-table.tsx` — `version_number` display (X.0)
+- `src/app/api/admin/knowledge/documents/route.ts` — filter `is_current=true`
+- `src/components/admin/dashboard/dashboard-page-content.tsx` — inserted AI feedback card
+- `src/hooks/use-knowledge.ts` — 5 new hooks + extended `KnowledgeDocument` interface
+- `src/lib/supabase/types.ts` — regenerated from DB
+- `src/messages/th.json`
+- `src/messages/en.json`
+
+---
+
+## 🎯 V2.1.2 Updates (2026-04-24)
+
+### Student Profile Edit Flow
+
+**Features**
+- ✅ Added real `/[locale]/profile/edit` page for student profile editing
+- ✅ Editable fields now save directly to Supabase `profiles`: `display_name`, `phone`, `email`
+- ✅ New mobile-first split between editable and read-only sections
+- ✅ Read-only section now shows student ID, legal name, faculty, building, room, and bed
+- ✅ Building/room/bed labels resolve from relational data instead of raw IDs
+- ✅ Main profile page "Edit Profile" CTA now links to the real edit page
+- ✅ Logout moved from `/profile/settings` to the bottom of `/profile`
+- ✅ Logout redirect now respects current locale
+- ✅ Added Thai/English i18n labels and validation messages for profile editing
+
+**Engineering / Tooling**
+- Fixed new page header usage to `backHref="/profile"`
+- Added locale-aware validation for display name, phone number, and email
+- Ignored local-only files in git: `.gemini/`, `agent.md`, `admin-dashboard-mockup.html`
+- Updated ESLint config to flat config for Next 16
+- Changed `npm run lint` to execute `eslint .`
+
+**Files Changed**
+- `src/app/[locale]/(student)/profile/edit/page.tsx`
+- `src/components/student/profile/edit-profile-form.tsx`
+- `src/components/student/profile/profile-content.tsx`
+- `src/components/student/profile/profile-info-card.tsx`
+- `src/components/student/profile/settings-content.tsx`
+- `src/components/student/logout-button.tsx`
+- `src/messages/th.json`
+- `src/messages/en.json`
+- `.gitignore`
+- `eslint.config.mjs`
+- `package.json`
+
+**Verification**
+- TypeScript check passed: `npx tsc --noEmit`
+- Production deploy succeeded on Vercel and was aliased to `https://c-madong-product.vercel.app`
+- Repo-wide lint still has unrelated legacy errors outside this change set
+
+**Commit**
+- `008e7e9` — `Add student profile editing flow`
 
 ---
 

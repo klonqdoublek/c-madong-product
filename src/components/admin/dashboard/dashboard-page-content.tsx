@@ -12,6 +12,7 @@ import { DashboardUpcomingEvents } from "./dashboard-upcoming-events";
 import { DashboardAttendanceChart } from "./dashboard-attendance-chart";
 import { DashboardRecentSection } from "./dashboard-recent-section";
 import { DashboardMascotWidget } from "./dashboard-mascot-widget";
+import { DashboardAIFeedbackCard } from "./dashboard-ai-feedback-card";
 
 export function DashboardPageContent() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
@@ -40,6 +41,9 @@ export function DashboardPageContent() {
         <DashboardUpcomingEvents />
         <DashboardAttendanceChart />
       </div>
+
+      {/* Row 2.5: AI Knowledge Feedback */}
+      <DashboardAIFeedbackCard />
 
       {/* Row 3: Recent Tickets + Announcements */}
       <DashboardRecentSection

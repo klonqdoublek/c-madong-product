@@ -5,6 +5,96 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-04-25)
+
+### Knowledge Base AI + Versioning + Dashboard Feedback — BUILT
+
+**What Changed**:
+- Admin `/admin/knowledge-base` enhanced with AI-assisted upload, document versioning, UI polish
+- Admin dashboard got new AI feedback analytics card (30-day window)
+
+**AI Suggestion Popup (4-state dialog)**:
+- Auto-opens after upload: `loading` → `main` (accept/reject) → `feedback-default` (👍/👎) → `feedback-detail` (comment)
+- GPT-4o-mini with `response_format: {type: "json_object"}` analyzes content — suggests filename/folder/tags/summary/confidence
+- Validates suggested folder/tag IDs against existing to reject hallucinations
+- Admin edits any field or rejects all; optional thumbs + comment stored in `ai_upload_feedback`
+
+**Version Control**:
+- New `documents` columns: `parent_document_id` (self-FK), `is_current` (bool), `version_number` (int), `ai_suggestion` (JSONB), `ai_applied_at`
+- Detection: filename exact match OR embedding cosine ≥ 0.85 via existing `match_documents` RPC
+- On version accept: old doc → `is_current=false`, new doc → linked to root, `version_number+1`
+- File detail view shows timeline; documents list filters `is_current=true`
+
+**UI Polish**:
+- Sidebar 280→260px; "เมนูอื่นๆ" removed, only "ถาม-ตอบ" kept
+- Top-right CTAs on folder view: `อัปโหลดเอกสารใหม่` + `สร้างโฟลเดอร์ใหม่`
+- Empty subfolder = upload-primary drop zone (matches Figma); drag-drop opens upload dialog with file pre-loaded
+
+**Admin Dashboard AI Feedback Card**:
+- "คำแนะนำ AI — ฐานข้อมูล" card (last 30 days)
+- Stats: total count, satisfaction % + bar, thumbs-down count, top accepted fields chips, recent 5 comments with doc titles
+
+**Files**:
+- Migration: `supabase/migrations/20260424_knowledge_versioning_ai.sql`
+- NEW lib: `src/lib/knowledge/detect-version.ts`, `src/lib/knowledge/ai-analyze.ts`
+- NEW API: `src/app/api/admin/knowledge/{analyze,apply-suggestion,feedback,documents/[id]/versions}/route.ts`, `src/app/api/admin/ai-feedback-stats/route.ts`
+- NEW components: `src/components/admin/knowledge/ai-suggestion-dialog.tsx`, `src/components/admin/dashboard/dashboard-ai-feedback-card.tsx`
+- Hooks: 5 new (`useAnalyzeDocument`, `useApplySuggestion`, `useAISuggestionFeedback`, `useDocumentVersions`, `useAIFeedbackStats`)
+- Modified: `knowledge-sidebar.tsx`, `folder-view.tsx`, `upload-document-dialog.tsx`, `knowledge-page-content.tsx`, `file-detail-view.tsx`, `file-table.tsx`, `dashboard-page-content.tsx`, `use-knowledge.ts`, `api/admin/knowledge/documents/route.ts`, `messages/th.json`, `messages/en.json`, `supabase/types.ts`
+
+**Verification**:
+- `npx tsc --noEmit` passed, `npm run build` clean, 6 new API routes compiled
+- `supabase db push` applied migration; `supabase gen types` re-run + 18 custom aliases re-added
+- Pending: user Vercel deploy + real-world admin testing
+
+**Open follow-ups**:
+- Version `ดู`/`กู้คืน` (restore) actions — backlog
+- Bulk upload AI suggestion (multi-file) — v2
+- Version count badge on subfolder cards ("10 ไฟล์ · 3 version") — polish
+- Weekly feedback digest agent — deferred until real data
+
+---
+
+## Recent Changes (2026-04-24)
+
+### Student Profile Edit Flow — DEPLOYED
+
+**What Changed**:
+- Added real student profile edit page at `/[locale]/profile/edit`
+- Students can now update `display_name`, `phone`, and `email` directly in Supabase
+- Edit UI is split into mobile-friendly editable and read-only sections
+- Read-only profile details now show student ID, legal name, faculty, building, room, and bed
+- Residence labels are resolved from related `buildings`, `rooms`, and `beds` data instead of raw IDs
+- Main profile page now links the existing "Edit Profile" CTA to the real edit page
+- Logout moved from `/profile/settings` to the bottom of `/profile`
+- Logout redirect now respects the active locale
+
+**Validation / Tooling**:
+- Fixed `PageHeader` integration on the new page to use `backHref="/profile"`
+- Added locale-aware validation messages for display name, phone, and email in Thai and English
+- Ignored local-only artifacts in git: `.gemini/`, `agent.md`, `admin-dashboard-mockup.html`
+- Updated ESLint setup for Next 16 flat config and changed `npm run lint` to `eslint .`
+
+**Files**:
+- `src/app/[locale]/(student)/profile/edit/page.tsx`
+- `src/components/student/profile/edit-profile-form.tsx`
+- `src/components/student/profile/profile-content.tsx`
+- `src/components/student/profile/profile-info-card.tsx`
+- `src/components/student/profile/settings-content.tsx`
+- `src/components/student/logout-button.tsx`
+- `src/messages/th.json`, `src/messages/en.json`
+- `.gitignore`, `eslint.config.mjs`, `package.json`
+
+**Verification**:
+- `npx tsc --noEmit` passed
+- Vercel production deploy succeeded and was aliased to `https://c-madong-product.vercel.app`
+- Repo-wide lint still has pre-existing errors outside this feature scope
+
+**Commit**:
+- `008e7e9` — `Add student profile editing flow`
+
+---
+
 ## Recent Changes (2026-04-19)
 
 ### Chatbot Quick Reply UX — DEPLOYED

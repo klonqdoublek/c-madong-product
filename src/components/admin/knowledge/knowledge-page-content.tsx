@@ -28,6 +28,7 @@ import { UploadDocumentDialog } from "./upload-document-dialog";
 import { MoveDocumentsDialog } from "./move-documents-dialog";
 import { TagManagementDialog } from "./tag-management-dialog";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
+import { AISuggestionDialog } from "./ai-suggestion-dialog";
 
 export function KnowledgePageContent() {
   const t = useTranslations("admin.knowledgeBase");
@@ -78,6 +79,8 @@ export function KnowledgePageContent() {
     editFolder?: FolderTreeNode | null;
   }>({ open: false });
   const [uploadDialog, setUploadDialog] = useState(false);
+  const [droppedFile, setDroppedFile] = useState<File | null>(null);
+  const [aiDialogDocId, setAIDialogDocId] = useState<string | null>(null);
   const [moveDialog, setMoveDialog] = useState(false);
   const [tagDialog, setTagDialog] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{
@@ -163,9 +166,12 @@ export function KnowledgePageContent() {
       uploadDoc.mutate(
         { file, folderId, tagIds },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             toast.success(t("toast.documentUploaded"));
             setUploadDialog(false);
+            setDroppedFile(null);
+            const newId = (data as { document?: { id?: string } })?.document?.id;
+            if (newId) setAIDialogDocId(newId);
           },
           onError: () => toast.error(t("toast.error")),
         }
@@ -308,7 +314,6 @@ export function KnowledgePageContent() {
           onCreateFolder={handleCreateFolder}
           onRenameFolder={handleRenameFolder}
           onDeleteFolder={handleDeleteFolder}
-          onUploadClick={() => setUploadDialog(true)}
           onPlaygroundClick={handlePlaygroundClick}
         />
 
@@ -325,7 +330,10 @@ export function KnowledgePageContent() {
               onCreateFolder={handleCreateFolder}
               onRenameFolder={handleRenameFolder}
               onDeleteFolder={handleDeleteFolder}
-              onUploadClick={() => setUploadDialog(true)}
+              onUploadClick={(droppedFile) => {
+                setDroppedFile(droppedFile ?? null);
+                setUploadDialog(true);
+              }}
               onViewFile={handleViewFile}
               onEditFile={handleEditFile}
               onMoveFile={handleMoveFile}
@@ -402,10 +410,14 @@ export function KnowledgePageContent() {
 
       <UploadDocumentDialog
         open={uploadDialog}
-        onOpenChange={setUploadDialog}
+        onOpenChange={(open) => {
+          setUploadDialog(open);
+          if (!open) setDroppedFile(null);
+        }}
         folders={flatFolders}
         tags={tags ?? []}
         defaultFolderId={store.selectedFolderId}
+        defaultFile={droppedFile}
         onUpload={handleUpload}
         isPending={uploadDoc.isPending}
       />
@@ -445,6 +457,16 @@ export function KnowledgePageContent() {
         description={deleteDialog.description}
         onConfirm={deleteDialog.onConfirm}
         isPending={deleteDoc.isPending || deleteFolder.isPending || bulkAction.isPending}
+      />
+
+      <AISuggestionDialog
+        open={!!aiDialogDocId}
+        documentId={aiDialogDocId}
+        folders={flatFolders}
+        tags={tags ?? []}
+        onOpenChange={(open) => {
+          if (!open) setAIDialogDocId(null);
+        }}
       />
     </div>
   );

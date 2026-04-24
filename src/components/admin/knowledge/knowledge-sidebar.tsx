@@ -5,9 +5,7 @@ import {
   Search,
   FolderIcon,
   FileText,
-  Upload,
   MessageCircleQuestion,
-  Settings,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -28,7 +26,6 @@ interface KnowledgeSidebarProps {
   onCreateFolder: (parentId?: string) => void;
   onRenameFolder: (folder: FolderTreeNode) => void;
   onDeleteFolder: (folder: FolderTreeNode) => void;
-  onUploadClick: () => void;
   onPlaygroundClick: () => void;
 }
 
@@ -39,7 +36,6 @@ export function KnowledgeSidebar({
   onCreateFolder,
   onRenameFolder,
   onDeleteFolder,
-  onUploadClick,
   onPlaygroundClick,
 }: KnowledgeSidebarProps) {
   const t = useTranslations("admin.knowledgeBase");
@@ -108,47 +104,18 @@ export function KnowledgeSidebar({
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Quick action icons */}
-          <div className="flex flex-col items-center gap-1">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => {
-                    toggleNestedSidebar();
-                    setSidebarMode("folders");
-                  }}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{t("sidebar.manageFiles")}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={onPlaygroundClick}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <MessageCircleQuestion className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{t("sidebar.askQA")}</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={onUploadClick}
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <Upload className="h-4 w-4" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">{t("sidebar.addDocument")}</TooltipContent>
-            </Tooltip>
-          </div>
+          {/* Q&A icon — playground entry point */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onPlaygroundClick}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <MessageCircleQuestion className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">{t("sidebar.askQA")}</TooltipContent>
+          </Tooltip>
         </aside>
       </TooltipProvider>
     );
@@ -156,7 +123,7 @@ export function KnowledgeSidebar({
 
   // ── Expanded mode: full sidebar ─────────────────────────────
   return (
-    <aside className="flex h-full w-[280px] shrink-0 flex-col border-r">
+    <aside className="flex h-full w-[260px] shrink-0 flex-col border-r">
       {/* Title header + collapse button */}
       <div className="flex items-start justify-between border-b px-4 py-4">
         <div className="min-w-0">
@@ -218,56 +185,23 @@ export function KnowledgeSidebar({
         )}
       </ScrollArea>
 
-      {/* Quick Actions */}
-      <div className="space-y-1 border-t p-3">
-              <h3 className="font-heading px-2 py-1 text-sm font-semibold text-muted-foreground">เมนูอื่น
-              </h3>
-        <QuickAction
-          icon={Settings}
-          label={t("sidebar.manageFiles")}
-          desc={t("sidebar.manageFilesDesc")}
-          onClick={() => setSidebarMode("folders")}
-        />
-        <QuickAction
-          icon={MessageCircleQuestion}
-          label={t("sidebar.askQA")}
-          desc={t("sidebar.askQADesc")}
+      {/* Q&A quick access — only playground entry point */}
+      <div className="border-t p-3">
+        <button
           onClick={onPlaygroundClick}
-        />
-        <QuickAction
-          icon={Upload}
-          label={t("sidebar.addDocument")}
-          desc={t("sidebar.addDocumentDesc")}
-          onClick={onUploadClick}
-        />
+          className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+        >
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <MessageCircleQuestion className="h-3.5 w-3.5" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium">{t("sidebar.askQA")}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {t("sidebar.askQADesc")}
+            </p>
+          </div>
+        </button>
       </div>
     </aside>
-  );
-}
-
-function QuickAction({
-  icon: Icon,
-  label,
-  desc,
-  onClick,
-}: {
-  icon: React.ElementType;
-  label: string;
-  desc: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
-    >
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-        <Icon className="h-3.5 w-3.5" />
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{label}</p>
-        <p className="truncate text-xs text-muted-foreground">{desc}</p>
-      </div>
-    </button>
   );
 }

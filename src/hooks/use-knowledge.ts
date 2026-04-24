@@ -54,6 +54,9 @@ export interface KnowledgeDocument {
   created_by: string | null;
   folder_id: string | null;
   version: string;
+  version_number: number;
+  is_current: boolean;
+  parent_document_id: string | null;
   created_at: string;
   updated_at: string;
   tags: { id: string; name: string; color: string }[];
@@ -66,6 +69,8 @@ export interface KnowledgeDocumentDetail extends KnowledgeDocument {
     full_name_en: string | null;
     avatar_url: string | null;
   } | null;
+  ai_suggestion?: Record<string, unknown> | null;
+  ai_applied_at?: string | null;
 }
 
 // ============================================================================
@@ -417,6 +422,166 @@ export function useDocumentQuery() {
         answer: string;
         sources: { content: string; similarity: number }[];
       }>;
+    },
+  });
+}
+
+// ============================================================================
+// AI Suggestion Hooks (Phase: AI-assisted upload + versioning)
+// ============================================================================
+
+export interface AISuggestion {
+  suggestedFilename: string;
+  suggestedFolderId: string | null;
+  suggestedNewFolder: { name: string } | null;
+  suggestedTagIds: string[];
+  suggestedNewTags: string[];
+  summary: string;
+  confidence: number;
+}
+
+export interface VersionMatch {
+  parentId: string;
+  parentTitle: string;
+  parentVersion: number;
+  matchType: "filename" | "content";
+  confidence: number;
+}
+
+export interface AnalyzeResult {
+  documentId: string;
+  filename: string | null;
+  suggestion: AISuggestion | null;
+  versionMatch: VersionMatch | null;
+}
+
+export function useAnalyzeDocument() {
+  return useMutation({
+    mutationFn: async (input: { documentId: string }) => {
+      const res = await fetch("/api/admin/knowledge/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) throw new Error("Analyze failed");
+      return res.json() as Promise<AnalyzeResult>;
+    },
+  });
+}
+
+export interface ApplySuggestionInput {
+  documentId: string;
+  accepted: {
+    filename?: string;
+    folderId?: string | null;
+    newFolderName?: string;
+    newFolderParentId?: string | null;
+    tagIds?: string[];
+    newTagNames?: string[];
+    versionOf?: string;
+  };
+  suggestionSnapshot?: Record<string, unknown>;
+}
+
+export function useApplySuggestion() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: ApplySuggestionInput) => {
+      const res = await fetch("/api/admin/knowledge/apply-suggestion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || "Apply failed");
+      }
+      return res.json() as Promise<{
+        document: KnowledgeDocument;
+        versionNumber: number;
+        parentDocumentId: string | null;
+      }>;
+    },
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["knowledge-documents"] });
+      qc.invalidateQueries({ queryKey: KEYS.folders });
+      qc.invalidateQueries({ queryKey: KEYS.tags });
+      qc.invalidateQueries({ queryKey: KEYS.document(vars.documentId) });
+    },
+  });
+}
+
+export interface FeedbackInput {
+  documentId: string;
+  rating: "up" | "down";
+  comment?: string;
+  suggestionSnapshot?: Record<string, unknown>;
+  acceptedFields?: string[];
+}
+
+export function useAISuggestionFeedback() {
+  return useMutation({
+    mutationFn: async (input: FeedbackInput) => {
+      const res = await fetch("/api/admin/knowledge/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!res.ok) throw new Error("Feedback failed");
+      return res.json();
+    },
+  });
+}
+
+export interface DocumentVersion {
+  id: string;
+  title: string;
+  filename: string | null;
+  version_number: number;
+  is_current: boolean;
+  created_at: string;
+  created_by: string | null;
+  parent_document_id: string | null;
+  creator: { full_name_th: string | null; avatar_url: string | null } | null;
+}
+
+export interface AIFeedbackStats {
+  windowDays: number;
+  total: number;
+  ups: number;
+  downs: number;
+  upPct: number;
+  fieldCounts: Record<string, number>;
+  recentComments: Array<{
+    id: string;
+    rating: "up" | "down";
+    comment: string;
+    createdAt: string;
+    documentId: string;
+    documentTitle: string;
+  }>;
+}
+
+export function useAIFeedbackStats() {
+  return useQuery({
+    queryKey: ["ai-feedback-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/ai-feedback-stats");
+      if (!res.ok) throw new Error("Failed to fetch feedback stats");
+      return res.json() as Promise<AIFeedbackStats>;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useDocumentVersions(documentId: string | null) {
+  return useQuery({
+    queryKey: ["knowledge-document-versions", documentId ?? ""],
+    enabled: !!documentId,
+    queryFn: async () => {
+      const res = await fetch(`/api/admin/knowledge/documents/${documentId}/versions`);
+      if (!res.ok) throw new Error("Failed to fetch versions");
+      return res.json() as Promise<{ rootId: string; versions: DocumentVersion[] }>;
     },
   });
 }

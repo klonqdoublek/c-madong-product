@@ -121,6 +121,47 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_upload_feedback: {
+        Row: {
+          accepted_fields: string[] | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          document_id: string
+          id: string
+          rating: string
+          suggestion_snapshot: Json | null
+        }
+        Insert: {
+          accepted_fields?: string[] | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          id?: string
+          rating: string
+          suggestion_snapshot?: Json | null
+        }
+        Update: {
+          accepted_fields?: string[] | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          id?: string
+          rating?: string
+          suggestion_snapshot?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_upload_feedback_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcement_bookmarks: {
         Row: {
           announcement_id: string
@@ -838,6 +879,8 @@ export type Database = {
       }
       documents: {
         Row: {
+          ai_applied_at: string | null
+          ai_suggestion: Json | null
           content: string
           content_type: string | null
           created_at: string
@@ -846,14 +889,19 @@ export type Database = {
           filename: string | null
           folder_id: string | null
           id: string
+          is_current: boolean
           metadata: Json
+          parent_document_id: string | null
           source: string | null
           status: string
           title: string
           updated_at: string
           version: string | null
+          version_number: number
         }
         Insert: {
+          ai_applied_at?: string | null
+          ai_suggestion?: Json | null
           content: string
           content_type?: string | null
           created_at?: string
@@ -862,14 +910,19 @@ export type Database = {
           filename?: string | null
           folder_id?: string | null
           id?: string
+          is_current?: boolean
           metadata?: Json
+          parent_document_id?: string | null
           source?: string | null
           status?: string
           title: string
           updated_at?: string
           version?: string | null
+          version_number?: number
         }
         Update: {
+          ai_applied_at?: string | null
+          ai_suggestion?: Json | null
           content?: string
           content_type?: string | null
           created_at?: string
@@ -878,12 +931,15 @@ export type Database = {
           filename?: string | null
           folder_id?: string | null
           id?: string
+          is_current?: boolean
           metadata?: Json
+          parent_document_id?: string | null
           source?: string | null
           status?: string
           title?: string
           updated_at?: string
           version?: string | null
+          version_number?: number
         }
         Relationships: [
           {
@@ -891,6 +947,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "knowledge_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_parent_document_id_fkey"
+            columns: ["parent_document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
         ]
@@ -2106,6 +2169,20 @@ export type Database = {
       is_finance_or_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_parcel_staff: { Args: never; Returns: boolean }
       mark_overdue_bills: { Args: never; Returns: number }
+      match_document_sections: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+          target_document_id: string
+        }
+        Returns: {
+          content: string
+          document_id: string
+          id: string
+          similarity: number
+        }[]
+      }
       match_documents: {
         Args: {
           match_count?: number
@@ -2115,6 +2192,7 @@ export type Database = {
         Returns: {
           content: string
           document_id: string
+          document_title: string
           id: string
           similarity: number
         }[]

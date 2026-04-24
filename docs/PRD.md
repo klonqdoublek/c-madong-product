@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.6
-> **Last Updated**: 2026-04-21
+> **Version**: 2.7
+> **Last Updated**: 2026-04-24
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -295,6 +295,18 @@ C-Madong Platform
 - [ ] Real-time updates via Supabase subscriptions
 - [ ] Charts & analytics (Phase 5+)
 
+**AI Feedback Analytics Card ✅ DEPLOYED (2026-04-24):**
+แสดงบน admin dashboard — สรุปความพอใจของ admin ต่อคำแนะนำจาก AI upload ช่วง 30 วันย้อนหลัง
+
+- **Rolling Window**: 30 วันย้อนหลังจากวันปัจจุบัน
+- **Metrics**:
+  - Total count (จำนวนครั้งที่ admin ให้ feedback)
+  - Satisfaction % (thumbs up / total)
+  - Satisfaction bar (visual bar สี CU Pink)
+  - Thumbs-down count (เด่นไว้เพื่อเห็นปัญหา)
+- **Top Accepted Fields Histogram**: แสดงว่า field ไหนที่ admin "เก็บตามที่ AI แนะนำ" (vs แก้เอง) มากที่สุด — ช่วยประเมินคุณภาพแต่ละ suggestion type
+- **Recent 5 Comments**: comment ล่าสุดพร้อม doc title + date + rating icon (thumbs up/down)
+
 ---
 
 ### 2.8 LINE Integration
@@ -464,8 +476,9 @@ C-Madong Platform
 - notifications
 - tags (new)
 - message_templates (new)
-- documents (extended: status, filename, file_path, content_type, folder_id, version) + document_sections (pgvector)
+- documents (extended: status, filename, file_path, content_type, folder_id, version, parent_document_id, is_current, version_number, ai_suggestion, ai_applied_at) + document_sections (pgvector)
 - knowledge_folders, document_tags, document_tag_assignments (Knowledge Base v3)
+- ai_upload_feedback (Knowledge Base AI v2.7: `id`, `document_id`, `rating` ('up'|'down'), `comment`, `suggestion_snapshot` (JSONB), `accepted_fields` (text[]), `created_by`, `created_at`)
 - ai_chat_messages, chatbot_sessions
 - score_categories, score_entries, dorm_events, event_attendance (Phase 5)
 - bills, bill_items (new — Phase 3)
@@ -513,6 +526,30 @@ Full rewrite from 4-tab mock to production 2-panel layout with real DB connectiv
   - Main: folder-view, file-table, file-table-toolbar, file-detail-view, document-preview
   - Dialogs: create-folder, upload-document, move-documents, tag-management, delete-confirm
   - Layout shell: knowledge-page-content (rewritten)
+
+**AI-Assisted Upload ✅ DEPLOYED (2026-04-24):**
+หลังอัปโหลดเอกสาร ระบบจะเปิด popup ให้ AI วิเคราะห์เนื้อหาและเสนอ metadata อัตโนมัติ — admin ตรวจ/แก้/ปฏิเสธได้ก่อน apply
+
+- **AI Suggestion Popup**: เรียกหลัง upload สำเร็จ → gpt-4o-mini อ่านเนื้อหาเอกสารและตอบกลับเป็น structured JSON
+- **Fields ที่ AI เสนอ**:
+  - `filename` — ชื่อภาษาไทยที่สะอาด ≤ 60 ตัวอักษร
+  - `folder` — เลือกจากโฟลเดอร์ที่มีอยู่ หรือเสนอโฟลเดอร์ใหม่
+  - `tags` — เลือกจาก tag ที่มี หรือเสนอ tag ใหม่
+  - `summary` — สรุปเอกสารสั้น ๆ
+  - `confidence` — คะแนนความมั่นใจของ AI (%)
+- **Admin Controls**: แก้ไขทีละ field ได้ หรือกด "ไม่ใช้คำแนะนำ" เพื่อ reject ทั้งหมด
+- **Feedback Capture (optional)**: ปุ่ม thumbs up/down + free-text comment → บันทึกลง `ai_upload_feedback` table เพื่อใช้ปรับปรุงโมเดล
+
+**Version Control ✅ DEPLOYED (2026-04-24):**
+ตรวจจับเอกสารเวอร์ชันเดียวกันเพื่อไม่ให้ไฟล์รกฐานข้อมูล และเก็บประวัติการอัปเดต
+
+- **Duplicate Detection**: match ด้วย filename ตรงกัน **หรือ** content embedding similarity ≥ 0.85 (cosine, pgvector)
+- **Schema Pattern**: self-FK `parent_document_id` บน `documents` + `is_current` (boolean) + `version_number` (integer)
+- **Auto-Archive Flow**: เมื่อยืนยันเวอร์ชันใหม่ → เวอร์ชันเดิมถูก set `is_current=false` โดยอัตโนมัติ; root document ถูกเก็บไว้เพื่อเป็น history chain
+- **UI Behavior**:
+  - File detail view แสดง version timeline (v1 → v2 → v3...)
+  - Document list ซ่อน superseded versions ตามค่า default (toggle แสดงได้)
+- **Schema Columns เพิ่มบน `documents`**: `parent_document_id`, `is_current`, `version_number`, `ai_suggestion` (JSONB snapshot ของคำแนะนำ AI), `ai_applied_at` (timestamp ตอนที่ admin apply คำแนะนำ)
 
 ### Phase 3: Billing & Payments ✅ DEPLOYED (2026-03-09)
 
@@ -1100,6 +1137,7 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
   - Intent misclassification: AI primary (not keyword fast-path), broad keywords removed, exclusion patterns, camera quick replies
   - RAG accuracy: sentence-aware chunking (800 chars), better prompt with source citation, max_tokens 300
   - Response length: 1-2 sentence cap, emoji bullets, truncation safety net (2000 chars)
+- ✅ **Knowledge Base AI v2.7 (2026-04-24)** — Knowledge Base AI suggestions, version control, and feedback analytics card on admin dashboard
 
 #### Technical Metrics (V1)
 - **Pages**: 36 (student + admin)

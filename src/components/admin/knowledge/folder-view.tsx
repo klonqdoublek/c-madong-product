@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Folder, MoreHorizontal, Upload } from "lucide-react";
+import { Folder, FolderPlus, MoreHorizontal, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Breadcrumb,
@@ -32,7 +33,7 @@ interface FolderViewProps {
   onCreateFolder: (parentId?: string) => void;
   onRenameFolder: (folder: FolderTreeNode) => void;
   onDeleteFolder: (folder: FolderTreeNode) => void;
-  onUploadClick: () => void;
+  onUploadClick: (droppedFile?: File) => void;
   onViewFile: (id: string) => void;
   onEditFile: (doc: KnowledgeDocument) => void;
   onMoveFile: (doc: KnowledgeDocument) => void;
@@ -65,6 +66,7 @@ export function FolderView({
 }: FolderViewProps) {
   const t = useTranslations("admin.knowledgeBase");
   const { selectedFolderId, setSelectedFolderId, selectedFileIds } = useKnowledgeStore();
+  const [isDragging, setIsDragging] = useState(false);
 
   // Build breadcrumb path
   const breadcrumbPath = buildBreadcrumb(selectedFolderId, folders);
@@ -79,8 +81,48 @@ export function FolderView({
       ? folderTree
       : [];
 
+  const currentFolder = breadcrumbPath[breadcrumbPath.length - 1];
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) onUploadClick(file);
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
+      {/* Page header: folder title (left) + CTAs (right) */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Folder className="h-5 w-5" />
+          </div>
+          <h2 className="font-heading text-xl font-bold text-primary">
+            {currentFolder?.name ?? t("sidebar.allFiles")}
+          </h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onCreateFolder(selectedFolderId ?? undefined)}
+            className="rounded-full"
+          >
+            <FolderPlus className="mr-1.5 h-4 w-4" />
+            {t("header.createNewFolder")}
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => onUploadClick()}
+            className="rounded-full"
+          >
+            <Upload className="mr-1.5 h-4 w-4" />
+            {t("header.uploadNewDoc")}
+          </Button>
+        </div>
+      </div>
+
       {/* Breadcrumb */}
       <Breadcrumb>
         <BreadcrumbList>
@@ -183,14 +225,52 @@ export function FolderView({
           />
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12">
-          <Folder className="mb-3 h-10 w-10 text-muted-foreground/50" />
-          <p className="mb-1 text-sm font-medium">{t("folder.empty")}</p>
-          <p className="mb-4 text-xs text-muted-foreground">{t("folder.emptyDesc")}</p>
-          <Button variant="outline" size="sm" onClick={onUploadClick}>
-            <Upload className="mr-2 h-4 w-4" />
-            {t("folder.uploadHere")}
-          </Button>
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed py-16 transition-colors ${
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25"
+          }`}
+        >
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+            <Upload className="h-10 w-10 text-muted-foreground" />
+          </div>
+          <h3 className="font-heading mb-2 text-lg font-bold text-primary">
+            {t("folder.emptyUploadTitle")}
+          </h3>
+          <p className="mb-1 text-sm text-muted-foreground">
+            {t("folder.emptyDropHint")}
+          </p>
+          <p className="mb-5 text-xs text-muted-foreground/80">
+            {t("folder.emptyFileTypes")}
+            <br />
+            {t("folder.emptySizeLimit")}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => onUploadClick()}
+              className="rounded-full"
+            >
+              <Upload className="mr-1.5 h-4 w-4" />
+              {t("header.uploadNewDoc")}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onCreateFolder(selectedFolderId ?? undefined)}
+              className="rounded-full"
+            >
+              <FolderPlus className="mr-1.5 h-4 w-4" />
+              {t("header.createNewFolder")}
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -35,7 +35,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    let query = adminDb.from("documents").select("*");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let query = (adminDb as any).from("documents").select("*").eq("is_current", true);
 
     // Filter by folder
     if (folderId === "unfiled") {
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
 
     // Fetch tags for all documents
-    const docIds = (data ?? []).map((d) => d.id);
+    const docIds = ((data ?? []) as Array<{ id: string }>).map((d) => d.id);
     let docTags: Record<string, { id: string; name: string; color: string | null }[]> = {};
 
     if (docIds.length > 0) {
@@ -99,7 +100,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const documents = (data ?? []).map((d) => ({
+    const documents = ((data ?? []) as Array<{ id: string }>).map((d) => ({
       ...d,
       tags: docTags[d.id] || [],
     }));

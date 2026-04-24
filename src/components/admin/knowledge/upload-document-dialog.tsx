@@ -27,6 +27,7 @@ interface UploadDocumentDialogProps {
   folders: KnowledgeFolder[];
   tags: DocumentTag[];
   defaultFolderId?: string | null;
+  defaultFile?: File | null;
   onUpload: (file: File, folderId: string | null, tagIds: string[]) => void;
   isPending: boolean;
 }
@@ -37,6 +38,7 @@ export function UploadDocumentDialog({
   folders,
   tags,
   defaultFolderId,
+  defaultFile,
   onUpload,
   isPending,
 }: UploadDocumentDialogProps) {
@@ -50,7 +52,7 @@ export function UploadDocumentDialog({
   // Reset state when dialog opens
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
-      setFile(null);
+      setFile(defaultFile ?? null);
       setFolderId(defaultFolderId ?? "none");
       setSelectedTagIds([]);
     }

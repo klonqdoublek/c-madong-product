@@ -124,7 +124,7 @@ export function FileTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
-                v{doc.version}
+                {doc.version_number}.0
               </TableCell>
               <TableCell>
                 <span

@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, FileText, FileType2, MessageCircleQuestion } from "lucide-react";
+import { ArrowLeft, FileText, FileType2, History, MessageCircleQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useKnowledgeStore } from "@/stores/knowledge-store";
-import { useKnowledgeDocument, useDocumentQuery } from "@/hooks/use-knowledge";
+import { useKnowledgeDocument, useDocumentQuery, useDocumentVersions } from "@/hooks/use-knowledge";
 import { DocumentPreview } from "./document-preview";
+import { cn } from "@/lib/utils/cn";
 
 export function FileDetailView() {
   const t = useTranslations("admin.knowledgeBase");
@@ -20,6 +21,7 @@ export function FileDetailView() {
   const [showQA, setShowQA] = useState(false);
   const [question, setQuestion] = useState("");
   const queryDoc = useDocumentQuery();
+  const { data: versionData } = useDocumentVersions(selectedFileId);
 
   if (isLoading || !doc) {
     return (
@@ -54,7 +56,7 @@ export function FileDetailView() {
         <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold">{doc.title}</h2>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span>v{doc.version}</span>
+            <span>Version {doc.version_number}.0</span>
             <span className="text-muted-foreground/40">|</span>
             {doc.creator && (
               <>
@@ -150,6 +152,60 @@ export function FileDetailView() {
       )}
 
       <Separator />
+
+      {/* Version history */}
+      {versionData && versionData.versions.length > 1 && (
+        <div>
+          <h3 className="mb-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+            <History className="h-4 w-4" />
+            {t("version.historyTitle")}
+          </h3>
+          <ol className="relative ml-2 space-y-2 border-l border-muted-foreground/20 pl-4">
+            {versionData.versions.map((v) => (
+              <li key={v.id} className="relative">
+                <span
+                  className={cn(
+                    "absolute -left-[21px] top-1.5 block h-2.5 w-2.5 rounded-full border-2",
+                    v.is_current
+                      ? "border-primary bg-primary"
+                      : "border-muted-foreground/30 bg-background"
+                  )}
+                />
+                <div
+                  className={cn(
+                    "rounded-lg border p-2.5",
+                    v.is_current ? "border-primary/40 bg-primary/5" : "bg-card"
+                  )}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium">
+                      Version {v.version_number}.0
+                    </span>
+                    {v.is_current && (
+                      <Badge className="h-4 px-1.5 text-[9px]">
+                        {t("version.current")}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {v.title}
+                  </p>
+                  <p className="mt-0.5 text-[10px] text-muted-foreground/80">
+                    {v.creator?.full_name_th ?? "—"} ·{" "}
+                    {new Date(v.created_at).toLocaleDateString("th-TH", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {versionData && versionData.versions.length > 1 && <Separator />}
 
       {/* Document preview */}
       <div>
