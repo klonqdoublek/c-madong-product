@@ -6,6 +6,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "C-Madong | หอพักจุฬาฯ",
   description: "ระบบบริหารจัดการหอพักจุฬาลงกรณ์มหาวิทยาลัย",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export const viewport = "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, user-scalable=no";
