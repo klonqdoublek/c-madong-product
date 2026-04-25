@@ -36,6 +36,7 @@ interface RequisitionDocumentProps {
   roomNumber?: string;
   technicianName?: string;
   materials: MaterialItem[];
+  version?: number;
 }
 
 export function RequisitionDocument({
@@ -50,10 +51,11 @@ export function RequisitionDocument({
   roomNumber,
   technicianName,
   materials,
+  version,
 }: RequisitionDocumentProps) {
-  // Auto-focus for keyboard print shortcut
   useEffect(() => {
-    document.title = `ใบเบิกวัสดุ #${ticketCode}`;
+    document.title = `ใบเบิกวัสดุ #${ticketCode}${version ? ` v${version}` : ""}`;
+
   }, [ticketCode]);
 
   const location = [buildingName, roomNumber ? `ห้อง ${roomNumber}` : null]
@@ -235,6 +237,11 @@ export function RequisitionDocument({
             <div className="doc-badge">
               <div>หมายเลขใบเบิก</div>
               <div className="doc-number">REQ-{ticketCode}</div>
+              {version && (
+                <div style={{ fontSize: "9pt", color: "#DD598B", fontWeight: 600 }}>
+                  Version {version}
+                </div>
+              )}
               <div>วันที่: {dateStr}</div>
             </div>
           </div>

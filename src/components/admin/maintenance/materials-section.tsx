@@ -35,6 +35,7 @@ interface MaterialsSectionProps {
 export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectionProps) {
   const locale = useLocale();
   const [materials, setMaterials] = useState<MaterialItem[]>(initialMaterials);
+  const [creatingRequisition, setCreatingRequisition] = useState(false);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<MaterialItem[]>([]);
   const [aiNotes, setAiNotes] = useState("");
@@ -196,24 +197,48 @@ export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectio
         )}
       </div>
 
-      {/* Saving indicator + requisition button */}
-      <div className="flex items-center justify-between">
+      {/* Saving indicator + requisition buttons */}
+      <div className="flex items-center justify-between gap-2">
         {updateMaterials.isPending ? (
           <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Loader2 className="size-3 animate-spin" />
             กำลังบันทึก...
           </p>
         ) : <span />}
-        {materials.length > 0 && (
+        <div className="flex items-center gap-2">
           <a
-            href={`/${locale}/print/requisition/${ticketId}`}
+            href={`/${locale}/admin/maintenance/${ticketId}/requisitions`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+            className="inline-flex items-center gap-1 rounded-md border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            📄 สร้างใบเบิก
+            🕐 ประวัติ
           </a>
-        )}
+          {materials.length > 0 && (
+            <button
+              disabled={creatingRequisition || updateMaterials.isPending}
+              onClick={async () => {
+                setCreatingRequisition(true);
+                try {
+                  const res = await fetch(
+                    `/api/admin/maintenance/${ticketId}/requisitions`,
+                    { method: "POST" }
+                  );
+                  if (res.ok) {
+                    const { id } = await res.json();
+                    window.open(`/${locale}/print/requisition/${id}`, "_blank");
+                  }
+                } finally {
+                  setCreatingRequisition(false);
+                }
+              }}
+              className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+            >
+              {creatingRequisition ? <Loader2 className="size-3 animate-spin" /> : "📄"}
+              สร้างใบเบิก
+            </button>
+          )}
+        </div>
       </div>
 
       {/* AI Suggestions Dialog */}
