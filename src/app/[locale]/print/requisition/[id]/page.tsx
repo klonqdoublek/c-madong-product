@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { RequisitionDocument } from "@/components/admin/maintenance/requisition-document";
 
-export default async function RequisitionPage({
+export default async function RequisitionPrintPage({
   params,
 }: {
   params: Promise<{ locale: string; id: string }>;
@@ -24,7 +24,6 @@ export default async function RequisitionPage({
 
   if (!ticket) notFound();
 
-  // Resolve building + room names
   let buildingName: string | null = null;
   let roomNumber: string | null = null;
   const req = ticket.requester as any;

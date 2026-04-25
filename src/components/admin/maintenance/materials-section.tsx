@@ -206,7 +206,7 @@ export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectio
         ) : <span />}
         {materials.length > 0 && (
           <a
-            href={`/${locale}/admin/maintenance/${ticketId}/requisition`}
+            href={`/${locale}/print/requisition/${ticketId}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
