@@ -32,6 +32,7 @@ export interface RepairOrchestratorResult {
   reporterContext: ReporterContext
   provider: string
   template_id?: string
+  specific_item?: string | null
 }
 
 // =====================================================
@@ -84,7 +85,8 @@ export class RepairOrchestrator {
     return {
       detection,
       reporterContext,
-      provider: visionResult.provider
+      provider: visionResult.provider,
+      specific_item: visionResult.specific_item ?? null,
     }
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LayoutList, Kanban } from "lucide-react";
@@ -18,12 +19,20 @@ import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 export function MaintenancePageContent() {
   const t = useTranslations();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const { viewMode, setViewMode, filters, selectedTicketId, setSelectedTicketId } =
     useMaintenanceStore();
 
   const { data: tickets = [], isLoading } = useMaintenanceTickets(filters);
 
-  // Realtime: invalidate cache on any maintenance_requests change
+  // Deep-link: ?ticket={id} from LINE group push CTA
+  useEffect(() => {
+    const ticketId = searchParams.get("ticket");
+    if (ticketId && !selectedTicketId) {
+      setSelectedTicketId(ticketId);
+    }
+  }, [searchParams, selectedTicketId, setSelectedTicketId]);
+
   const handleRealtimeChange = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["maintenance-tickets"] });
   }, [queryClient]);
@@ -36,7 +45,6 @@ export function MaintenancePageContent() {
   return (
     <div className="flex flex-col space-y-4 min-w-0">
       <AdminBreadcrumb />
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="font-heading text-2xl font-bold">
           {t("admin.serviceDesk.title")}
@@ -59,13 +67,9 @@ export function MaintenancePageContent() {
         </Tabs>
       </div>
 
-      {/* Stats */}
       <TicketStatsBar tickets={tickets} />
-
-      {/* Filters */}
       <TicketFilters />
 
-      {/* Content */}
       <div className="flex-1 min-h-0 min-w-0 overflow-hidden rounded-xl">
         {viewMode === "list" ? (
           <TicketListView tickets={tickets} isLoading={isLoading} />
@@ -74,7 +78,6 @@ export function MaintenancePageContent() {
         )}
       </div>
 
-      {/* Detail Modal */}
       <TicketDetailModal
         ticketId={selectedTicketId}
         open={!!selectedTicketId}

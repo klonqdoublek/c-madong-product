@@ -49,6 +49,7 @@ export async function handleRepair(
           photos,
           provider: result.provider,
           template_id: result.template_id,
+          specific_item: result.specific_item,
         })
 
         return {
@@ -97,15 +98,15 @@ export async function createRepairTicket(
     provider?: string
     template_id?: string
     ai_confidence?: number
+    specific_item?: string | null
   }
-): Promise<{ id: string } | null> {
+): Promise<{ id: string; ticket_code?: string | null } | null> {
   if (IS_DEMO) {
-    return { id: "demo-ticket-" + Date.now() }
+    return { id: "demo-ticket-" + Date.now(), ticket_code: "DM000000" }
   }
 
   const supabase = createAdminClient()
 
-  // Look up user profile by line_uid (profiles.id = auth.users.id = requester_id FK)
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
@@ -120,19 +121,20 @@ export async function createRepairTicket(
     title: detection.title,
     description: detection.description,
     photos,
-    status: "pending" as const,
+    status: "under_review" as const,
     ai_category: detection.category,
     ai_priority: detection.urgency,
     ai_confidence: (metadata?.ai_confidence ?? detection.ai_confidence) || undefined,
     ai_provider: (metadata?.provider as "template" | "gemini" | "openai" | "text-only" | "keyword" | "fallback") || undefined,
     template_id: metadata?.template_id || undefined,
     damage_details: detection.damage_details || undefined,
+    specific_item: metadata?.specific_item || undefined,
   }
 
   const { data, error } = await supabase
     .from("maintenance_requests")
     .insert(insertData)
-    .select("id")
+    .select("id, ticket_code")
     .single()
 
   if (error) {

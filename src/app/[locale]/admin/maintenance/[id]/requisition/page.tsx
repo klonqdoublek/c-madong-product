@@ -1,0 +1,66 @@
+import { notFound } from "next/navigation";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { RequisitionDocument } from "@/components/admin/maintenance/requisition-document";
+
+export default async function RequisitionPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = createAdminClient();
+
+  const { data: ticket } = await supabase
+    .from("maintenance_requests")
+    .select(`
+      id, ticket_code, title, description, category,
+      created_at, appointment_date, appointment_time,
+      materials, ai_priority, specific_item,
+      requester:profiles!requester_id(full_name_th, display_name, room_id, building_id),
+      technician:technicians!technician_id(display_name, specialty)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (!ticket) notFound();
+
+  // Resolve building + room names
+  let buildingName: string | null = null;
+  let roomNumber: string | null = null;
+  const req = ticket.requester as any;
+
+  if (req?.building_id) {
+    const { data: b } = await supabase
+      .from("buildings")
+      .select("name_th")
+      .eq("id", req.building_id)
+      .single();
+    buildingName = b?.name_th ?? null;
+  }
+  if (req?.room_id) {
+    const { data: r } = await supabase
+      .from("rooms")
+      .select("room_number")
+      .eq("id", req.room_id)
+      .single();
+    roomNumber = r?.room_number ?? null;
+  }
+
+  const tech = ticket.technician as any;
+
+  return (
+    <RequisitionDocument
+      ticketCode={ticket.ticket_code ?? ticket.id.slice(0, 8).toUpperCase()}
+      title={ticket.title}
+      category={ticket.category}
+      createdAt={ticket.created_at}
+      appointmentDate={ticket.appointment_date ?? undefined}
+      appointmentTime={ticket.appointment_time ?? undefined}
+      requesterName={req?.display_name ?? req?.full_name_th ?? "ผู้แจ้ง"}
+      buildingName={buildingName ?? undefined}
+      roomNumber={roomNumber ?? undefined}
+      technicianName={tech?.display_name ?? undefined}
+      materials={(ticket.materials as any[]) ?? []}
+    />
+  );
+}

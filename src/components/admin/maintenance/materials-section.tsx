@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSuggestMaterials, useUpdateTicketMaterials } from "@/hooks/use-maintenance-tickets";
 import type { MaterialItem } from "@/lib/supabase/types";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 
 const UNITS = ["ชิ้น", "ตัว", "เมตร", "ม้วน", "กระป๋อง", "แท่ง", "ขวด", "ชุด", "อื่นๆ"];
@@ -32,6 +33,7 @@ interface MaterialsSectionProps {
 }
 
 export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectionProps) {
+  const locale = useLocale();
   const [materials, setMaterials] = useState<MaterialItem[]>(initialMaterials);
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<MaterialItem[]>([]);
@@ -194,13 +196,25 @@ export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectio
         )}
       </div>
 
-      {/* Saving indicator */}
-      {updateMaterials.isPending && (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Loader2 className="size-3 animate-spin" />
-          กำลังบันทึก...
-        </p>
-      )}
+      {/* Saving indicator + requisition button */}
+      <div className="flex items-center justify-between">
+        {updateMaterials.isPending ? (
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Loader2 className="size-3 animate-spin" />
+            กำลังบันทึก...
+          </p>
+        ) : <span />}
+        {materials.length > 0 && (
+          <a
+            href={`/${locale}/admin/maintenance/${ticketId}/requisition`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+          >
+            📄 สร้างใบเบิก
+          </a>
+        )}
+      </div>
 
       {/* AI Suggestions Dialog */}
       <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>

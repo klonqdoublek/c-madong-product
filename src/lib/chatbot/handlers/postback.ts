@@ -94,6 +94,7 @@ async function handleRepairConfirm(
   const provider = session.state_data?.provider as string | undefined
   const template_id = session.state_data?.template_id as string | undefined
   const ai_confidence = detection?.ai_confidence as number | undefined
+  const specific_item = session.state_data?.specific_item as string | null | undefined
 
   // Fallback if session is missing detection (shouldn't happen)
   if (!detection) {
@@ -109,6 +110,7 @@ async function handleRepairConfirm(
     provider,
     template_id,
     ai_confidence,
+    specific_item,
   })
 
   if (ticket) {
@@ -136,6 +138,7 @@ async function handleRepairConfirm(
         ...buildTicketCreatingFlex(
           {
             id: ticket.id,
+            ticket_code: ticket.ticket_code,
             category: detection.category,
             title: detection.title,
             description: detection.description,
@@ -152,7 +155,7 @@ async function handleRepairConfirm(
       console.error("[Postback] Flex reply failed:", err)
       await replyMessage(replyToken, {
         type: "text",
-        text: `📝 สร้างใบแจ้งซ่อมแล้วจ้า! หมายเลข #${ticket.id.slice(0, 8).toUpperCase()}\nนัดหมายกับช่างได้ในแอปนะ`,
+        text: `📝 สร้างใบแจ้งซ่อมแล้วจ้า! หมายเลข #${ticket.ticket_code ?? ticket.id.slice(0, 8).toUpperCase()}\nนัดหมายกับช่างได้ในแอปนะ`,
         quickReply: { items: getQuickReplyForPostback("repair_confirm") },
       })
     }

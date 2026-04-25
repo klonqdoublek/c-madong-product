@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { setRequestLocale } from "next-intl/server";
 import { MaintenancePageContent } from "@/components/admin/maintenance/maintenance-page-content";
 
@@ -9,5 +10,9 @@ export default async function AdminMaintenancePage({
   const { locale } = await params;
   setRequestLocale(locale);
 
-  return <MaintenancePageContent />;
+  return (
+    <Suspense>
+      <MaintenancePageContent />
+    </Suspense>
+  );
 }

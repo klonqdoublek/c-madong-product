@@ -33,6 +33,7 @@ const URGENCY_LABELS: Record<string, string> = {
 
 export interface RepairTicket {
   id: string
+  ticket_code?: string | null
   category: string
   title: string
   description: string
@@ -151,7 +152,7 @@ export function buildTicketCreatingFlex(
   ticket: RepairTicket,
   displayName: string = "คุณ"
 ): FlexMessagePayload {
-  const shortId = ticket.id.slice(0, 8).toUpperCase()
+  const shortId = ticket.ticket_code ?? ticket.id.slice(0, 8).toUpperCase()
   const bookingUrl = `https://c-madong-product.vercel.app/th/booking/${ticket.id}`
 
   return {
@@ -258,7 +259,7 @@ export function buildRepairStatusFlex(
   displayName: string = "คุณ",
   appointment?: AppointmentInfo
 ): FlexMessagePayload {
-  const shortId = ticket.id.slice(0, 8).toUpperCase()
+  const shortId = ticket.ticket_code ?? ticket.id.slice(0, 8).toUpperCase()
 
   const bodyContents: Record<string, unknown>[] = [
     buildTicketNumberBox(shortId),
