@@ -38,9 +38,7 @@ export interface RepairTrackingData {
   steps: RepairTimelineStep[]
 }
 
-const LIFF_URL = process.env.NEXT_PUBLIC_LINE_LIFF_ID
-  ? `https://liff.line.me/${process.env.NEXT_PUBLIC_LINE_LIFF_ID}`
-  : null
+const WEB_BASE = "https://c-madong-product.vercel.app/th"
 
 /**
  * Status tracking Flex with vertical timeline — matches Figma "ติดตามสถานะ" design
@@ -324,18 +322,11 @@ export function buildRepairTrackingFlex(
             style: "link",
             color: LINK_BLUE,
             height: "sm",
-            action: LIFF_URL
-              ? {
-                  type: "uri",
-                  label: "ดูประวัติการแจ้งซ่อม",
-                  uri: `${LIFF_URL}/maintenance`,
-                }
-              : {
-                  type: "postback",
-                  label: "ดูประวัติการแจ้งซ่อม",
-                  data: "action=repair_history",
-                  displayText: "ดูประวัติการแจ้งซ่อม",
-                },
+            action: {
+                type: "uri",
+                label: "ดูประวัติการแจ้งซ่อม",
+                uri: `${WEB_BASE}/maintenance`,
+              },
           },
         ],
         paddingAll: "sm",
