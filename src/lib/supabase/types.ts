@@ -1729,6 +1729,82 @@ export type Database = {
           },
         ]
       }
+      repair_requisitions: {
+        Row: {
+          appointment_date: string | null
+          appointment_time: string | null
+          building_name: string | null
+          category: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          materials_snapshot: Json
+          requester_name: string | null
+          room_number: string | null
+          technician_name: string | null
+          ticket_code: string | null
+          ticket_id: string
+          title: string | null
+          version: number
+        }
+        Insert: {
+          appointment_date?: string | null
+          appointment_time?: string | null
+          building_name?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          materials_snapshot?: Json
+          requester_name?: string | null
+          room_number?: string | null
+          technician_name?: string | null
+          ticket_code?: string | null
+          ticket_id: string
+          title?: string | null
+          version?: number
+        }
+        Update: {
+          appointment_date?: string | null
+          appointment_time?: string | null
+          building_name?: string | null
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          materials_snapshot?: Json
+          requester_name?: string | null
+          room_number?: string | null
+          technician_name?: string | null
+          ticket_code?: string | null
+          ticket_id?: string
+          title?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_requisitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_requisitions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_requisitions_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_requests_with_requester"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       repair_templates: {
         Row: {
           accuracy_score: number | null
@@ -2479,40 +2555,7 @@ export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specia
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type BuildingScope = Database["public"]["Enums"]["building_scope"];
 
-// Legacy profile role (text column — not a PG enum)
-export type UserRole =
-  | "student"
-  | "committee"
-  | "admin"
-  | "head"
-  | "super_admin"
-  | "admin_staff"
-  | "technician"
-  | "technician_head"
-  | "technician_it";
-
-// Event types (text CHECK constraints)
-export type EventType =
-  | "meeting"
-  | "evaluation"
-  | "safety_drill"
-  | "obligation"
-  | "community_service"
-  | "social"
-  | "workshop"
-  | "sports"
-  | "other";
-
-export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
-export type ImpactLevel = "high" | "medium" | "low";
-export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
-
-// Evaluation types (text CHECK constraints)
-export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
-export type EvaluationStatus = "in_progress" | "completed" | "skipped";
-export type CriteriaType = "rating" | "textarea";
-
-// MaintenanceStatus is a text CHECK constraint in DB (not a PG enum)
+// MaintenanceStatus — text CHECK constraint (not PG enum), under_review replaces pending
 export type MaintenanceStatus =
   | "under_review"
   | "acknowledged"
@@ -2520,7 +2563,7 @@ export type MaintenanceStatus =
   | "completed"
   | "cancelled";
 
-// Notification type values (matches notifications.type column)
+// Notification type values
 export type NotificationType =
   | "bill_due"
   | "bill_overdue"
@@ -2533,6 +2576,25 @@ export type NotificationType =
   | "announcement"
   | "chat_escalation"
   | "system";
+
+// Legacy profile role
+export type UserRole =
+  | "student" | "committee" | "admin" | "head"
+  | "super_admin" | "admin_staff"
+  | "technician" | "technician_head" | "technician_it";
+
+// Event types
+export type EventType =
+  | "meeting" | "evaluation" | "safety_drill" | "obligation"
+  | "community_service" | "social" | "workshop" | "sports" | "other";
+export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
+export type ImpactLevel = "high" | "medium" | "low";
+export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
+
+// Evaluation types
+export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
+export type EvaluationStatus = "in_progress" | "completed" | "skipped";
+export type CriteriaType = "rating" | "textarea";
 
 // Material item in maintenance_requests.materials JSONB array
 export interface MaterialItem {
