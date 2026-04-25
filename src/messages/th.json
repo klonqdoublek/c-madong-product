@@ -152,14 +152,14 @@
     "photos": "รูปภาพ",
     "appointment": "นัดหมาย",
     "status": {
-      "pending": "รอดำเนินการ",
+      "underReview": "รอประเมิน",
       "acknowledged": "รับเรื่องแล้ว",
       "inProgress": "กำลังดำเนินการ",
       "completed": "เสร็จสิ้น",
       "cancelled": "ยกเลิก"
     },
     "kanban": {
-      "new": "รายการใหม่",
+      "underReview": "รอประเมิน",
       "acknowledged": "รับเรื่องแล้ว",
       "inProgress": "กำลังดำเนินการ",
       "completed": "เสร็จสิ้น",
@@ -547,7 +547,13 @@
       "damageDetails": "รายละเอียดความเสียหาย",
       "markIncorrect": "ไม่ถูกต้อง",
       "reanalyze": "วิเคราะห์ใหม่",
-      "correctCategory": "เลือกประเภทที่ถูกต้อง"
+      "correctCategory": "เลือกประเภทที่ถูกต้อง",
+      "ticketCode": "หมายเลขแจ้งซ่อม",
+      "materials": "วัสดุที่ต้องใช้",
+      "suggestMaterials": "ช่วยแนะนำ",
+      "generateRequisition": "สร้างใบเบิก",
+      "confirmStatusChangeTo": "ยืนยันเปลี่ยนสถานะเป็น {status}?",
+      "reopenWarning": "ต้องการเปิดงานนี้ใหม่อีกครั้งใช่ไหม?"
     },
     "studentsPage": {
       "title": "จัดการนิสิต",

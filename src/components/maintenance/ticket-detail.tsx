@@ -35,7 +35,7 @@ interface TicketDetailProps {
 }
 
 const STATUS_STEPS: MaintenanceStatus[] = [
-  "pending",
+  "under_review",
   "acknowledged",
   "in_progress",
   "completed",

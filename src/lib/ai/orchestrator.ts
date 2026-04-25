@@ -100,6 +100,7 @@ export class RepairOrchestrator {
       category: detection.category as RepairImageAnalysis["category"],
       damage_details: "",
       suggested_specialty: detection.category,
+      specific_item: null,
       confidence: 0.6,
       provider: "text-only"
     }

@@ -2,8 +2,9 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/providers/supabase-provider";
-import type { MaintenanceStatus } from "@/lib/supabase/types";
+import type { MaintenanceStatus, MaterialItem } from "@/lib/supabase/types";
 import type { MaintenanceTicketWithRelations, TicketFilters } from "@/types/maintenance";
+import type { MaterialAnalysisResult } from "@/lib/ai/agents/material-agent";
 
 const TICKETS_KEY = "maintenance-tickets";
 
@@ -173,6 +174,49 @@ export function useUpdateTicketNotes() {
         throw new Error(data.error ?? "Failed to update notes");
       }
 
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [TICKETS_KEY] });
+    },
+  });
+}
+
+export function useSuggestMaterials() {
+  return useMutation({
+    mutationFn: async (ticketId: string): Promise<MaterialAnalysisResult> => {
+      const res = await fetch(`/api/admin/maintenance/${ticketId}/suggest-materials`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to suggest materials");
+      }
+      return res.json();
+    },
+  });
+}
+
+export function useUpdateTicketMaterials() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      materials,
+    }: {
+      id: string;
+      materials: MaterialItem[];
+    }) => {
+      const res = await fetch(`/api/admin/maintenance/${id}/materials`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ materials }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to save materials");
+      }
       return res.json();
     },
     onSuccess: () => {

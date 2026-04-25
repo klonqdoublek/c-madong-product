@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ใบเบิกวัสดุอุปกรณ์ — หอพักนิสิต จุฬาลงกรณ์มหาวิทยาลัย</title>
+  <style>
+    /* ── Fonts ── */
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+    /* ── Variables ── */
+    :root {
+      --cu-pink:        #DD598B;
+      --cu-pink-light:  #F9E1E9;
+      --cu-pink-dark:   #B8447A;
+      --cu-cream:       #FFF9F0;
+      --text-dark:      #1A1A1A;
+      --text-muted:     #6B6B6A;
+      --border:         #E5E0D8;
+      --page-width:     210mm;
+      --page-height:    297mm;
+      --margin:         16mm;
+    }
+
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sarabun', serif;
+      font-size: 11pt;
+      color: var(--text-dark);
+      background: #f0f0f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px;
+      gap: 24px;
+    }
+
+    /* ── Page ── */
+    .page {
+      position: relative;
+      width: var(--page-width);
+      min-height: var(--page-height);
+      background: white;
+      padding: var(--margin);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    /* ── Watermark ── */
+    .watermark {
+      position: absolute;
+      bottom: 20mm;
+      right: 16mm;
+      opacity: 0.04;
+      width: 80mm;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── All content above watermark ── */
+    .content { position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--cu-pink);
+      margin-bottom: 14px;
+    }
+
+    .logo-placeholder {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--cu-pink-light);
+      border: 2px solid var(--cu-pink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    .header-text { flex: 1; }
+
+    .header-title {
+      font-size: 15pt;
+      font-weight: 700;
+      color: var(--cu-pink-dark);
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 9.5pt;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .doc-badge {
+      text-align: right;
+      font-size: 9pt;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .doc-number {
+      font-size: 12pt;
+      font-weight: 600;
+      color: var(--cu-pink);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Section header ── */
+    .section-label {
+      font-size: 9pt;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--cu-pink);
+      background: var(--cu-pink-light);
+      padding: 4px 10px;
+      margin: 12px 0 8px;
+      border-left: 3px solid var(--cu-pink);
+    }
+
+    /* ── Info grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 20px;
+    }
+
+    .info-row {
+      display: flex;
+      gap: 6px;
+      align-items: baseline;
+      font-size: 10.5pt;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+      white-space: nowrap;
+      font-size: 9.5pt;
+      min-width: 90px;
+    }
+
+    .info-value {
+      font-weight: 500;
+      border-bottom: 1px dashed var(--border);
+      flex: 1;
+      min-height: 18px;
+      padding-bottom: 1px;
+    }
+
+    .info-value.highlight {
+      color: var(--cu-pink-dark);
+      font-weight: 700;
+      font-size: 11.5pt;
+      border-bottom-style: solid;
+      border-bottom-color: var(--cu-pink);
+    }
+
+    /* ── Category badge ── */
+    .category-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 9pt;
+      font-weight: 600;
+      background: var(--cu-pink-light);
+      color: var(--cu-pink-dark);
+      border: 1px solid var(--cu-pink);
+    }
+
+    /* ── Materials table ── */
+    .materials-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 10.5pt;
+    }
+
+    .materials-table th {
+      background: var(--cu-pink);
+      color: white;
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 9.5pt;
+    }
+
+    .materials-table th:nth-child(1) { width: 32px; text-align: center; }
+    .materials-table th:nth-child(3) { width: 60px; text-align: center; }
+    .materials-table th:nth-child(4) { width: 50px; text-align: center; }
+    .materials-table th:nth-child(5) { width: 80px; }
+
+    .materials-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .materials-table td:nth-child(1) { text-align: center; color: var(--text-muted); font-size: 9pt; }
+    .materials-table td:nth-child(3) { text-align: center; font-weight: 600; }
+    .materials-table td:nth-child(4) { text-align: center; }
+
+    .materials-table tr:nth-child(even) td { background: var(--cu-cream); }
+    .materials-table tr:last-child td { border-bottom: 2px solid var(--cu-pink); }
+
+    /* Empty rows for manual fill-in */
+    .materials-table .empty-row td {
+      height: 26px;
+      background: white;
+    }
+    .materials-table .empty-row:nth-child(even) td {
+      background: var(--cu-cream);
+    }
+
+    /* AI badge */
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 7.5pt;
+      color: var(--cu-pink);
+      background: var(--cu-pink-light);
+      border: 1px solid var(--cu-pink);
+      border-radius: 4px;
+      padding: 1px 5px;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    /* ── Notes box ── */
+    .notes-box {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      min-height: 36px;
+      font-size: 10pt;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ── Signature area ── */
+    .signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .sig-block {
+      text-align: center;
+    }
+
+    .sig-line {
+      border-top: 1px solid var(--text-dark);
+      margin: 36px 8px 6px;
+    }
+
+    .sig-role {
+      font-size: 9pt;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+
+    .sig-name {
+      font-size: 9pt;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .sig-date {
+      font-size: 8.5pt;
+      color: var(--text-muted);
+      margin-top: 4px;
+      border-top: 1px dashed var(--border);
+      padding-top: 4px;
+    }
+
+    /* ── Footer strip ── */
+    .page-footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 6px;
+      background: var(--cu-pink);
+    }
+
+    /* ── Toolbar (screen only) ── */
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      width: var(--page-width);
+    }
+
+    .toolbar h2 {
+      font-size: 13pt;
+      font-weight: 600;
+      color: var(--cu-pink-dark);
+      flex: 1;
+    }
+
+    .btn {
+      padding: 7px 18px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Sarabun', serif;
+      font-size: 10pt;
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background: var(--cu-pink);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--cu-pink-dark); }
+
+    .btn-secondary {
+      background: var(--cu-pink-light);
+      color: var(--cu-pink-dark);
+      border: 1px solid var(--cu-pink);
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: white; padding: 0; }
+      .toolbar { display: none; }
+      .page {
+        box-shadow: none;
+        margin: 0;
+        width: 100%;
+        min-height: 100vh;
+      }
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen toolbar -->
+  <div class="toolbar">
+    <h2>📋 ตัวอย่างใบเบิกวัสดุอุปกรณ์ — Mockup v1</h2>
+    <button class="btn btn-secondary" onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button>
+  </div>
+
+  <!-- A4 Page -->
+  <div class="page">
+
+    <!-- Watermark -->
+    <img src="../../public/images/mascot.svg" class="watermark" alt="" aria-hidden="true"
+         onerror="this.style.display='none'" />
+
+    <div class="content">
+
+      <!-- Header -->
+      <div class="header">
+        <div class="logo-placeholder" title="โลโก้หอพักนิสิต">🏫</div>
+        <div class="header-text">
+          <div class="header-title">ใบเบิกวัสดุอุปกรณ์</div>
+          <div class="header-subtitle">ฝ่ายซ่อมบำรุง · หอพักนิสิต จุฬาลงกรณ์มหาวิทยาลัย</div>
+        </div>
+        <div class="doc-badge">
+          <div>หมายเลขใบเบิก</div>
+          <div class="doc-number">REQ-KP384012</div>
+          <div>วันที่: 25 เม.ย. 2569</div>
+        </div>
+      </div>
+
+      <!-- Ticket Info -->
+      <div class="section-label">ข้อมูลการแจ้งซ่อม</div>
+      <div class="info-grid">
+        <div class="info-row">
+          <span class="info-label">เลขที่แจ้งซ่อม</span>
+          <span class="info-value highlight">#KP384012</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">วันที่แจ้ง</span>
+          <span class="info-value">25 เมษายน 2569</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ประเภท</span>
+          <span class="info-value">
+            <span class="category-badge">🪑 เฟอร์นิเจอร์</span>
+          </span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">รายการ</span>
+          <span class="info-value">ประตูพัง มีเสียงไม่รีบมาก</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ห้อง / ตึก</span>
+          <span class="info-value">305 · หอพักชวนชม</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ผู้แจ้ง</span>
+          <span class="info-value">พิชญา พูลเพียร</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">ช่างผู้รับผิดชอบ</span>
+          <span class="info-value">สมชาย ซ่อมดี</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">วันนัดซ่อม</span>
+          <span class="info-value">26 เม.ย. 2569 · 10:00</span>
+        </div>
+      </div>
+
+      <!-- Materials Table -->
+      <div class="section-label">
+        รายการวัสดุที่ขอเบิก
+        <span class="ai-badge">✨ AI ช่วยแนะนำ</span>
+      </div>
+      <table class="materials-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>รายการ / ชื่อวัสดุ</th>
+            <th>จำนวน</th>
+            <th>หน่วย</th>
+            <th>หมายเหตุ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>บานพับประตู (สแตนเลส) <span class="ai-badge">AI</span></td>
+            <td>2</td>
+            <td>ชิ้น</td>
+            <td>ขนาด 3"</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>สกรูเกลียวปล่อย 1" <span class="ai-badge">AI</span></td>
+            <td>8</td>
+            <td>ตัว</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>น้ำมันหล่อลื่น WD-40 <span class="ai-badge">AI</span></td>
+            <td>1</td>
+            <td>กระป๋อง</td>
+            <td></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>ไม้อุดรอยแตก (สีน้ำตาล)</td>
+            <td>1</td>
+            <td>แท่ง</td>
+            <td>เพิ่มโดยช่าง</td>
+          </tr>
+          <!-- Empty rows for manual fill -->
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr class="empty-row"><td></td><td></td><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <!-- Notes -->
+      <div class="section-label">หมายเหตุเพิ่มเติม</div>
+      <div class="notes-box">
+        — กรณีวัสดุในสต็อกไม่เพียงพอ ให้ติดต่อหัวหน้าช่างก่อนดำเนินการ —
+      </div>
+
+      <!-- Signatures -->
+      <div class="section-label">ลายเซ็นผู้เกี่ยวข้อง</div>
+      <div class="signatures">
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-role">ผู้เบิก (ช่าง)</div>
+          <div class="sig-name">สมชาย ซ่อมดี</div>
+          <div class="sig-date">วันที่ ........../........../..........
+</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-role">หัวหน้าช่าง / ผู้อนุมัติ</div>
+          <div class="sig-name"></div>
+          <div class="sig-date">วันที่ ........../........../..........
+</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-line"></div>
+          <div class="sig-role">ผู้จ่ายวัสดุ (คลัง)</div>
+          <div class="sig-name"></div>
+          <div class="sig-date">วันที่ ........../........../..........
+</div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <div class="page-footer"></div>
+  </div><!-- /page -->
+
+</body>
+</html>

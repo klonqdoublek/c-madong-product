@@ -70,6 +70,7 @@ export type ChatIntent =
   | "score"
   | "events"
   | "parcel"
+  | "technician"
   | "chitchat"
 
 /** Intent classification result from Gemini */

@@ -29,13 +29,13 @@ export interface TicketFilters {
   building: string | "all";
 }
 
-// Valid status transitions
+// Valid status transitions (all non-terminal → any non-terminal; terminal → under_review only)
 export const STATUS_TRANSITIONS: Record<MaintenanceStatus, MaintenanceStatus[]> = {
-  pending: ["acknowledged", "cancelled"],
-  acknowledged: ["in_progress", "cancelled"],
-  in_progress: ["completed", "cancelled"],
-  completed: [],
-  cancelled: [],
+  under_review: ["acknowledged", "cancelled"],
+  acknowledged: ["in_progress", "under_review", "cancelled"],
+  in_progress: ["completed", "acknowledged", "cancelled"],
+  completed: ["under_review"],
+  cancelled: ["under_review"],
 };
 
 // Re-exports for convenience

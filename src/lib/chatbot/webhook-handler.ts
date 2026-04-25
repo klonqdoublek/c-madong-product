@@ -337,6 +337,18 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   // Get session
   const session = await getOrCreateSession(lineUid)
 
+  // Technician query fast-path (keyword match + role gate inside handler)
+  const { isTechnicianQuery, handleTechnician } = await import("./handlers/technician")
+  if (isTechnicianQuery(message)) {
+    const techResponse = await handleTechnician(lineUid, message)
+    if (techResponse) {
+      await sendResponse(event.replyToken, techResponse)
+      await saveMessages(lineUid, session.id, message, techResponse, "technician")
+      return
+    }
+    // Role gate failed → fall through to normal routing
+  }
+
   // If user asks about parcels, route directly — skip AI classification
   if (isParcelRelated(message)) {
     const response = await handleParcel(lineUid)

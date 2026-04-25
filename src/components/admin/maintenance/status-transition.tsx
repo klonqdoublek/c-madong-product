@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { Check, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,94 +13,133 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { MAINTENANCE_STATUS_CONFIG } from "@/lib/utils/constants";
-import { STATUS_TRANSITIONS } from "@/types/maintenance";
 import { useUpdateTicketStatus } from "@/hooks/use-maintenance-tickets";
 import type { MaintenanceStatus } from "@/lib/supabase/types";
 import { cn } from "@/lib/utils";
+
+const ALL_STATUSES: MaintenanceStatus[] = [
+  "under_review",
+  "acknowledged",
+  "in_progress",
+  "completed",
+  "cancelled",
+];
 
 interface StatusTransitionProps {
   ticketId: string;
   currentStatus: MaintenanceStatus;
 }
 
-export function StatusTransition({
-  ticketId,
-  currentStatus,
-}: StatusTransitionProps) {
+export function StatusTransition({ ticketId, currentStatus }: StatusTransitionProps) {
   const t = useTranslations();
   const updateStatus = useUpdateTicketStatus();
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [failureReason, setFailureReason] = useState("");
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    target: MaintenanceStatus | null;
+  }>({ open: false, target: null });
+  const [reason, setReason] = useState("");
 
-  const nextStatuses = STATUS_TRANSITIONS[currentStatus];
-
-  if (nextStatuses.length === 0) return null;
-
-  const handleTransition = (status: MaintenanceStatus) => {
-    if (status === "cancelled") {
-      setCancelDialogOpen(true);
-      return;
-    }
-    updateStatus.mutate({ id: ticketId, status });
+  const handlePillClick = (target: MaintenanceStatus) => {
+    if (target === currentStatus) return;
+    setReason("");
+    setConfirmDialog({ open: true, target });
   };
 
-  const handleCancel = () => {
+  const handleConfirm = () => {
+    if (!confirmDialog.target) return;
     updateStatus.mutate({
       id: ticketId,
-      status: "cancelled",
-      failure_reason: failureReason || undefined,
+      status: confirmDialog.target,
+      failure_reason:
+        confirmDialog.target === "cancelled" ? reason || undefined : undefined,
     });
-    setCancelDialogOpen(false);
-    setFailureReason("");
+    setConfirmDialog({ open: false, target: null });
   };
 
   return (
     <>
+      {/* Pill row */}
       <div className="flex flex-wrap gap-2">
-        {nextStatuses.map((status) => {
+        {ALL_STATUSES.map((status) => {
           const config = MAINTENANCE_STATUS_CONFIG[status];
+          const isCurrent = status === currentStatus;
+          const isInFlight =
+            updateStatus.isPending && confirmDialog.target === status;
+
           return (
-            <Button
+            <button
               key={status}
-              variant={status === "cancelled" ? "outline" : "default"}
-              size="sm"
               disabled={updateStatus.isPending}
-              onClick={() => handleTransition(status)}
+              onClick={() => handlePillClick(status)}
               className={cn(
-                status !== "cancelled" && "gap-1.5",
-                status === "cancelled" && "text-destructive border-destructive/30"
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all",
+                isCurrent
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border bg-background text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-muted/50",
+                status === "cancelled" &&
+                  !isCurrent &&
+                  "hover:border-destructive/40 hover:text-destructive",
+                updateStatus.isPending && !isCurrent && "pointer-events-none opacity-50"
               )}
             >
-              <span className={cn("size-2 rounded-full", config.dotColor)} />
+              {isInFlight ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : isCurrent ? (
+                <Check className="size-3" />
+              ) : (
+                <span className={cn("size-2 rounded-full", config.dotColor)} />
+              )}
               {t(config.labelKey)}
-            </Button>
+            </button>
           );
         })}
       </div>
 
-      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
-        <DialogContent>
+      {/* Confirm Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onOpenChange={(open) => setConfirmDialog((p) => ({ ...p, open }))}
+      >
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {t("admin.serviceDesk.cancelConfirm")}
+              {confirmDialog.target
+                ? t("admin.serviceDesk.confirmStatusChangeTo", {
+                    status: t(
+                      MAINTENANCE_STATUS_CONFIG[confirmDialog.target].labelKey
+                    ),
+                  })
+                : t("admin.serviceDesk.changeStatus")}
             </DialogTitle>
           </DialogHeader>
-          <Textarea
-            placeholder={t("admin.serviceDesk.failureReasonPlaceholder")}
-            value={failureReason}
-            onChange={(e) => setFailureReason(e.target.value)}
-            rows={3}
-          />
+
+          {confirmDialog.target === "cancelled" && (
+            <Textarea
+              placeholder={t("admin.serviceDesk.failureReasonPlaceholder")}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+            />
+          )}
+
+          {(confirmDialog.target === "completed" ||
+            confirmDialog.target === "under_review") &&
+            (currentStatus === "completed" || currentStatus === "cancelled") && (
+              <p className="text-sm text-muted-foreground">
+                {t("admin.serviceDesk.reopenWarning")}
+              </p>
+            )}
+
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setCancelDialogOpen(false)}
+              onClick={() => setConfirmDialog({ open: false, target: null })}
             >
-              {t("common.back")}
+              {t("common.cancel")}
             </Button>
             <Button
-              variant="destructive"
-              onClick={handleCancel}
+              variant={confirmDialog.target === "cancelled" ? "destructive" : "default"}
+              onClick={handleConfirm}
               disabled={updateStatus.isPending}
             >
               {t("common.confirm")}

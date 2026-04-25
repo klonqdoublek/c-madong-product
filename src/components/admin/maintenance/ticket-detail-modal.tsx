@@ -33,6 +33,9 @@ import {
 import { useTechnicians } from "@/hooks/use-technicians";
 import { formatDistanceToNow } from "@/lib/utils/date";
 import { User, Calendar, MessageSquare, Brain, RefreshCw, XCircle, Loader2 } from "lucide-react";
+import { MaterialsSection } from "./materials-section";
+import { formatTicketCode } from "@/lib/utils/ticket-code";
+import type { MaterialItem } from "@/lib/supabase/types";
 
 interface TicketDetailModalProps {
   ticketId: string | null;
@@ -93,9 +96,11 @@ export function TicketDetailModal({
                     {ticket.title}
                   </DialogTitle>
                   <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>
-                      {t(`maintenance.categories.${ticket.category}`)}
+                    <span className="font-mono text-xs font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">
+                      {formatTicketCode((ticket as any).ticket_code)}
                     </span>
+                    <span>·</span>
+                    <span>{t(`maintenance.categories.${ticket.category}`)}</span>
                     <span>·</span>
                     <span>{formatDistanceToNow(ticket.created_at)}</span>
                   </div>
@@ -313,6 +318,16 @@ export function TicketDetailModal({
                 currentStatus={ticket.status as MaintenanceStatus}
               />
             </div>
+
+            {/* Materials */}
+            <div>
+              <MaterialsSection
+                ticketId={ticket.id}
+                initialMaterials={((ticket as any).materials ?? []) as MaterialItem[]}
+              />
+            </div>
+
+            <Separator />
 
             {/* Admin notes */}
             <div>

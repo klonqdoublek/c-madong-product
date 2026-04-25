@@ -21,9 +21,10 @@ export const APPOINTMENT_HOURS = Array.from({ length: 10 }, (_, i) => {
 export const USER_ROLES = ["student", "committee", "admin", "head"] as const;
 
 // Service Desk: Status configuration with CU Pink palette
+// Note: 'pending' replaced by 'under_review' (forced gate) in v3
 export const MAINTENANCE_STATUS_CONFIG = {
-  pending: {
-    labelKey: "maintenance.status.pending",
+  under_review: {
+    labelKey: "maintenance.status.underReview",
     color: "text-amber-700",
     bgColor: "bg-amber-50 border-amber-200",
     dotColor: "bg-amber-500",
@@ -55,7 +56,7 @@ export const MAINTENANCE_STATUS_CONFIG = {
 } as const;
 
 export const KANBAN_COLUMNS = [
-  { id: "pending" as const, labelKey: "maintenance.kanban.new" },
+  { id: "under_review" as const, labelKey: "maintenance.kanban.underReview" },
   { id: "acknowledged" as const, labelKey: "maintenance.kanban.acknowledged" },
   { id: "in_progress" as const, labelKey: "maintenance.kanban.inProgress" },
   { id: "completed" as const, labelKey: "maintenance.kanban.completed" },

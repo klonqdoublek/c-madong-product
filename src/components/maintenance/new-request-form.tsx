@@ -492,7 +492,7 @@ export function NewRequestForm() {
                 <span className="text-sm text-muted-foreground">
                   {t("statusLabel")}
                 </span>
-                <StatusBadge status="pending" />
+                <StatusBadge status="under_review" />
               </div>
             </div>
           </div>

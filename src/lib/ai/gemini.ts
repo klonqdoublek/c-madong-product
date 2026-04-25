@@ -56,8 +56,12 @@ export const REPAIR_IMAGE_ANALYSIS_PROMPT = `
   "urgency": "high",
   "damage_details": "อธิบายเฉพาะสิ่งที่เห็นในรูป เช่น รอยแตก ตำแหน่ง ขนาด สภาพ",
   "suggested_specialty": "plumbing",
+  "specific_item": "faucet",
   "confidence": 0.85
 }
+
+specific_item คือสิ่งของที่เสียหายโดยตรง ให้ใช้ slug ภาษาอังกฤษ (lowercase, underscore):
+door, faucet, pipe, toilet, shower, ceiling_fan, light_switch, outlet, ac_unit, bed_frame, wardrobe, desk, chair, window, lock, tile, ceiling, sink, drain, water_heater
 
 **สำคัญ:**
 - ใช้ภาษาไทยแบบ Gen-Z ที่เป็นกันเอง (เหมือนพี่รุ่นพี่ช่วยน้อง) เช่น "ท่อน้ำรั่วใต้อ่างล้างหน้า มีน้ำขังเยอะเลย"
@@ -77,6 +81,7 @@ export interface RepairImageAnalysis {
   urgency: "low" | "medium" | "high" | "urgent"
   damage_details: string
   suggested_specialty: string
+  specific_item: string | null
   confidence: number
   provider: "gemini" | "openai" | "template" | "text-only" | "keyword" | "fallback"
 }
@@ -201,6 +206,7 @@ export async function analyzeRepairImageGemini(
       urgency: analysis.urgency!,
       damage_details: analysis.damage_details || "",
       suggested_specialty: analysis.suggested_specialty || analysis.category!,
+      specific_item: analysis.specific_item ?? null,
       confidence: analysis.confidence || 0.7,
       provider: "gemini"
     }

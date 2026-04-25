@@ -67,6 +67,7 @@ export class VisionAgent {
             urgency: this.inferUrgencyFromCategory(templateMatch.category),
             damage_details: `Matched template: ${templateMatch.title}`,
             suggested_specialty: templateMatch.category,
+            specific_item: (templateMatch as any).specific_item ?? null,
             confidence: templateMatch.similarity,
             provider: "template"
           }
@@ -220,6 +221,7 @@ export class VisionAgent {
       urgency: analysis.urgency || "medium",
       damage_details: analysis.damage_details || "",
       suggested_specialty: analysis.suggested_specialty || analysis.category || "general",
+      specific_item: analysis.specific_item ?? null,
       confidence: analysis.confidence || 0.7,
       provider: "openai"
     }
@@ -239,6 +241,7 @@ export class VisionAgent {
       urgency: "medium",
       damage_details: "",
       suggested_specialty: category || "general",
+      specific_item: null,
       confidence: 0.3,
       provider: "keyword"
     }

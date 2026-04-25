@@ -4,8 +4,12 @@ import { createRepairTicket, getReporterContext } from "./repair"
 import { buildTicketCreatingFlex } from "../flex-builders/repair-status"
 import { buildRepairTrackingFlex } from "@/lib/line/flex-builders/repair-tracking"
 import { getQuickReplyForPostback } from "../suggestions"
+import { buildTechnicianGroupNotifyFlex } from "@/lib/line/flex-builders/technician-group-notify"
+import { pushToTechnicianGroup } from "@/lib/line/push-to-technician-group"
 import type { RepairDetection } from "../types"
 import type { RepairTimelineStep } from "@/lib/line/flex-builders/repair-tracking"
+
+const URGENT_URGENCY = new Set(["urgent", "high"])
 
 /** Route postback actions from LINE Flex Message buttons */
 export async function handlePostback(
@@ -108,6 +112,22 @@ async function handleRepairConfirm(
   })
 
   if (ticket) {
+    // Push to technician group only for urgent/high priority (low-noise strategy)
+    if (URGENT_URGENCY.has(detection.urgency ?? "")) {
+      const context = await getReporterContext(lineUid)
+      const groupFlex = buildTechnicianGroupNotifyFlex({
+        id: ticket.id,
+        ticket_code: (ticket as any).ticket_code,
+        title: detection.title,
+        description: detection.description,
+        category: detection.category,
+        urgency: detection.urgency,
+        requester_name: context.reporterName,
+        building_name: context.roomInfo?.split(" ")?.[0],
+      })
+      pushToTechnicianGroup(groupFlex).catch(() => {})
+    }
+
     try {
       // Fetch reporter context for the Flex card
       const context = await getReporterContext(lineUid)

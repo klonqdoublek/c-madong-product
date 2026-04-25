@@ -9,7 +9,7 @@ const TEXT_SECONDARY = "#00000099"
 const TEXT_MUTED = "#565655"
 
 const STATUS_COLORS: Record<MaintenanceStatus, string> = {
-  pending: "#F59E0B",
+  under_review: "#F59E0B",
   acknowledged: "#3B82F6",
   in_progress: "#8B5CF6",
   completed: "#10B981",
@@ -17,7 +17,7 @@ const STATUS_COLORS: Record<MaintenanceStatus, string> = {
 }
 
 const STATUS_LABELS: Record<MaintenanceStatus, string> = {
-  pending: "รอดำเนินการ",
+  under_review: "รอประเมิน",
   acknowledged: "รับเรื่องแล้ว",
   in_progress: "กำลังดำเนินการ",
   completed: "ซ่อมสำเร็จ",

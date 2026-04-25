@@ -154,14 +154,14 @@
     "photos": "Photos",
     "appointment": "Appointment",
     "status": {
-      "pending": "Pending",
+      "underReview": "Under Review",
       "acknowledged": "Acknowledged",
       "inProgress": "In Progress",
       "completed": "Completed",
       "cancelled": "Cancelled"
     },
     "kanban": {
-      "new": "New",
+      "underReview": "Under Review",
       "acknowledged": "Acknowledged",
       "inProgress": "In Progress",
       "completed": "Completed",
@@ -549,7 +549,13 @@
       "damageDetails": "Damage Details",
       "markIncorrect": "Mark Incorrect",
       "reanalyze": "Re-analyze",
-      "correctCategory": "Select correct category"
+      "correctCategory": "Select correct category",
+      "ticketCode": "Ticket code",
+      "materials": "Required materials",
+      "suggestMaterials": "AI suggest",
+      "generateRequisition": "Generate requisition",
+      "confirmStatusChangeTo": "Confirm change status to {status}?",
+      "reopenWarning": "This will reopen the ticket. Continue?"
     },
     "studentsPage": {
       "title": "Student Management",

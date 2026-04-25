@@ -12,7 +12,7 @@ interface TicketStatsBarProps {
 }
 
 const STAT_ORDER: MaintenanceStatus[] = [
-  "pending",
+  "under_review",
   "acknowledged",
   "in_progress",
   "completed",

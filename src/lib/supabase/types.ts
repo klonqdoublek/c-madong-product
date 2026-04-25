@@ -1385,12 +1385,17 @@ export type Database = {
           description: string
           failure_reason: string | null
           id: string
+          materials: Json
           photos: string[]
           requester_id: string
+          requisition_generated_at: string | null
+          requisition_url: string | null
           resolved_at: string | null
+          specific_item: string | null
           status: string
           technician_id: string | null
           template_id: string | null
+          ticket_code: string | null
           title: string
           updated_at: string
         }
@@ -1410,12 +1415,17 @@ export type Database = {
           description: string
           failure_reason?: string | null
           id?: string
+          materials?: Json
           photos?: string[]
           requester_id: string
+          requisition_generated_at?: string | null
+          requisition_url?: string | null
           resolved_at?: string | null
+          specific_item?: string | null
           status?: string
           technician_id?: string | null
           template_id?: string | null
+          ticket_code?: string | null
           title: string
           updated_at?: string
         }
@@ -1435,12 +1445,17 @@ export type Database = {
           description?: string
           failure_reason?: string | null
           id?: string
+          materials?: Json
           photos?: string[]
           requester_id?: string
+          requisition_generated_at?: string | null
+          requisition_url?: string | null
           resolved_at?: string | null
+          specific_item?: string | null
           status?: string
           technician_id?: string | null
           template_id?: string | null
+          ticket_code?: string | null
           title?: string
           updated_at?: string
         }
@@ -1720,10 +1735,12 @@ export type Database = {
           category: string
           created_at: string | null
           created_by: string | null
+          default_materials: Json
           description: string | null
           embedding: string | null
           id: string
           image_url: string
+          specific_item: string | null
           title: string
           updated_at: string | null
           usage_count: number | null
@@ -1733,10 +1750,12 @@ export type Database = {
           category: string
           created_at?: string | null
           created_by?: string | null
+          default_materials?: Json
           description?: string | null
           embedding?: string | null
           id?: string
           image_url: string
+          specific_item?: string | null
           title: string
           updated_at?: string | null
           usage_count?: number | null
@@ -1746,10 +1765,12 @@ export type Database = {
           category?: string
           created_at?: string | null
           created_by?: string | null
+          default_materials?: Json
           description?: string | null
           embedding?: string | null
           id?: string
           image_url?: string
+          specific_item?: string | null
           title?: string
           updated_at?: string | null
           usage_count?: number | null
@@ -2115,6 +2136,7 @@ export type Database = {
         Args: { template_id: string }
         Returns: undefined
       }
+      gen_ticket_code: { Args: never; Returns: string }
       get_composite_score: {
         Args: {
           p_academic_year?: number
@@ -2445,23 +2467,81 @@ export const Constants = {
   },
 } as const
 
-// Custom type aliases for convenience — DB enums
-export type ParcelType = Database["public"]["Enums"]["parcel_type"]
-export type ParcelStatus = Database["public"]["Enums"]["parcel_status"]
-export type BillStatus = Database["public"]["Enums"]["bill_status"]
-export type BillCategory = Database["public"]["Enums"]["bill_category"]
-export type AppRole = Database["public"]["Enums"]["app_role"]
-export type BuildingScope = Database["public"]["Enums"]["building_scope"]
-export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"]
+// ============================================================
+// Custom type aliases (re-add after every `supabase gen types`)
+// ============================================================
 
-// Custom type aliases — application-level (no DB enum, stored as TEXT)
-export type MaintenanceStatus = "pending" | "acknowledged" | "in_progress" | "completed" | "cancelled"
-export type EventType = "meeting" | "evaluation" | "safety_drill" | "obligation" | "community_service" | "social" | "workshop" | "sports" | "other"
-export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled"
-export type AttendanceStatus = "registered" | "attended" | "absent" | "excused"
-export type ImpactLevel = "high" | "medium" | "low"
-export type NotificationType = "bill_due" | "bill_overdue" | "maintenance_update" | "parcel_arrived" | "parcel_reminder" | "announcement" | "event_reminder" | "event_new" | "score_update" | "score_added" | "system" | "chat_escalation"
-export type UserRole = "super_admin" | "head" | "registrar" | "finance" | "parcel" | "admin_staff" | "service" | "activity" | "technician_head" | "technician" | "technician_it" | "committee" | "student"
-export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload"
-export type EvaluationStatus = "draft" | "submitted" | "reviewed" | "completed"
-export type CriteriaType = "rating" | "text" | "textarea" | "select"
+export type BillStatus = Database["public"]["Enums"]["bill_status"];
+export type BillCategory = Database["public"]["Enums"]["bill_category"];
+export type ParcelType = Database["public"]["Enums"]["parcel_type"];
+export type ParcelStatus = Database["public"]["Enums"]["parcel_status"];
+export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"];
+export type AppRole = Database["public"]["Enums"]["app_role"];
+export type BuildingScope = Database["public"]["Enums"]["building_scope"];
+
+// Legacy profile role (text column — not a PG enum)
+export type UserRole =
+  | "student"
+  | "committee"
+  | "admin"
+  | "head"
+  | "super_admin"
+  | "admin_staff"
+  | "technician"
+  | "technician_head"
+  | "technician_it";
+
+// Event types (text CHECK constraints)
+export type EventType =
+  | "meeting"
+  | "evaluation"
+  | "safety_drill"
+  | "obligation"
+  | "community_service"
+  | "social"
+  | "workshop"
+  | "sports"
+  | "other";
+
+export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
+export type ImpactLevel = "high" | "medium" | "low";
+export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
+
+// Evaluation types (text CHECK constraints)
+export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
+export type EvaluationStatus = "in_progress" | "completed" | "skipped";
+export type CriteriaType = "rating" | "textarea";
+
+// MaintenanceStatus is a text CHECK constraint in DB (not a PG enum)
+export type MaintenanceStatus =
+  | "under_review"
+  | "acknowledged"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+// Notification type values (matches notifications.type column)
+export type NotificationType =
+  | "bill_due"
+  | "bill_overdue"
+  | "parcel_arrived"
+  | "parcel_reminder"
+  | "maintenance_update"
+  | "score_added"
+  | "event_new"
+  | "event_reminder"
+  | "announcement"
+  | "chat_escalation"
+  | "system";
+
+// Material item in maintenance_requests.materials JSONB array
+export interface MaterialItem {
+  id?: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  category?: string;
+  source: "ai" | "manual";
+  ai_confidence?: number;
+  added_at?: string;
+}
