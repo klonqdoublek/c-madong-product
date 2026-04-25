@@ -391,7 +391,8 @@
       "prototype": "Prototype",
       "create": "Create",
       "technicians": "Technicians",
-      "live-chat": "Live Chat"
+      "live-chat": "Live Chat",
+      "requisitions": "All Requisitions"
     },
     "dashboard": "Admin Dashboard",
     "students": "Students",

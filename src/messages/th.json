@@ -389,7 +389,8 @@
       "prototype": "ต้นแบบ",
       "create": "สร้าง",
       "technicians": "ช่าง",
-      "live-chat": "แชทสด"
+      "live-chat": "แชทสด",
+      "requisitions": "ใบเบิกทั้งหมด"
     },
     "dashboard": "แดชบอร์ดผู้ดูแล",
     "students": "นิสิต",
