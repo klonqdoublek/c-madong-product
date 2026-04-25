@@ -4,7 +4,8 @@ import { useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LayoutList, Kanban } from "lucide-react";
+import { LayoutList, Kanban, FileText } from "lucide-react";
+import { useLocale } from "next-intl";
 import { useMaintenanceStore } from "@/stores/maintenance-store";
 import { useMaintenanceTickets } from "@/hooks/use-maintenance-tickets";
 import { useRealtime } from "@/hooks/use-realtime";
@@ -18,6 +19,7 @@ import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 
 export function MaintenancePageContent() {
   const t = useTranslations();
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const { viewMode, setViewMode, filters, selectedTicketId, setSelectedTicketId } =
@@ -49,6 +51,14 @@ export function MaintenancePageContent() {
         <h1 className="font-heading text-2xl font-bold">
           {t("admin.serviceDesk.title")}
         </h1>
+        <div className="flex items-center gap-3">
+          <a
+            href={`/${locale}/admin/maintenance/requisitions`}
+            className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+          >
+            <FileText className="size-4" />
+            ใบเบิกทั้งหมด
+          </a>
         <Tabs
           value={viewMode}
           onValueChange={(v) => setViewMode(v as "list" | "kanban")}
@@ -65,6 +75,7 @@ export function MaintenancePageContent() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        </div>
       </div>
 
       <TicketStatsBar tickets={tickets} />
