@@ -5,6 +5,54 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-04-26)
+
+### Repair Flow v3 + Requisition Versioning — DEPLOYED
+
+**Forced gate**: `pending` removed, every ticket starts `under_review`. Flow: under_review → acknowledged → in_progress → completed/cancelled.
+
+**Ticket code**: `#AA123456` (DB trigger, 2 letters + 6 digits). Shown on Kanban cards, modal header, all LINE Flex.
+
+**AI materials**: `material-agent.ts` (GPT-4o vision / gpt-4o-mini text). Thai names, max 8 items, hardware-store units. `POST /api/admin/maintenance/[id]/suggest-materials`. MaterialsSection in ticket detail modal: AI suggest dialog + manual inline add + chip list.
+
+**Specific-item icons**: vision agent emits `specific_item` slug → `specific-icons.ts` maps to Lucide (DoorOpen, Droplet, Fan, etc.). Kanban + modal use it.
+
+**Status pill redesign**: 5 pills, any → any with confirm dialog. Replaces 4-button row.
+
+**LINE group push** (`C6f5554168121fc89b92beb1c09f405dc`): urgent/high tickets only (noise-low). Daily 08:00 ICT digest cron (`CRON_SECRET` + `vercel.json` `0 1 * * *`). Flex: ticket code, urgency badge, "ดูรายละเอียดในเว็บ" only — NO accept button.
+
+**Technician bot** (role-gated): "งานวันนี้" → ticket list; "ใครว่าง" → workload sorted. Roles: technician/technician_head/admin/head/super_admin.
+
+**Requisition**:
+- `/print/requisition/[id]` — outside admin layout (no sidebar), clean A4 print
+- `repair_requisitions` table: frozen snapshot per version (ticket info + materials[])
+- "สร้างใบเบิก" → POST → v1/v2/v3 snapshot → open print page
+- Per-ticket history: `/admin/maintenance/[id]/requisitions`
+- Global history: `/admin/maintenance/requisitions` (linked from page header)
+- Requester = `full_name_th` (NOT LINE display_name)
+
+**Deep-link**: `/admin/maintenance?ticket={id}` auto-opens modal (from LINE group push CTA).
+
+**Files**:
+- Migrations: `20260425_repair_flow_enhancements.sql`, `20260426_repair_requisitions.sql`
+- NEW: `src/lib/ai/agents/material-agent.ts`, `src/lib/utils/specific-icons.ts`, `src/lib/utils/ticket-code.ts`
+- NEW: `src/lib/line/flex-builders/technician-group-notify.ts`, `technician-group-digest.ts`, `src/lib/line/push-to-technician-group.ts`
+- NEW: `src/lib/chatbot/handlers/technician.ts`
+- NEW: `src/components/admin/maintenance/materials-section.tsx`, `status-transition.tsx` (rewritten), `requisition-document.tsx`, `requisitions-history.tsx`, `all-requisitions-view.tsx`
+- NEW API: `suggest-materials/route.ts`, `materials/route.ts`, `requisitions/route.ts`, `cron/technician-group-digest/route.ts`
+- NEW pages: `/print/requisition/[id]`, `/admin/maintenance/[id]/requisitions`, `/admin/maintenance/requisitions`, `/admin/maintenance/[id]/requisition` (removed → moved to /print)
+- MODIFIED: `kanban-card.tsx`, `ticket-detail-modal.tsx`, `kanban-board.tsx` (under_review column), `maintenance-page-content.tsx` (deep-link + ใบเบิกทั้งหมด button), `postback.ts` (urgent group push, ticket_code), `repair.ts` (status fix, specific_item, ticket_code return), `orchestrator.ts` (specific_item), `vision-agent.ts` (specific_item), `gemini.ts` (specific_item in prompt + type), `vercel.json` (cron), `.env.local.example`
+
+**Infra**: Next.js updated to 16.x, next-intl 4.8.2, `LINE_TECHNICIAN_GROUP_ID` + `CRON_SECRET` in Vercel prod env.
+
+**Gotchas**:
+- `supabase gen types` wipes custom aliases — re-add + add `MaterialItem` interface every time
+- `supabase db push` migration tracking breaks with duplicate date prefixes — use next-day timestamp
+- `npm run build` fails locally if `.next` deleted (stub packages) — Vercel builds fine
+- Status pill confirm dialog needs i18n key `admin.serviceDesk.confirmStatusChangeTo` with `{status}` param
+
+---
+
 ## Recent Changes (2026-04-25)
 
 ### Knowledge Base AI + Versioning + Dashboard Feedback — BUILT

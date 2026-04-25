@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const CANCELLABLE_STATUSES = ["pending", "acknowledged"];
+const CANCELLABLE_STATUSES = ["under_review", "acknowledged"];
 
 export async function POST(
   request: NextRequest,

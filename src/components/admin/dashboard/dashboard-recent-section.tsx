@@ -34,6 +34,17 @@ const CATEGORY_EMOJI: Record<string, string> = {
   other: "📋",
 };
 
+function getStatusTranslationKey(status: MaintenanceStatus) {
+  switch (status) {
+    case "under_review":
+      return "underReview";
+    case "in_progress":
+      return "inProgress";
+    default:
+      return status;
+  }
+}
+
 function formatRelativeTime(dateStr: string) {
   const now = new Date();
   const date = new Date(dateStr);
@@ -138,11 +149,7 @@ export function DashboardRecentSection({
                     variant="secondary"
                     className={`ml-2 shrink-0 ${STATUS_COLORS[ticket.status]}`}
                   >
-                    {tStatus(
-                      ticket.status === "in_progress"
-                        ? "inProgress"
-                        : ticket.status
-                    )}
+                    {tStatus(getStatusTranslationKey(ticket.status))}
                   </Badge>
                 </Link>
               ))

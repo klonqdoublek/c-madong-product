@@ -1,5 +1,111 @@
 # C-Madong Product — Changelog
 
+> **Version 2.2.0** Release Date: 2026-04-26
+> Repair Flow v3 — materials AI, requisition versioning, LINE group push, technician bot
+
+---
+
+## 🎯 V2.2.0 Updates (2026-04-26)
+
+### Repair Flow v3 — Major Redesign
+
+**Forced Review Gate (under_review replaces pending)**
+- ✅ Every new ticket starts at `under_review` ("รอประเมิน") — technician must evaluate before accepting
+- ✅ `pending` status removed from schema; all existing tickets backfilled to `under_review`
+- ✅ Status flow: under_review → acknowledged → in_progress → completed/cancelled
+
+**Ticket Code `#AA123456`**
+- ✅ Auto-generated on insert via DB trigger (`gen_ticket_code()`) — 2 uppercase letters + 6 digits
+- ✅ Shown on Kanban cards, ticket detail modal header, all LINE Flex messages, chatbot replies
+- ✅ Propagated to repair_confirm, repair_status, repair_tracking Flex builders
+
+**AI Material Listing**
+- ✅ `material-agent.ts` — GPT-4o vision (with photo) or gpt-4o-mini text (no photo)
+- ✅ Returns Thai item names + standard units (ชิ้น/ตัว/เมตร/ม้วน/กระป๋อง)
+- ✅ Grounded in dorm context, max 8 items, avoids hallucination
+- ✅ `POST /api/admin/maintenance/[id]/suggest-materials` — suggests but does not save
+- ✅ `PATCH /api/admin/maintenance/[id]/materials` — saves admin-confirmed materials
+
+**MaterialsSection Component**
+- ✅ Shows in ticket detail modal between admin notes + status transitions
+- ✅ Header: "วัสดุที่ต้องใช้" + "✨ ช่วยแนะนำ" AI button (right-aligned)
+- ✅ List: chip rows with name × qty unit, remove button, AI sparkle icon on AI items
+- ✅ Inline add: name + number input + unit dropdown + Enter to add
+- ✅ AI dialog: checkbox list, "เพิ่มทั้งหมด" or per-item, dedup against existing
+- ✅ "📄 สร้างใบเบิก" button + "🕐 ประวัติ" link
+
+**Specific-Item Icons**
+- ✅ Vision agent now emits `specific_item` slug (door, faucet, ceiling_fan, light_switch, etc.)
+- ✅ `specific-icons.ts` maps slug → Lucide icon (DoorOpen, Droplet, Fan, ToggleLeft, Plug, Wind…)
+- ✅ Kanban cards + ticket detail modal use specific icon, fall back to category icon
+
+**Status Transition Redesign (Pill UI)**
+- ✅ 5 status pills (radio-style), all always rendered
+- ✅ Current: filled CU-pink + checkmark; others: outlined with hover ring
+- ✅ Click any pill → confirm dialog (reason mandatory for cancelled)
+- ✅ Terminal states can reopen to under_review with confirm
+
+**Kanban Updates**
+- ✅ First column: "รอประเมิน" (under_review), not "รายการใหม่"
+- ✅ Cards show: `#AA123456` ticket code badge + materials count chip + specific icon
+
+**LINE Group Push (Technician Group)**
+- ✅ `LINE_TECHNICIAN_GROUP_ID=C6f5554168121fc89b92beb1c09f405dc` added to Vercel
+- ✅ Immediate push ONLY for urgent/high urgency tickets (noise reduction)
+- ✅ Flex: ticket code badge, urgency badge, location, "📋 ดูรายละเอียดในเว็บ" CTA only (no accept button)
+- ✅ NO push on status changes (prevents noise)
+
+**Daily Digest Cron (08:00 Bangkok)**
+- ✅ `CRON_SECRET` added to Vercel env
+- ✅ `vercel.json` cron: `0 1 * * *` (01:00 UTC = 08:00 ICT)
+- ✅ Queries open tickets: under_review + unassigned acknowledged + in_progress
+- ✅ Digest Flex: counts by status + top 8 tickets sorted by urgency + age
+- ✅ Skips push if zero open tickets
+
+**Deep-Link ?ticket= Param**
+- ✅ `/admin/maintenance?ticket={id}` auto-opens ticket detail modal
+- ✅ Used by LINE group push CTA
+
+**Technician Bot (Role-Gated)**
+- ✅ "งานวันนี้" → lists today's open tickets (assigned-to-me first), max 10
+- ✅ "ใครว่าง" → lists active technicians sorted by open ticket count (less = more free)
+- ✅ Role gate: only profiles with technician/technician_head/admin/head/super_admin roles
+- ✅ Non-tech users fall through to chitchat
+
+### Requisition Document Feature
+
+**Requisition HTML Mockup**
+- ✅ `docs/mockups/requisition-form-mockup.html` — A4, print-ready, Sarabun font
+- ✅ CU Pink (#DD598B) header strip, dorm CI, materials table, 3 signature blocks
+
+**Dynamic Print Page**
+- ✅ `/print/requisition/[id]` — outside admin layout (no sidebar), clean A4 print
+- ✅ Loads from requisition snapshot (versioned) OR falls back to live ticket data
+- ✅ Requester name = `full_name_th` (real name, not LINE display_name)
+- ✅ Buddhist year dates, version badge in header
+
+**Requisition Versioning (repair_requisitions table)**
+- ✅ Each "สร้างใบเบิก" click: POST → snapshot frozen (ticket info + materials) → opens print
+- ✅ v1 on first generate; v2, v3… on subsequent generates after materials change
+- ✅ Snapshot stores: ticket_code, title, category, requester_name (real), building, room, technician, appointment, materials[]
+- ✅ Version badge shown in printed document (top-right, CU-pink)
+
+**Requisition History Pages**
+- ✅ Per-ticket: `/admin/maintenance/[id]/requisitions` — all versions, version pill, date, creator, materials preview, 🖨 print per row
+- ✅ Global: `/admin/maintenance/requisitions` — table of ALL requisitions across all tickets
+- ✅ "ใบเบิกทั้งหมด" button in maintenance page header (next to list/kanban tabs)
+- ✅ "🕐 ประวัติ" link in MaterialsSection → opens per-ticket history
+
+### Infrastructure
+
+- ✅ `supabase/migrations/20260425_repair_flow_enhancements.sql` — ticket_code trigger, materials JSONB, specific_item, under_review status, repair_templates default_materials
+- ✅ `supabase/migrations/20260426_repair_requisitions.sql` — repair_requisitions table, RLS
+- ✅ `LINE_TECHNICIAN_GROUP_ID` + `CRON_SECRET` added to Vercel production env
+- ✅ Next.js updated to 16.x, next-intl updated to 4.8.2
+- ✅ Custom type aliases re-added post gen-types: MaterialItem interface added
+
+---
+
 > **Version 2.1.3** Release Date: 2026-04-24
 > Knowledge Base AI-assisted upload + versioning + admin feedback analytics
 

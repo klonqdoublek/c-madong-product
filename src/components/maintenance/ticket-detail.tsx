@@ -41,6 +41,17 @@ const STATUS_STEPS: MaintenanceStatus[] = [
   "completed",
 ];
 
+function getStatusTranslationKey(status: MaintenanceStatus) {
+  switch (status) {
+    case "under_review":
+      return "underReview";
+    case "in_progress":
+      return "inProgress";
+    default:
+      return status;
+  }
+}
+
 export function TicketDetail({ ticketId }: TicketDetailProps) {
   const t = useTranslations("maintenance");
   const tCommon = useTranslations("common");
@@ -66,7 +77,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
 
   const canCancel =
     ticket &&
-    ["pending", "acknowledged"].includes(ticket.status);
+    ["under_review", "acknowledged"].includes(ticket.status);
 
   const handleCancel = () => {
     cancelMutation.mutate(
@@ -160,7 +171,7 @@ export function TicketDetail({ ticketId }: TicketDetailProps) {
                     )}
                   </div>
                   <span className="text-[10px] text-center text-muted-foreground leading-tight">
-                    {t(`status.${s === "in_progress" ? "inProgress" : s}`)}
+                    {t(`status.${getStatusTranslationKey(s)}`)}
                   </span>
                 </div>
               );

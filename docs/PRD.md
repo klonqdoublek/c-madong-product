@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.7
-> **Last Updated**: 2026-04-24
+> **Version**: 2.8
+> **Last Updated**: 2026-04-26
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
