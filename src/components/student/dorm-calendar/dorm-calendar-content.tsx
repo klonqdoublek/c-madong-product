@@ -30,11 +30,10 @@ export function DormCalendarContent() {
       <div className="relative z-10">
         <PageHeader
           title={t("title")}
-          titleClassName={view === "calendar" ? "text-white" : "text-[#565655]"}
+          transparent={view === "calendar"}
+          titleClassName={view === "calendar" ? "text-white/90" : "text-[#565655]"}
           backHref="/dashboard"
-          right={
-            <ViewToggle view={view} onChange={setView} />
-          }
+          right={<ViewToggle view={view} onChange={setView} />}
         />
 
         <AnimatePresence mode="wait">
@@ -88,30 +87,52 @@ function ViewToggle({
   view: "calendar" | "list";
   onChange: (v: "calendar" | "list") => void;
 }) {
+  const isCalendar = view === "calendar";
   return (
-    <div className="flex items-center gap-1 rounded-full border border-white/30 bg-white/20 p-1 backdrop-blur-sm">
+    <div
+      className={cn(
+        "flex items-center gap-1 rounded-full p-1 transition-colors",
+        isCalendar
+          ? "border border-white/30 bg-white/20 backdrop-blur-sm"
+          : "border border-black/10 bg-[#fffef5]"
+      )}
+    >
       <button
         onClick={() => onChange("calendar")}
         className={cn(
           "flex size-[32px] items-center justify-center rounded-full transition-all duration-200",
-          view === "calendar" ? "bg-white shadow" : "opacity-60"
+          view === "calendar"
+            ? "bg-white shadow-sm"
+            : "opacity-50"
         )}
         aria-label="Calendar view"
       >
         <CalendarDays
-          className={cn("size-[18px]", view === "calendar" ? "text-[#dd598b]" : "text-white")}
+          className={cn(
+            "size-[18px]",
+            view === "calendar"
+              ? "text-[#dd598b]"
+              : isCalendar ? "text-white" : "text-[#565655]"
+          )}
         />
       </button>
       <button
         onClick={() => onChange("list")}
         className={cn(
           "flex size-[32px] items-center justify-center rounded-full transition-all duration-200",
-          view === "list" ? "bg-white shadow" : "opacity-60"
+          view === "list"
+            ? isCalendar ? "bg-white shadow-sm" : "bg-[#dd598b]"
+            : "opacity-50"
         )}
         aria-label="List view"
       >
         <List
-          className={cn("size-[18px]", view === "list" ? "text-[#dd598b]" : "text-white")}
+          className={cn(
+            "size-[18px]",
+            view === "list"
+              ? isCalendar ? "text-[#dd598b]" : "text-white"
+              : isCalendar ? "text-white" : "text-[#565655]"
+          )}
         />
       </button>
     </div>

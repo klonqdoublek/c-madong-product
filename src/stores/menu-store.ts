@@ -34,7 +34,7 @@ export const ALL_MENU_ITEMS: MenuItem[] = [
   { id: "news", icon: Megaphone, labelKey: "menuNews", href: "/announcements", category: "dormitory" },
   { id: "calendar", icon: CalendarDays, labelKey: "menuCalendar", href: "/dorm-calendar", category: "dormitory" },
   { id: "info", icon: Info, labelKey: "menuInfo", href: "/information", category: "dormitory" },
-  { id: "review", icon: ClipboardCheck, labelKey: "menuReview", href: "/events", category: "dormitory" },
+  { id: "review", icon: ClipboardCheck, labelKey: "menuReview", href: "/dorm-calendar", category: "dormitory" },
   { id: "emergency", icon: ShieldAlert, labelKey: "menuEmergency", href: "/emergency", category: "dormitory" },
   { id: "forms", icon: FileText, labelKey: "menuForms", href: "/documents", category: "dormitory" },
 
