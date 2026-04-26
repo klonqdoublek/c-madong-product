@@ -138,6 +138,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const standaloneItems: (NavItem & { icon: React.ReactNode; permission?: string })[] = [
     { href: "/admin/live-chat", label: t("navLiveChat"), icon: <Headset className="h-4 w-4" />, permission: Permission.TICKETS_VIEW_ALL },
     { href: "/admin/events", label: t("navEvents"), icon: <CalendarDays className="h-4 w-4" />, permission: Permission.EVENTS_VIEW },
+    { href: "/admin/dorm-calendar", label: t("navDormCalendar"), icon: <CalendarDays className="h-4 w-4" />, permission: Permission.DORM_CALENDAR_VIEW },
     { href: "/admin/scores", label: t("navScores"), icon: <Trophy className="h-4 w-4" />, permission: Permission.SCORES_VIEW },
     { href: "/admin/billing", label: t("navBilling"), icon: <Banknote className="h-4 w-4" />, permission: Permission.BILLS_VIEW },
     { href: "/admin/parcels", label: t("parcels"), icon: <Package className="h-4 w-4" />, permission: Permission.PARCELS_VIEW },

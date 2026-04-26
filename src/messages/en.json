@@ -1034,6 +1034,7 @@
       "error": "Failed to generate text. Please try again."
     },
     "navEvents": "Events",
+    "navDormCalendar": "Dorm Calendar",
     "navScores": "Dorm Scores",
     "navBilling": "Billing",
     "billingPage": {
@@ -1372,5 +1373,45 @@
   "guide": {
     "desktopOnly": "Please open on mobile",
     "desktopOnlyDescription": "This page is designed for mobile use. Please open via LINE or scan the QR code with your phone."
+  },
+  "dormCalendar": {
+    "title": "For Dorm Residents",
+    "pageTitle": "Dorm Calendar",
+    "subtitle": "Required tasks for dorm residents",
+    "tabPending": "To Do",
+    "tabDone": "Done",
+    "tabAll": "All",
+    "viewAll": "View All",
+    "emptyAllDone": "All done!",
+    "emptyAllDoneDesc": "You have completed everything",
+    "emptyNone": "No items",
+    "emptyNoneDesc": "No tasks scheduled for this period",
+    "sectionUpcoming": "Coming Up",
+    "sectionSoon": "Soon",
+    "sectionDone": "Completed",
+    "required": "Required",
+    "mandatory": "Mandatory",
+    "ctaDo": "Do it",
+    "ctaAcknowledge": "Acknowledge",
+    "ctaJoin": "Join",
+    "ctaRead": "Read Announcement",
+    "ctaQuiz": "Start Quiz",
+    "countdownDaysLeft": "{days} days left",
+    "countdownTomorrow": "1 day left",
+    "countdownToday": "Due today",
+    "countdownPast": "Expired",
+    "filterSearch": "Search tasks",
+    "filterCategory": "Category",
+    "filterSemester": "Semester",
+    "filterAll": "All",
+    "semesterAll": "All Semesters",
+    "categoryReapplication": "Reapplication",
+    "categoryCr54": "CR54 Upload",
+    "categoryShopEval": "Shop Evaluation",
+    "categoryFireDrillTheory": "Fire Drill (Theory)",
+    "categoryFireDrillPractical": "Fire Drill (Practical)",
+    "categoryDormMeeting": "Dorm Meeting",
+    "categoryDormInspection": "Dorm Inspection",
+    "categoryImportantAnno": "Important Notice"
   }
 }

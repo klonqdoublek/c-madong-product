@@ -1032,6 +1032,7 @@
       "error": "ไม่สามารถสร้างข้อความได้ ลองใหม่อีกครั้งนะ"
     },
     "navEvents": "กิจกรรม",
+    "navDormCalendar": "ปฏิทินหอพัก",
     "navScores": "คะแนนหอพัก",
     "navBilling": "ค่าหอพัก",
     "billingPage": {
@@ -1370,5 +1371,45 @@
   "guide": {
     "desktopOnly": "กรุณาเปิดบนมือถือ",
     "desktopOnlyDescription": "หน้านี้ออกแบบมาสำหรับใช้งานบนมือถือ กรุณาเปิดผ่าน LINE หรือสแกน QR Code ด้วยมือถือ"
+  },
+  "dormCalendar": {
+    "title": "สำหรับนิสิตหอพัก",
+    "pageTitle": "ปฏิทินนิสิตหอพัก",
+    "subtitle": "กิจกรรมที่จำเป็นต้องทำ",
+    "tabPending": "ยังไม่ได้ทำ",
+    "tabDone": "ทำแล้ว",
+    "tabAll": "ทั้งหมด",
+    "viewAll": "ดูทั้งหมด",
+    "emptyAllDone": "หมดแล้ว!",
+    "emptyAllDoneDesc": "ทำครบทุกอย่างแล้ว",
+    "emptyNone": "ไม่มีรายการ",
+    "emptyNoneDesc": "ยังไม่มีรายการในช่วงนี้",
+    "sectionUpcoming": "กำลังจะมาถึง",
+    "sectionSoon": "เร็วๆนี้",
+    "sectionDone": "ทำไปแล้ว",
+    "required": "จำเป็น",
+    "mandatory": "บังคับ",
+    "ctaDo": "ทำเลย",
+    "ctaAcknowledge": "รับทราบ",
+    "ctaJoin": "เข้าร่วม",
+    "ctaRead": "อ่านประกาศ",
+    "ctaQuiz": "เริ่มทำแบบทดสอบ",
+    "countdownDaysLeft": "เหลือเวลาอีก {days} วัน",
+    "countdownTomorrow": "เหลือเวลาอีก 1 วัน",
+    "countdownToday": "วันสุดท้ายวันนี้",
+    "countdownPast": "หมดเวลาแล้ว",
+    "filterSearch": "ค้นหากิจกรรม",
+    "filterCategory": "หมวดหมู่",
+    "filterSemester": "ภาคเรียน",
+    "filterAll": "ทั้งหมด",
+    "semesterAll": "ทุกภาคเรียน",
+    "categoryReapplication": "ยื่นขออยู่หอต่อ",
+    "categoryCr54": "ผลลงทะเบียน CR54",
+    "categoryShopEval": "ประเมินร้านค้า",
+    "categoryFireDrillTheory": "อบรมดับเพลิง (ทฤษฎี)",
+    "categoryFireDrillPractical": "อบรมดับเพลิง (ปฏิบัติ)",
+    "categoryDormMeeting": "ประชุมหอพัก",
+    "categoryDormInspection": "ตรวจหอพัก",
+    "categoryImportantAnno": "ประกาศจำเป็น"
   }
 }

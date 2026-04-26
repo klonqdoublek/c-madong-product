@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { useUpcomingEvents } from "@/hooks/use-events";
+import { useDormCalendar } from "@/hooks/use-dorm-calendar";
 import { CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,15 @@ function getFirstDayOfWeek(year: number, month: number): number {
 
 export function DashboardCalendar() {
   const t = useTranslations("dashboard");
-  const { data: events } = useUpcomingEvents();
+  const { data: calendarItems } = useDormCalendar({ status: "pending", limit: 20 });
+  // Adapt to the shape this component expects
+  const events = (calendarItems ?? []).map((item) => ({
+    id: item.id,
+    event_date: item.dueAt,
+    start_datetime: item.dueAt,
+    title_th: item.titleTh,
+    title: item.titleTh,
+  }));
 
   const now = new Date();
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -72,7 +80,7 @@ export function DashboardCalendar() {
             ปฏิทินหอพัก
           </span>
         </div>
-        <Link href="/events" className="text-xs font-bold text-cu-grey underline">
+        <Link href="/dorm-calendar" className="text-xs font-bold text-cu-grey underline">
           {t("viewAll")}
         </Link>
       </div>

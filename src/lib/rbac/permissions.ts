@@ -95,6 +95,14 @@ export const Permission = {
   EVENTS_ATTENDANCE: "events:attendance",
 
   // ============================================================================
+  // Dorm Calendar (mandatory task list)
+  // ============================================================================
+  DORM_CALENDAR_VIEW:            "dorm_calendar:view",
+  DORM_CALENDAR_CREATE:          "dorm_calendar:create",
+  DORM_CALENDAR_EDIT:            "dorm_calendar:edit",
+  DORM_CALENDAR_MARK_ATTENDANCE: "dorm_calendar:mark_attendance",
+
+  // ============================================================================
   // Scores (Dorm Score / Activity Points)
   // ============================================================================
   SCORES_VIEW: "scores:view",
@@ -228,6 +236,10 @@ export const PermissionGroup = {
     Permission.SCORES_VIEW,
     Permission.SCORES_EDIT,
     Permission.SCORES_DELETE,
+    Permission.DORM_CALENDAR_VIEW,
+    Permission.DORM_CALENDAR_CREATE,
+    Permission.DORM_CALENDAR_EDIT,
+    Permission.DORM_CALENDAR_MARK_ATTENDANCE,
   ] as const,
 
   // System admin

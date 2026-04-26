@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ai_chat_messages: {
@@ -407,6 +432,7 @@ export type Database = {
           folder_id: string | null
           has_dorm_score: boolean
           id: string
+          is_calendar_pinned: boolean | null
           is_pinned: boolean
           location: string | null
           message_type: string | null
@@ -437,6 +463,7 @@ export type Database = {
           folder_id?: string | null
           has_dorm_score?: boolean
           id?: string
+          is_calendar_pinned?: boolean | null
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
@@ -467,6 +494,7 @@ export type Database = {
           folder_id?: string | null
           has_dorm_score?: boolean
           id?: string
+          is_calendar_pinned?: boolean | null
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
@@ -958,10 +986,159 @@ export type Database = {
           },
         ]
       }
+      dorm_calendar_completions: {
+        Row: {
+          completed_at: string
+          completion_method: Database["public"]["Enums"]["calendar_completion_method"]
+          id: string
+          metadata: Json | null
+          source_id: string
+          source_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completion_method: Database["public"]["Enums"]["calendar_completion_method"]
+          id?: string
+          metadata?: Json | null
+          source_id: string
+          source_type: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          completion_method?: Database["public"]["Enums"]["calendar_completion_method"]
+          id?: string
+          metadata?: Json | null
+          source_id?: string
+          source_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dorm_calendar_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dorm_calendar_items: {
+        Row: {
+          academic_year: number | null
+          archived_at: string | null
+          audience: string
+          category: Database["public"]["Enums"]["dorm_calendar_category"]
+          created_at: string
+          cta_event_id: string | null
+          cta_type: Database["public"]["Enums"]["calendar_cta_type"]
+          cta_url: string | null
+          description_en: string | null
+          description_th: string | null
+          due_at: string
+          id: string
+          is_required: boolean
+          penalty_points: number
+          published_by: string | null
+          score_category_id: string | null
+          score_points: number
+          semester: string | null
+          start_at: string
+          title_en: string | null
+          title_th: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: number | null
+          archived_at?: string | null
+          audience?: string
+          category: Database["public"]["Enums"]["dorm_calendar_category"]
+          created_at?: string
+          cta_event_id?: string | null
+          cta_type?: Database["public"]["Enums"]["calendar_cta_type"]
+          cta_url?: string | null
+          description_en?: string | null
+          description_th?: string | null
+          due_at: string
+          id?: string
+          is_required?: boolean
+          penalty_points?: number
+          published_by?: string | null
+          score_category_id?: string | null
+          score_points?: number
+          semester?: string | null
+          start_at: string
+          title_en?: string | null
+          title_th: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: number | null
+          archived_at?: string | null
+          audience?: string
+          category?: Database["public"]["Enums"]["dorm_calendar_category"]
+          created_at?: string
+          cta_event_id?: string | null
+          cta_type?: Database["public"]["Enums"]["calendar_cta_type"]
+          cta_url?: string | null
+          description_en?: string | null
+          description_th?: string | null
+          due_at?: string
+          id?: string
+          is_required?: boolean
+          penalty_points?: number
+          published_by?: string | null
+          score_category_id?: string | null
+          score_points?: number
+          semester?: string | null
+          start_at?: string
+          title_en?: string | null
+          title_th?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dorm_calendar_items_cta_event_id_fkey"
+            columns: ["cta_event_id"]
+            isOneToOne: false
+            referencedRelation: "dorm_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dorm_calendar_items_published_by_fkey"
+            columns: ["published_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dorm_calendar_items_score_category_id_fkey"
+            columns: ["score_category_id"]
+            isOneToOne: false
+            referencedRelation: "score_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dorm_calendar_items_score_category_id_fkey"
+            columns: ["score_category_id"]
+            isOneToOne: false
+            referencedRelation: "student_score_summary"
+            referencedColumns: ["category_id"]
+          },
+        ]
+      }
       dorm_events: {
         Row: {
           academic_year: number | null
           building_id: string | null
+          calendar_category:
+            | Database["public"]["Enums"]["dorm_calendar_category"]
+            | null
+          calendar_cta_type:
+            | Database["public"]["Enums"]["calendar_cta_type"]
+            | null
+          calendar_cta_url: string | null
           cover_image: string | null
           created_at: string
           created_by: string | null
@@ -975,6 +1152,7 @@ export type Database = {
           event_type: string
           id: string
           impact_level: string
+          is_calendar_pinned: boolean | null
           is_mandatory: boolean
           location: string | null
           location_en: string | null
@@ -993,6 +1171,13 @@ export type Database = {
         Insert: {
           academic_year?: number | null
           building_id?: string | null
+          calendar_category?:
+            | Database["public"]["Enums"]["dorm_calendar_category"]
+            | null
+          calendar_cta_type?:
+            | Database["public"]["Enums"]["calendar_cta_type"]
+            | null
+          calendar_cta_url?: string | null
           cover_image?: string | null
           created_at?: string
           created_by?: string | null
@@ -1006,6 +1191,7 @@ export type Database = {
           event_type?: string
           id?: string
           impact_level?: string
+          is_calendar_pinned?: boolean | null
           is_mandatory?: boolean
           location?: string | null
           location_en?: string | null
@@ -1024,6 +1210,13 @@ export type Database = {
         Update: {
           academic_year?: number | null
           building_id?: string | null
+          calendar_category?:
+            | Database["public"]["Enums"]["dorm_calendar_category"]
+            | null
+          calendar_cta_type?:
+            | Database["public"]["Enums"]["calendar_cta_type"]
+            | null
+          calendar_cta_url?: string | null
           cover_image?: string | null
           created_at?: string
           created_by?: string | null
@@ -1037,6 +1230,7 @@ export type Database = {
           event_type?: string
           id?: string
           impact_level?: string
+          is_calendar_pinned?: boolean | null
           is_mandatory?: boolean
           location?: string | null
           location_en?: string | null
@@ -2208,6 +2402,8 @@ export type Database = {
         Args: { p_date: string; p_ticket_id: string; p_time: string }
         Returns: undefined
       }
+      compute_academic_year: { Args: { dt: string }; Returns: number }
+      compute_thai_semester: { Args: { dt: string }; Returns: string }
       decrease_template_accuracy: {
         Args: { template_id: string }
         Returns: undefined
@@ -2345,6 +2541,23 @@ export type Database = {
         | "male"
         | "female"
         | "all"
+      calendar_completion_method: "submission" | "manual_ack" | "admin_mark"
+      calendar_cta_type:
+        | "internal_eval"
+        | "internal_quiz"
+        | "external_url"
+        | "acknowledge"
+        | "read_more"
+        | "none"
+      dorm_calendar_category:
+        | "reapplication"
+        | "cr54_upload"
+        | "shop_evaluation"
+        | "fire_drill_theory"
+        | "fire_drill_practical"
+        | "dorm_meeting"
+        | "dorm_inspection"
+        | "important_announcement"
       parcel_status:
         | "pending"
         | "notified"
@@ -2485,6 +2698,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       app_role: [
@@ -2522,6 +2738,25 @@ export const Constants = {
         "female",
         "all",
       ],
+      calendar_completion_method: ["submission", "manual_ack", "admin_mark"],
+      calendar_cta_type: [
+        "internal_eval",
+        "internal_quiz",
+        "external_url",
+        "acknowledge",
+        "read_more",
+        "none",
+      ],
+      dorm_calendar_category: [
+        "reapplication",
+        "cr54_upload",
+        "shop_evaluation",
+        "fire_drill_theory",
+        "fire_drill_practical",
+        "dorm_meeting",
+        "dorm_inspection",
+        "important_announcement",
+      ],
       parcel_status: [
         "pending",
         "notified",
@@ -2554,6 +2789,11 @@ export type ParcelStatus = Database["public"]["Enums"]["parcel_status"];
 export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"];
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type BuildingScope = Database["public"]["Enums"]["building_scope"];
+
+// Dorm calendar enums (new in 20260427)
+export type DormCalendarCategory = Database["public"]["Enums"]["dorm_calendar_category"];
+export type CalendarCtaType = Database["public"]["Enums"]["calendar_cta_type"];
+export type CalendarCompletionMethod = Database["public"]["Enums"]["calendar_completion_method"];
 
 // MaintenanceStatus — text CHECK constraint (not PG enum), under_review replaces pending
 export type MaintenanceStatus =

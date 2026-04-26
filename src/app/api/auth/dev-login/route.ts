@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const { email, password } = parsed.data;
     const supabase = await createClient();
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -33,7 +33,14 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ success: true });
+    // Fetch role for redirect decision
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", data.user.id)
+      .single();
+
+    return NextResponse.json({ success: true, role: profile?.role ?? null });
   } catch {
     return NextResponse.json(
       { error: "Internal server error" },

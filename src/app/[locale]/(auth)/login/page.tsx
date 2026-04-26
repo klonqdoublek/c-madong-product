@@ -4,7 +4,6 @@ import { Suspense, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   return (
@@ -47,37 +46,32 @@ function LoginContent() {
     setDevError("");
 
     try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email: devEmail,
-        password: devPassword,
+      const res = await fetch("/api/auth/dev-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: devEmail, password: devPassword }),
       });
 
-      if (authError) {
-        setDevError(authError.message);
+      const json = await res.json();
+
+      if (!res.ok) {
+        setDevError(json.error ?? "Login failed");
         return;
       }
 
-      // Redirect based on role or ?next= param
+      // Redirect based on ?next= param or role
       if (nextPath) {
         window.location.href = `/${locale}${nextPath}`;
         return;
       }
 
-      // Check profile role to decide redirect
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("role")
-        .eq("id", authData.user.id)
-        .single();
-
-      const isStaff = profile?.role && ["admin", "staff", "head", "super_admin", "admin_staff"].includes(profile.role);
+      const STAFF_ROLES = ["admin", "staff", "head", "super_admin", "admin_staff", "technician_head", "technician", "registrar", "finance"];
+      const isStaff = json.role && STAFF_ROLES.includes(json.role);
       window.location.href = isStaff
         ? `/${locale}/admin/dashboard`
         : `/${locale}/dashboard`;
-    } catch {
-      setDevError("Network error");
+    } catch (err) {
+      setDevError(err instanceof Error ? err.message : "Network error");
     } finally {
       setDevLoading(false);
     }
