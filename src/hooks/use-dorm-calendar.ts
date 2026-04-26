@@ -11,17 +11,19 @@ export type DormCalendarCategory =
   | "fire_drill_practical"
   | "dorm_meeting"
   | "dorm_inspection"
-  | "important_announcement";
+  | "important_announcement"
+  | "bed_selection";
 
 export type CalendarCtaType =
   | "internal_eval"
   | "internal_quiz"
+  | "internal_bed_selection"
   | "external_url"
   | "acknowledge"
   | "read_more"
   | "none";
 
-export type CalendarCompletionMethod = "submission" | "manual_ack" | "admin_mark";
+export type CalendarCompletionMethod = "submission" | "manual_ack" | "admin_mark" | "auto_confirm";
 
 export interface DormCalendarItem {
   id: string;

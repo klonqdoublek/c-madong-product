@@ -23,6 +23,7 @@ const CATEGORY_LABELS: Record<DormCalendarCategory, string> = {
   dorm_meeting:          "ประชุมหอพัก",
   dorm_inspection:       "ตรวจหอพัก",
   important_announcement: "ประกาศจำเป็น",
+  bed_selection:         "เลือกเตียงประจำปี",
 };
 
 interface TaskCardProps {
@@ -182,6 +183,17 @@ function CtaButton({
     );
   }
 
+  if (item.ctaType === "internal_bed_selection") {
+    return (
+      <Link
+        href="/bed-selection"
+        className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white active:scale-95 transition-transform"
+      >
+        {ctaLabel}
+      </Link>
+    );
+  }
+
   // acknowledge
   return (
     <button
@@ -197,6 +209,7 @@ function CtaButton({
 function getCtaLabel(category: DormCalendarCategory, ctaType: string): string {
   if (ctaType === "read_more") return "อ่านประกาศ";
   if (ctaType === "internal_quiz") return "เริ่มทำแบบทดสอบ";
+  if (ctaType === "internal_bed_selection") return "เลือกเตียงตอนนี้";
   if (category === "dorm_meeting" || category === "dorm_inspection") return "รับทราบ";
   if (category === "fire_drill_practical") return "เข้าร่วม";
   return "ทำเลย";

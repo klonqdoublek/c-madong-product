@@ -2541,7 +2541,11 @@ export type Database = {
         | "male"
         | "female"
         | "all"
-      calendar_completion_method: "submission" | "manual_ack" | "admin_mark"
+      calendar_completion_method:
+        | "submission"
+        | "manual_ack"
+        | "admin_mark"
+        | "auto_confirm"
       calendar_cta_type:
         | "internal_eval"
         | "internal_quiz"
@@ -2549,6 +2553,7 @@ export type Database = {
         | "acknowledge"
         | "read_more"
         | "none"
+        | "internal_bed_selection"
       dorm_calendar_category:
         | "reapplication"
         | "cr54_upload"
@@ -2558,6 +2563,7 @@ export type Database = {
         | "dorm_meeting"
         | "dorm_inspection"
         | "important_announcement"
+        | "bed_selection"
       parcel_status:
         | "pending"
         | "notified"
@@ -2738,7 +2744,12 @@ export const Constants = {
         "female",
         "all",
       ],
-      calendar_completion_method: ["submission", "manual_ack", "admin_mark"],
+      calendar_completion_method: [
+        "submission",
+        "manual_ack",
+        "admin_mark",
+        "auto_confirm",
+      ],
       calendar_cta_type: [
         "internal_eval",
         "internal_quiz",
@@ -2746,6 +2757,7 @@ export const Constants = {
         "acknowledge",
         "read_more",
         "none",
+        "internal_bed_selection",
       ],
       dorm_calendar_category: [
         "reapplication",
@@ -2756,6 +2768,7 @@ export const Constants = {
         "dorm_meeting",
         "dorm_inspection",
         "important_announcement",
+        "bed_selection",
       ],
       parcel_status: [
         "pending",
@@ -2778,24 +2791,8 @@ export const Constants = {
   },
 } as const
 
-// ============================================================
-// Custom type aliases (re-add after every `supabase gen types`)
-// ============================================================
+// ── Custom type aliases (re-add after every `supabase gen types`) ──────────
 
-export type BillStatus = Database["public"]["Enums"]["bill_status"];
-export type BillCategory = Database["public"]["Enums"]["bill_category"];
-export type ParcelType = Database["public"]["Enums"]["parcel_type"];
-export type ParcelStatus = Database["public"]["Enums"]["parcel_status"];
-export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"];
-export type AppRole = Database["public"]["Enums"]["app_role"];
-export type BuildingScope = Database["public"]["Enums"]["building_scope"];
-
-// Dorm calendar enums (new in 20260427)
-export type DormCalendarCategory = Database["public"]["Enums"]["dorm_calendar_category"];
-export type CalendarCtaType = Database["public"]["Enums"]["calendar_cta_type"];
-export type CalendarCompletionMethod = Database["public"]["Enums"]["calendar_completion_method"];
-
-// MaintenanceStatus — text CHECK constraint (not PG enum), under_review replaces pending
 export type MaintenanceStatus =
   | "under_review"
   | "acknowledged"
@@ -2803,47 +2800,52 @@ export type MaintenanceStatus =
   | "completed"
   | "cancelled";
 
-// Notification type values
+export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"];
+export type AppRole = Database["public"]["Enums"]["app_role"];
+export type BuildingScope = Database["public"]["Enums"]["building_scope"];
+export type UserRole = AppRole;
+export type BillStatus = Database["public"]["Enums"]["bill_status"];
+export type BillCategory = Database["public"]["Enums"]["bill_category"];
+export type ParcelStatus = Database["public"]["Enums"]["parcel_status"];
+export type ParcelType = Database["public"]["Enums"]["parcel_type"];
 export type NotificationType =
-  | "bill_due"
   | "bill_overdue"
+  | "bill_due"
+  | "event_reminder"
   | "parcel_arrived"
-  | "parcel_reminder"
   | "maintenance_update"
+  | "parcel_reminder"
   | "score_added"
   | "event_new"
-  | "event_reminder"
-  | "announcement"
   | "chat_escalation"
+  | "announcement"
   | "system";
 
-// Legacy profile role
-export type UserRole =
-  | "student" | "committee" | "admin" | "head"
-  | "super_admin" | "admin_staff"
-  | "technician" | "technician_head" | "technician_it";
-
-// Event types
 export type EventType =
-  | "meeting" | "evaluation" | "safety_drill" | "obligation"
-  | "community_service" | "social" | "workshop" | "sports" | "other";
+  | "meeting"
+  | "evaluation"
+  | "safety_drill"
+  | "obligation"
+  | "community_service"
+  | "social"
+  | "workshop"
+  | "sports"
+  | "other";
+
 export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
-export type ImpactLevel = "high" | "medium" | "low";
 export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
-
-// Evaluation types
 export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
-export type EvaluationStatus = "in_progress" | "completed" | "skipped";
+export type EvaluationStatus = "pending" | "in_progress" | "completed";
 export type CriteriaType = "rating" | "textarea";
+export type ImpactLevel = "low" | "medium" | "high";
 
-// Material item in maintenance_requests.materials JSONB array
 export interface MaterialItem {
   id?: string;
   name: string;
   quantity: number;
   unit: string;
-  category?: string;
-  source: "ai" | "manual";
-  ai_confidence?: number;
+  estimated_cost?: number;
+  specific_item?: string;
+  source?: "ai" | "manual";
   added_at?: string;
 }

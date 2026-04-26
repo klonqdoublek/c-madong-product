@@ -36,6 +36,7 @@ const CATEGORY_LABELS: Record<DormCalendarCategory, string> = {
   dorm_meeting:           "ประชุมหอพัก",
   dorm_inspection:        "ตรวจหอพัก",
   important_announcement: "ประกาศจำเป็น",
+  bed_selection:          "เลือกเตียงประจำปี",
 };
 
 export function ListView({
