@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
 
     if (error || !announcement) {
       console.error("Error creating announcement:", error);
-      return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
+      return NextResponse.json({ error: error?.message ?? "Failed to create announcement", detail: error?.details ?? null }, { status: 500 });
     }
 
     // Generate embedding asynchronously (don't block save)
