@@ -49,7 +49,6 @@ export function useStudents(filters?: Partial<StudentFilters>) {
 }
 
 export function useUpdateStudent() {
-  const supabase = useSupabase();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,11 +56,15 @@ export function useUpdateStudent() {
       id,
       ...updates
     }: Database["public"]["Tables"]["profiles"]["Update"] & { id: string }) => {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      const res = await fetch(`/api/admin/students/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Failed to update student");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [STUDENTS_KEY] });

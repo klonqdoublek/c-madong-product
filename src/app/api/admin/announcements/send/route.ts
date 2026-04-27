@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { broadcastFlexMessage, pushTextMessage } from "@/lib/line/client";
+import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage } from "@/lib/line/client";
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,19 +36,7 @@ export async function POST(request: Request) {
       if (messageType === "flex" && flexJson) {
         await broadcastFlexMessage(flexJson as unknown as FlexMessagePayload);
       } else if (content) {
-        const { data: profiles } = await adminDb
-          .from("profiles")
-          .select("line_uid")
-          .eq("role", "student")
-          .not("line_uid", "is", null);
-
-        if (profiles) {
-          await Promise.allSettled(
-            profiles.map((p) =>
-              p.line_uid ? pushTextMessage(p.line_uid, content) : Promise.resolve()
-            )
-          );
-        }
+        await broadcastTextMessage(content);
       }
     } else if (targetType === "targeted" && targetTags?.length > 0) {
       const { data: profiles } = await adminDb

@@ -102,3 +102,10 @@ export async function pushTextMessage(
     messages: [{ type: "text", text }],
   })
 }
+
+export async function broadcastTextMessage(text: string): Promise<void> {
+  const api = getClient()
+  await api.broadcast({
+    messages: [{ type: "text", text }],
+  })
+}
