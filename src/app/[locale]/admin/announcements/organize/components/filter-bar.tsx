@@ -18,6 +18,8 @@ interface FilterBarProps {
   onSearchChange: (query: string) => void;
   statusFilter: string;
   onStatusChange: (status: string) => void;
+  yearFilter?: string;
+  onYearChange?: (year: string) => void;
   folders: Folder[];
   tags: Tag[];
   selectedFolder: string;
@@ -26,11 +28,23 @@ interface FilterBarProps {
   onToggleTag: (id: string) => void;
 }
 
+// Generate year options from 2 years ago to current
+function getYearOptions() {
+  const current = new Date().getFullYear();
+  const years: string[] = [];
+  for (let y = current; y >= current - 3; y--) {
+    years.push(String(y));
+  }
+  return years;
+}
+
 export function FilterBar({
   searchQuery,
   onSearchChange,
   statusFilter,
   onStatusChange,
+  yearFilter = "all",
+  onYearChange,
   folders,
   tags,
   selectedFolder,
@@ -38,6 +52,7 @@ export function FilterBar({
   onSelectFolder,
   onToggleTag,
 }: FilterBarProps) {
+  const yearOptions = getYearOptions();
   const selectedFolderData = folders.find((f) => f.id === selectedFolder);
   const selectedTagsData = tags.filter((t) => selectedTags.includes(t.id));
 
@@ -55,7 +70,7 @@ export function FilterBar({
           />
         </div>
         <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="สถานะ" />
           </SelectTrigger>
           <SelectContent>
@@ -80,6 +95,22 @@ export function FilterBar({
             </SelectItem>
           </SelectContent>
         </Select>
+
+        {onYearChange && (
+          <Select value={yearFilter} onValueChange={onYearChange}>
+            <SelectTrigger className="w-[110px]">
+              <SelectValue placeholder="ปี" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ทุกปี</SelectItem>
+              {yearOptions.map((y) => (
+                <SelectItem key={y} value={y}>
+                  พ.ศ. {Number(y) + 543}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* Active Filters */}

@@ -92,6 +92,7 @@ interface AnnouncementFilters {
   tagId?: string;
   search?: string;
   archived?: boolean | null;
+  year?: string | null;
 }
 
 // ============================================================================
@@ -431,6 +432,10 @@ export function useOrganizedAnnouncements(filters?: AnnouncementFilters) {
         params.append("archived", String(filters.archived));
       }
 
+      if (filters?.year) {
+        params.append("year", filters.year);
+      }
+
       const response = await fetch(`/api/admin/announcements?${params.toString()}`);
 
       if (!response.ok) {
@@ -439,6 +444,92 @@ export function useOrganizedAnnouncements(filters?: AnnouncementFilters) {
 
       const data = await response.json();
       return data.announcements as OrganizedAnnouncement[];
+    },
+  });
+}
+
+// ============================================================================
+// AI Hooks
+// ============================================================================
+
+export interface AnnouncementSuggestion {
+  title_th: string;
+  title_en: string;
+  content_th: string;
+  content_en: string;
+  category: string;
+  event_date: string | null;
+  location: string | null;
+  has_dorm_score: boolean;
+  score_points: number | null;
+  folder_id: string | null;
+  suggested_new_folder: { name: string; icon: string } | null;
+  tag_ids: string[];
+  suggested_new_tags: string[];
+  summary: string;
+  confidence: number;
+}
+
+export interface AnalyzePosterResult {
+  ocr_text: string | null;
+  ocr_provider: string;
+  suggestion: AnnouncementSuggestion | null;
+  embed_text: string;
+}
+
+export function useAnalyzePoster() {
+  return useMutation({
+    mutationFn: async (data: { imageUrl: string; mode?: "image_only" | "image_with_text" }) => {
+      const response = await fetch("/api/admin/announcements/analyze-poster", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Analysis failed");
+      }
+      return response.json() as Promise<AnalyzePosterResult>;
+    },
+  });
+}
+
+export function useEmbedAnnouncement() {
+  return useMutation({
+    mutationFn: async (announcementId: string) => {
+      const response = await fetch(`/api/admin/announcements/${announcementId}/embed`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Embed failed");
+      }
+      return response.json();
+    },
+  });
+}
+
+export function useAnnouncementAIFeedback() {
+  return useMutation({
+    mutationFn: async (data: {
+      announcementId: string;
+      rating: "up" | "down";
+      accepted_fields?: string[];
+      rejected_fields?: string[];
+      comment?: string;
+      suggestion_snapshot?: Record<string, unknown>;
+    }) => {
+      const { announcementId, ...body } = data;
+      const response = await fetch(`/api/admin/announcements/${announcementId}/ai-feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Feedback failed");
+      }
+      return response.json();
     },
   });
 }

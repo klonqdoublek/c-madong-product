@@ -1,15 +1,19 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { generateEmbedding } from "./embeddings"
 
-interface SearchResult {
-  content: string
-  similarity: number
+export interface SearchResult {
+  source_type: "document" | "announcement"
+  source_id: string
   document_title: string
+  content: string
+  cover_image: string | null
+  similarity: number
+  metadata: Record<string, unknown>
 }
 
 /**
- * Search for relevant document sections using pgvector cosine similarity.
- * Calls the match_documents RPC function.
+ * Search for relevant content using pgvector cosine similarity.
+ * Queries match_documents RPC which UNIONs knowledge documents + announcements.
  */
 export async function searchDocuments(
   query: string,

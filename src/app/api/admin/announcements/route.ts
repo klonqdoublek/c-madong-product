@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { generateEmbedding } from "@/lib/chatbot/rag/embeddings";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
     const tagId = searchParams.get("tagId");
     const search = searchParams.get("search");
     const archived = searchParams.get("archived");
+    const year = searchParams.get("year");
 
     const adminDb = createAdminClient();
 
@@ -48,6 +50,13 @@ export async function GET(request: NextRequest) {
     // Search filter
     if (search) {
       query = query.or(`title_th.ilike.%${search}%,title_en.ilike.%${search}%`);
+    }
+
+    // Year filter — derived from created_at
+    if (year && /^\d{4}$/.test(year)) {
+      query = query
+        .gte("created_at", `${year}-01-01`)
+        .lte("created_at", `${year}-12-31`);
     }
 
     const { data: announcements, error } = await query;
@@ -120,5 +129,102 @@ export async function GET(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile || !["admin", "head", "super_admin"].includes(profile.role!)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const {
+      title_th, title_en, content_th, content_en,
+      message_type, flex_json, target_type, target_tags,
+      is_pinned, cover_image, status,
+      // AI fields
+      event_date, location, has_dorm_score, score_points,
+      category, folder_id,
+      ai_extracted, ocr_text, ai_confidence, ai_provider, extraction_mode,
+      is_bot_searchable = true,
+      embed_text,
+    } = body;
+
+    const adminDb = createAdminClient();
+
+    const insertData: Record<string, unknown> = {
+      title_th,
+      title_en: title_en || title_th,
+      content_th,
+      content_en: content_en || content_th,
+      message_type: message_type ?? "text",
+      flex_json: flex_json ?? null,
+      target_type: target_type ?? "broadcast",
+      target_tags: target_tags ?? [],
+      is_pinned: is_pinned ?? false,
+      cover_image: cover_image ?? null,
+      status: status ?? "draft",
+      category: category ?? "announcement",
+      folder_id: folder_id ?? null,
+      event_date: event_date ?? null,
+      location: location ?? null,
+      has_dorm_score: has_dorm_score ?? false,
+      score_points: score_points ?? null,
+      ai_extracted: (ai_extracted ?? null) as any,
+      ocr_text: ocr_text ?? null,
+      ai_confidence: ai_confidence ?? null,
+      ai_provider: ai_provider ?? null,
+      extraction_mode: extraction_mode ?? null,
+      is_bot_searchable,
+      author_id: user.id,
+      created_by: user.id,
+    };
+
+    if (status === "sent") {
+      insertData.sent_at = new Date().toISOString();
+      insertData.published_at = new Date().toISOString();
+    }
+
+    const { data: announcement, error } = await (adminDb as any)
+      .from("announcements")
+      .insert(insertData)
+      .select("id")
+      .single();
+
+    if (error || !announcement) {
+      console.error("Error creating announcement:", error);
+      return NextResponse.json({ error: "Failed to create announcement" }, { status: 500 });
+    }
+
+    // Generate embedding asynchronously (don't block save)
+    if (is_bot_searchable) {
+      const textToEmbed = embed_text || [title_th, content_th, ocr_text].filter(Boolean).join(" ");
+      if (textToEmbed.trim()) {
+        generateEmbedding(textToEmbed)
+          .then((embedding) =>
+            (adminDb as any)
+              .from("announcements")
+              .update({ embedding: JSON.stringify(embedding) })
+              .eq("id", announcement.id)
+          )
+          .catch((err) => console.error("[POST announcement] Embed failed:", err));
+      }
+    }
+
+    return NextResponse.json({ announcement }, { status: 201 });
+  } catch (error) {
+    console.error("Error in POST /api/admin/announcements:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

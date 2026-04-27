@@ -256,6 +256,7 @@ function AttendanceStatusBadge({ status }: { status: AttendanceStatus }) {
     attended: { icon: Check, color: "bg-green-50 text-green-700" },
     absent: { icon: X, color: "bg-red-50 text-red-700" },
     excused: { icon: AlertCircle, color: "bg-yellow-50 text-yellow-700" },
+    cancelled: { icon: X, color: "bg-gray-50 text-gray-500" },
   };
   const config = configs[status];
   const Icon = config.icon;

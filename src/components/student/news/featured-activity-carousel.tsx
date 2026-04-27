@@ -4,6 +4,20 @@ import { useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
+const THAI_MONTHS_SHORT = [
+  "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+  "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
+];
+
+function formatShortThaiDate(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return `${d.getDate()} ${THAI_MONTHS_SHORT[d.getMonth()]} ${d.getFullYear() + 543}`;
+  } catch {
+    return iso;
+  }
+}
+
 interface FeaturedActivityCarouselProps {
   activities: any[];
 }
@@ -43,7 +57,9 @@ export function FeaturedActivityCarousel({ activities }: FeaturedActivityCarouse
                     {item.title_th || item.title_en}
                   </h4>
                   <p className="text-[10px] text-cu-muted line-clamp-1">
-                    {item.location || "หอพักนิสิต"}
+                    {item.event_date
+                      ? formatShortThaiDate(item.event_date)
+                      : item.location || "หอพักนิสิต"}
                   </p>
                 </div>
               </div>

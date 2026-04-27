@@ -57,11 +57,14 @@ export const EVENT_TYPE_CONFIG: Record<EventType, { labelTh: string; labelEn: st
   workshop: { labelTh: "เวิร์กชอป", labelEn: "Workshop", color: "bg-indigo-100 text-indigo-800" },
   sports: { labelTh: "กีฬา", labelEn: "Sports", color: "bg-emerald-100 text-emerald-800" },
   other: { labelTh: "อื่นๆ", labelEn: "Other", color: "bg-gray-100 text-gray-800" },
+  activity: { labelTh: "กิจกรรม", labelEn: "Activity", color: "bg-cu-pink/20 text-cu-pink" },
+  announcement: { labelTh: "ประกาศ", labelEn: "Announcement", color: "bg-slate-100 text-slate-700" },
 };
 
 export const EVENT_STATUS_CONFIG: Record<EventStatus, { labelTh: string; labelEn: string; color: string }> = {
   draft: { labelTh: "แบบร่าง", labelEn: "Draft", color: "bg-gray-100 text-gray-700" },
   published: { labelTh: "เผยแพร่", labelEn: "Published", color: "bg-blue-100 text-blue-700" },
+  upcoming: { labelTh: "กำลังจะมาถึง", labelEn: "Upcoming", color: "bg-yellow-100 text-yellow-700" },
   ongoing: { labelTh: "กำลังดำเนินการ", labelEn: "Ongoing", color: "bg-green-100 text-green-700" },
   completed: { labelTh: "เสร็จสิ้น", labelEn: "Completed", color: "bg-gray-100 text-gray-600" },
   cancelled: { labelTh: "ยกเลิก", labelEn: "Cancelled", color: "bg-red-100 text-red-700" },
@@ -72,12 +75,14 @@ export const ATTENDANCE_STATUS_CONFIG: Record<AttendanceStatus, { labelTh: strin
   attended: { labelTh: "เข้าร่วม", labelEn: "Attended", color: "bg-green-100 text-green-700" },
   absent: { labelTh: "ขาด", labelEn: "Absent", color: "bg-red-100 text-red-700" },
   excused: { labelTh: "ลา", labelEn: "Excused", color: "bg-yellow-100 text-yellow-700" },
+  cancelled: { labelTh: "ยกเลิก", labelEn: "Cancelled", color: "bg-red-100 text-red-700" },
 };
 
 export const IMPACT_LEVEL_CONFIG: Record<ImpactLevel, { labelTh: string; labelEn: string }> = {
   high: { labelTh: "สูง", labelEn: "High" },
   medium: { labelTh: "ปานกลาง", labelEn: "Medium" },
   low: { labelTh: "ต่ำ", labelEn: "Low" },
+  critical: { labelTh: "วิกฤต", labelEn: "Critical" },
 };
 
 export const EVENT_TYPES: EventType[] = [

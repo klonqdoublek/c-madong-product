@@ -507,7 +507,7 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
       response = await handleRepair(message, lineUid)
       break
     case "knowledge":
-      response = await handleKnowledge(message, lineUid)
+      response = await handleKnowledge(message, lineUid, event.replyToken)
       break
     case "score":
       response = await handleScore(lineUid)

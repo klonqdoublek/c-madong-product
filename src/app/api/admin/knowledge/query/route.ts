@@ -131,7 +131,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: matchError.message }, { status: 500 });
     }
 
-    const context = (matches ?? []).map((m: { content: string }) => m.content).join("\n\n");
+    // Filter to knowledge documents only — announcements are for bot RAG, not admin Q&A
+    const docMatches = ((matches ?? []) as any[]).filter(
+      (m) => !m.source_type || m.source_type === "document"
+    );
+    const context = docMatches.map((m: { content: string }) => m.content).join("\n\n");
 
     if (!context) {
       return NextResponse.json({
@@ -171,7 +175,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       answer,
-      sources: (matches ?? []).map((m: { content: string; similarity: number }) => ({
+      sources: (docMatches as any[]).map((m) => ({
         content: m.content,
         similarity: m.similarity,
       })),

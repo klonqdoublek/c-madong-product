@@ -68,6 +68,7 @@ export function AnnouncementOrganizer() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("active");
+  const [yearFilter, setYearFilter] = useState<string>("all");
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   // Fetch announcements with filters
@@ -75,6 +76,7 @@ export function AnnouncementOrganizer() {
     folderId: selectedFolder === "all" ? "all" : selectedFolder,
     archived: statusFilter === "archived" ? true : statusFilter === "active" ? false : null,
     search: searchQuery || undefined,
+    year: yearFilter !== "all" ? yearFilter : undefined,
   });
 
   // Bulk mutations
@@ -257,6 +259,8 @@ export function AnnouncementOrganizer() {
               onSearchChange={setSearchQuery}
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}
+              yearFilter={yearFilter}
+              onYearChange={setYearFilter}
               folders={folders}
               tags={tags}
               selectedFolder={selectedFolder}

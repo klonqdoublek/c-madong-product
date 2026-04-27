@@ -117,15 +117,16 @@ export function AnnouncementDetailContent({
 
   const title = announcement.title_th || announcement.title_en || "";
   const content = announcement.content_th || announcement.content_en || "";
-  const dateStr = formatThaiDateLong(
-    announcement.published_at || announcement.created_at
-  );
   const ann = announcement as any;
   const hasDormScore = ann.has_dorm_score === true;
   const scorePoints = ann.score_points || 0;
   const location = ann.location as string | null;
   const category = ann.category as string | undefined;
   const isActivity = category === "activity";
+  const eventDate = ann.event_date as string | null;
+  // Prefer event_date for activity cards; fall back to published_at
+  const displayDate = eventDate || announcement.published_at || announcement.created_at;
+  const dateStr = formatThaiDateLong(displayDate);
 
   return (
     <div className="min-h-screen bg-[#FAF8F4] pb-40">
@@ -171,7 +172,13 @@ export function AnnouncementDetailContent({
         <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Calendar className="h-4 w-4" />
-            <span>{dateStr}</span>
+            <span>
+              {isActivity && eventDate ? (
+                <span className="font-medium text-primary">{t("eventDate")}: {dateStr}</span>
+              ) : (
+                dateStr
+              )}
+            </span>
           </div>
           {location && (
             <div className="flex items-center gap-1.5">

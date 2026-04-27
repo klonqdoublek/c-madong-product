@@ -4,16 +4,15 @@ import { searchDocuments } from "./vector-search"
 import { detectTopic } from "../fallback/topic-detector"
 import { selectFallbackMessage, updateRotationState, resetFallbackCount } from "../fallback/messages"
 import { getSmartSuggestions } from "../fallback/smart-suggestions"
+import { buildAnnouncementResourceCarousel } from "../flex-builders/announcement-resource-card"
 import type { QuickReplyItem } from "../types"
 
 interface RAGAnswerResult {
   text: string
   quickReply?: { items: QuickReplyItem[] }
+  announcementCarousel?: unknown // LINE flex payload for announcement resource cards
 }
 
-/**
- * Build fallback result — topic detection + rotating message + quick replies
- */
 async function buildFallbackResult(question: string, lineUid: string): Promise<RAGAnswerResult> {
   const topic = detectTopic(question)
   const message = await selectFallbackMessage(lineUid, topic)
@@ -27,8 +26,8 @@ async function buildFallbackResult(question: string, lineUid: string): Promise<R
 }
 
 /**
- * RAG pipeline: embed query → vector search → GPT-4o-mini answer with context.
- * Returns { text, quickReply? } with smart fallback on failure.
+ * RAG pipeline: embed query → vector search (documents + announcements) → answer.
+ * Attaches announcement resource cards when relevant announcements found.
  */
 export async function generateRAGAnswer(question: string, lineUid: string): Promise<RAGAnswerResult> {
   const results = await searchDocuments(question)
@@ -37,8 +36,12 @@ export async function generateRAGAnswer(question: string, lineUid: string): Prom
     return buildFallbackResult(question, lineUid)
   }
 
+  // Build context — tag source type for LLM awareness
   const context = results
-    .map((r, i) => `[${i + 1}] ${r.document_title}: ${r.content}`)
+    .map((r, i) => {
+      const sourceLabel = r.source_type === "announcement" ? "(ประกาศ)" : "(เอกสาร)"
+      return `[${i + 1}] ${sourceLabel} ${r.document_title}: ${r.content}`
+    })
     .join("\n\n")
 
   const prompt = RAG_ANSWER_PROMPT
@@ -59,8 +62,26 @@ export async function generateRAGAnswer(question: string, lineUid: string): Prom
     return buildFallbackResult(question, lineUid)
   }
 
-  // Success → reset fallback counter
   await resetFallbackCount(lineUid).catch(() => {})
 
-  return { text: answer }
+  // Collect high-similarity announcement results for resource cards
+  const announcementHits = results.filter(
+    (r) => r.source_type === "announcement" && r.similarity >= 0.5
+  )
+
+  let announcementCarousel: unknown = undefined
+  if (announcementHits.length > 0) {
+    announcementCarousel = buildAnnouncementResourceCarousel(
+      announcementHits.slice(0, 3).map((r) => ({
+        id: r.source_id,
+        title: r.document_title,
+        cover_image: r.cover_image,
+        event_date: (r.metadata?.event_date as string) ?? null,
+        category: (r.metadata?.category as string) ?? null,
+        summary: r.content.slice(0, 80),
+      }))
+    )
+  }
+
+  return { text: answer, announcementCarousel }
 }

@@ -187,6 +187,57 @@ export type Database = {
           },
         ]
       }
+      announcement_ai_feedback: {
+        Row: {
+          accepted_fields: string[] | null
+          announcement_id: string | null
+          comment: string | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          rating: string | null
+          rejected_fields: string[] | null
+          suggestion_snapshot: Json | null
+        }
+        Insert: {
+          accepted_fields?: string[] | null
+          announcement_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          rating?: string | null
+          rejected_fields?: string[] | null
+          suggestion_snapshot?: Json | null
+        }
+        Update: {
+          accepted_fields?: string[] | null
+          announcement_id?: string | null
+          comment?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          rating?: string | null
+          rejected_fields?: string[] | null
+          suggestion_snapshot?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_ai_feedback_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_ai_feedback_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcement_bookmarks: {
         Row: {
           announcement_id: string
@@ -418,6 +469,9 @@ export type Database = {
       }
       announcements: {
         Row: {
+          ai_confidence: number | null
+          ai_extracted: Json | null
+          ai_provider: string | null
           archived_at: string | null
           author_id: string | null
           category: string
@@ -427,15 +481,20 @@ export type Database = {
           cover_image: string | null
           created_at: string
           created_by: string | null
+          embedding: string | null
+          event_date: string | null
           expire_at: string | null
+          extraction_mode: string | null
           flex_json: Json | null
           folder_id: string | null
           has_dorm_score: boolean
           id: string
+          is_bot_searchable: boolean | null
           is_calendar_pinned: boolean | null
           is_pinned: boolean
           location: string | null
           message_type: string | null
+          ocr_text: string | null
           published_at: string | null
           scheduled_at: string | null
           score_points: number | null
@@ -449,6 +508,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_confidence?: number | null
+          ai_extracted?: Json | null
+          ai_provider?: string | null
           archived_at?: string | null
           author_id?: string | null
           category?: string
@@ -458,15 +520,20 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           created_by?: string | null
+          embedding?: string | null
+          event_date?: string | null
           expire_at?: string | null
+          extraction_mode?: string | null
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean
           id?: string
+          is_bot_searchable?: boolean | null
           is_calendar_pinned?: boolean | null
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
+          ocr_text?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           score_points?: number | null
@@ -480,6 +547,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_confidence?: number | null
+          ai_extracted?: Json | null
+          ai_provider?: string | null
           archived_at?: string | null
           author_id?: string | null
           category?: string
@@ -489,15 +559,20 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           created_by?: string | null
+          embedding?: string | null
+          event_date?: string | null
           expire_at?: string | null
+          extraction_mode?: string | null
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean
           id?: string
+          is_bot_searchable?: boolean | null
           is_calendar_pinned?: boolean | null
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
+          ocr_text?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           score_points?: number | null
@@ -2485,10 +2560,12 @@ export type Database = {
         }
         Returns: {
           content: string
-          document_id: string
+          cover_image: string
           document_title: string
-          id: string
+          metadata: Json
           similarity: number
+          source_id: string
+          source_type: string
         }[]
       }
       match_repair_templates: {
@@ -2791,61 +2868,33 @@ export const Constants = {
   },
 } as const
 
-// ── Custom type aliases (re-add after every `supabase gen types`) ──────────
-
-export type MaintenanceStatus =
-  | "under_review"
-  | "acknowledged"
-  | "in_progress"
-  | "completed"
-  | "cancelled";
-
-export type TechnicianSpecialty = Database["public"]["Enums"]["technician_specialty"];
-export type AppRole = Database["public"]["Enums"]["app_role"];
-export type BuildingScope = Database["public"]["Enums"]["building_scope"];
-export type UserRole = AppRole;
-export type BillStatus = Database["public"]["Enums"]["bill_status"];
-export type BillCategory = Database["public"]["Enums"]["bill_category"];
-export type ParcelStatus = Database["public"]["Enums"]["parcel_status"];
-export type ParcelType = Database["public"]["Enums"]["parcel_type"];
-export type NotificationType =
-  | "bill_overdue"
-  | "bill_due"
-  | "event_reminder"
-  | "parcel_arrived"
-  | "maintenance_update"
-  | "parcel_reminder"
-  | "score_added"
-  | "event_new"
-  | "chat_escalation"
-  | "announcement"
-  | "system";
-
-export type EventType =
-  | "meeting"
-  | "evaluation"
-  | "safety_drill"
-  | "obligation"
-  | "community_service"
-  | "social"
-  | "workshop"
-  | "sports"
-  | "other";
-
-export type EventStatus = "draft" | "published" | "ongoing" | "completed" | "cancelled";
-export type AttendanceStatus = "registered" | "attended" | "absent" | "excused";
-export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
-export type EvaluationStatus = "pending" | "in_progress" | "completed";
-export type CriteriaType = "rating" | "textarea";
-export type ImpactLevel = "low" | "medium" | "high";
-
+// ─── Custom type aliases (re-add after every supabase gen types) ─────────────
+export type MaintenanceStatus = "under_review" | "acknowledged" | "in_progress" | "completed" | "cancelled"
+export type TechnicianSpecialty = "electrical" | "plumbing" | "air_conditioning" | "general" | "furniture" | "internet" | "door_lock"
+export type AppRole = "super_admin" | "head" | "registrar" | "finance" | "parcel" | "admin_staff" | "service" | "activity" | "technician_head" | "technician" | "technician_it" | "committee" | "student"
+export type BuildingScope = "chumpee" | "chumpa" | "pudson" | "pudtan" | "chuanchom" | "male" | "female" | "all"
+export type UserRole = "super_admin" | "head" | "admin" | "technician_head" | "technician" | "student"
+export type BillStatus = "pending" | "paid" | "overdue" | "cancelled"
+export type BillCategory = "room" | "electricity" | "water" | "deposit" | "fine" | "other"
+export type ParcelStatus = "pending" | "notified" | "picked_up" | "returned" | "cancelled"
+export type ParcelType = "box" | "envelope" | "bag" | "oversized" | "other"
+export type NotificationType = "maintenance" | "bill" | "parcel" | "announcement" | "score" | "event" | "event_reminder" | "event_new" | "chat_escalation" | "bill_overdue" | "bill_due" | "score_added" | "maintenance_update" | "parcel_arrived" | "parcel_reminder" | "system"
+export type EventType = "activity" | "evaluation" | "announcement" | "other" | "meeting" | "safety_drill" | "obligation" | "community_service" | "social" | "workshop" | "sports"
+export type EventStatus = "upcoming" | "ongoing" | "completed" | "cancelled" | "draft" | "published"
+export type AttendanceStatus = "registered" | "attended" | "absent" | "cancelled" | "excused"
+export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload"
+export type EvaluationStatus = "draft" | "submitted" | "approved" | "rejected" | "completed"
+export type CriteriaType = "rating" | "text" | "multiple_choice" | "yes_no" | "textarea"
+export type ImpactLevel = "low" | "medium" | "high" | "critical"
 export interface MaterialItem {
-  id?: string;
-  name: string;
-  quantity: number;
-  unit: string;
-  estimated_cost?: number;
-  specific_item?: string;
-  source?: "ai" | "manual";
-  added_at?: string;
+  id?: string
+  name: string
+  quantity: number
+  unit: string
+  category?: string
+  estimated_cost?: number
+  specific_item?: string
+  source?: "ai" | "manual"
+  ai_confidence?: number
+  added_at?: string
 }
