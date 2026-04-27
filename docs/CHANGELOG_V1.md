@@ -1,7 +1,64 @@
 # C-Madong Product — Changelog
 
-> **Version 2.2.0** Release Date: 2026-04-26
-> Repair Flow v3 — materials AI, requisition versioning, LINE group push, technician bot
+> **Version 2.3.0** Release Date: 2026-04-27
+> Bed Selection — annual mandatory dorm task with floor/room grid UI, 10-min countdown, auto-confirm cron
+
+---
+
+## 🎯 V2.3.0 Updates (2026-04-27)
+
+### Bed Selection Mandatory Task
+
+**Feature Overview**
+- ✅ Annual bed selection/confirmation wired as mandatory `dorm_calendar_item` (category `bed_selection`)
+- ✅ Integrated with Dorm Calendar v1 completion tracking, D-7/D-3/D-1/D-0 reminder cron, auto-score trigger
+- ✅ Standalone route `/bed-selection` (not inside evaluation framework) — UI too custom for eval pattern
+- ✅ Student who doesn't act → current bed auto-confirmed by D-0 23:59 cron
+
+**3 Screens (Figma nodes 1313:1456, 1313:1186, 1314:1316)**
+- **Main page**: CHULALONGKORN pink heading + current bed pill top-right + floor selector 1-17 (horizontal scroll) + status bar (building + floor + available count) + legend 3 dots + 2-col room grid with bed A/B[/C/D] buttons (3 states: available/occupied/selecting)
+- **Bottom sheet (Figma 2)**: slides up on bed tap — shows selected room + bed badge + "ยืนยัน" CTA + 10-min countdown in red (`00:MM:SS`) + X cancel
+- **Confirm page (Figma 3 + design-taste polish)**: full-page (not sheet) — personal info dashed card (avatar icon, full_name_th, student_id, faculty, building) + bed transition dashed card (เตียงเดิม pill → arrow → เตียงใหม่ pill, large 24px room numbers) + footer warning + "ยืนยันการเลือก" / "ยกเลิก" CTAs
+- **Success page**: checkmark 64px + "ยืนยันเตียงสำเร็จ!" + new bed display + back/calendar links
+
+**Client-side Countdown (10 min)**
+- Zustand persist store (`bed-selection-store.ts`) holds `selectedBedId`, `expiresAt` (epoch+600000ms)
+- `requestAnimationFrame` tick in `BedReservationSheet` (NOT in store) → countdown string
+- Timer survives page refresh (localStorage); re-opens sheet on revisit if not expired
+- Expiry → auto-clear + toast → user must re-pick
+
+**Mock Occupancy (FNV-1a hash)**
+- Real `beds` table queried for user's building per floor (2,448 beds, 17 floors, real structure)
+- `isMockOccupied(bedId, semester, currentBedId)` → deterministic ~70% occupied per semester seed
+- User's own `profile.bed_id` always `isOccupied=false` (always selectable)
+- TODO comment: swap to real `beds.is_occupied` once admin tooling seeds occupancy
+
+**Data Flow on Confirm**
+- `POST /api/student/bed-selection` validates same-building, re-checks mock occupied (race guard → 409)
+- Updates `profiles.bed_id + room_id`, flips `beds.is_occupied` (old → false, new → true)
+- Finds active `bed_selection` calendar item → `upsert dorm_calendar_completions` (triggers auto-score)
+- TanStack Query invalidates: `profile`, `residence-info`, `dorm-calendar`, `bed-selection-layout`
+
+**Auto-Confirm Cron**
+- `GET /api/cron/bed-selection-auto-confirm` — protected by `CRON_SECRET`
+- Finds past-due `bed_selection` item, batch-inserts completion with `method='auto_confirm'` for students without completion
+- Schedule `59 16 * * *` (UTC) = 23:59 BKT
+
+**Migrations**
+- `20260429_bed_selection_enums.sql` — ALTER TYPE adds `bed_selection`, `internal_bed_selection`, `auto_confirm`
+- `20260430_bed_selection_seed.sql` — seeds calendar item (start 2026-05-01, due 2026-05-31, score +2 / penalty -5)
+
+**Files**
+- NEW: `src/stores/bed-selection-store.ts`
+- NEW: `src/lib/utils/bed-mock.ts` (FNV-1a hash util)
+- NEW: `src/hooks/use-bed-selection.ts` (3 hooks: layout query, confirm mutation, current bed info)
+- NEW API: `src/app/api/student/bed-selection/route.ts` (GET + POST)
+- NEW cron: `src/app/api/cron/bed-selection-auto-confirm/route.ts`
+- NEW components: `src/components/student/bed-selection/` (6 files: bed-button, room-card, bed-reservation-sheet, bed-selection-content, confirm-content, success-content)
+- NEW pages: `src/app/[locale]/(student)/bed-selection/page.tsx`, `/confirm/page.tsx`, `/success/page.tsx`
+- MODIFIED: `task-card.tsx` (add `internal_bed_selection` CTA + `bed_selection` category label), `list-view.tsx` (same category label), `use-dorm-calendar.ts` (type unions), `types.ts` (custom aliases re-added post gen-types), `vercel.json` (new cron)
+
+**Commit**: `842328d`
 
 ---
 

@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.8
-> **Last Updated**: 2026-04-26
+> **Version**: 2.9
+> **Last Updated**: 2026-04-27
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -1138,6 +1138,8 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
   - RAG accuracy: sentence-aware chunking (800 chars), better prompt with source citation, max_tokens 300
   - Response length: 1-2 sentence cap, emoji bullets, truncation safety net (2000 chars)
 - ✅ **Knowledge Base AI v2.7 (2026-04-24)** — Knowledge Base AI suggestions, version control, and feedback analytics card on admin dashboard
+- ✅ **Dorm Calendar v1 (2026-04-26)** — Mandatory task calendar (8 categories), hybrid flag-first sources, admin CRUD + batch, D-7/D-3/D-1/D-0 cron reminders, Framer Motion UX
+- ✅ **Bed Selection v2.3.0 (2026-04-27)** — Annual mandatory bed selection flow: floor selector (1-17), room grid with live mock occupancy, 10-min countdown client timer, confirm page (personal info + bed transition card), success page, auto-confirm cron D-0 23:59 BKT, dorm_calendar completion + score integration
 
 #### Technical Metrics (V1)
 - **Pages**: 36 (student + admin)

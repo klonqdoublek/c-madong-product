@@ -5,6 +5,37 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-04-27)
+
+### Bed Selection v2.3.0 — DEPLOYED
+
+**Flow**: `/bed-selection` → floor select → tap bed → 10-min countdown bottom sheet → `/bed-selection/confirm` → `/bed-selection/success`. Auto-confirm D-0 23:59 cron for no-shows.
+
+**Route**: Standalone (not inside evaluation framework). Triggered from `dorm_calendar_items` CTA `internal_bed_selection` → task-card routes to `/bed-selection`.
+
+**Mock occupancy**: FNV-1a hash `isMockOccupied(bedId, semester, currentBedId)` in `src/lib/utils/bed-mock.ts` → ~70% occupied deterministically. User's own bed always free. TODO: replace with real `beds.is_occupied`.
+
+**Countdown**: Zustand persist store (`bed-selection-store.ts`) — `selectedBedId`, `expiresAt` (+600000ms). `requestAnimationFrame` tick in `BedReservationSheet` (NOT in store). Survives page refresh. Expire → auto-clear + toast.
+
+**Confirm API** `POST /api/student/bed-selection`: validates same-building → re-checks mock occupied (race → 409 "เตียงนี้ถูกจองไปแล้ว") → UPDATE profiles.bed_id+room_id → flip beds.is_occupied → upsert dorm_calendar_completions (triggers auto-score).
+
+**Migrations**: `20260429_bed_selection_enums.sql` (ALTER TYPE adds bed_selection, internal_bed_selection, auto_confirm) + `20260430_bed_selection_seed.sql` (calendar item, due 2026-05-31, +2/-5 score).
+
+**Files**:
+- NEW: `src/stores/bed-selection-store.ts`, `src/lib/utils/bed-mock.ts`, `src/hooks/use-bed-selection.ts`
+- NEW API: `src/app/api/student/bed-selection/route.ts` (GET+POST), `src/app/api/cron/bed-selection-auto-confirm/route.ts`
+- NEW components (6): `src/components/student/bed-selection/` — bed-button, room-card, bed-reservation-sheet, bed-selection-content, confirm-content, success-content
+- NEW pages (3): `bed-selection/page.tsx`, `bed-selection/confirm/page.tsx`, `bed-selection/success/page.tsx`
+- MODIFIED: `task-card.tsx`, `list-view.tsx`, `use-dorm-calendar.ts`, `types.ts`, `vercel.json`
+
+**Gotchas**:
+- `ALTER TYPE ... ADD VALUE` must be separate migration from INSERT that uses new enum value (Postgres: new value not visible in same transaction)
+- `supabase gen types` CLI stdout includes banner text ("Initialising login role...", "We recommend updating...") → prepend/append garbage into types.ts — always pipe to file and strip manually if needed
+- `BedReservationSheet` countdown uses `requestAnimationFrame` NOT `setInterval` — setInterval causes re-render thrash at 60fps; RAF deferred by React is fine for display-only countdown
+- Custom type aliases wiped on gen types: 11 types + MaterialItem interface — list: `MaintenanceStatus`, `TechnicianSpecialty`, `AppRole`, `BuildingScope`, `UserRole`, `BillStatus`, `BillCategory`, `ParcelStatus`, `ParcelType`, `NotificationType`, `EventType`, `EventStatus`, `AttendanceStatus`, `EvaluationFormType`, `EvaluationStatus`, `CriteriaType`, `ImpactLevel`, `MaterialItem`
+
+---
+
 ## Recent Changes (2026-04-26)
 
 ### Repair Flow v3 + Requisition Versioning — DEPLOYED
