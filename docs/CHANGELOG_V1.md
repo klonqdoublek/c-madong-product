@@ -976,6 +976,50 @@ C-Madong V1 เป็น digital platform สำหรับการจัด�
 Tech Stack: Next.js 16 · Supabase · LINE · OpenAI · TailwindCSS
 Production: https://c-madong-product.vercel.app
 
+## Announcement AI Poster Upload v2.4.0 (DEPLOYED — 2026-04-27)
+
+### Features
+- ✅ **Poster Upload Wizard** — 3-step UI: dropzone → AI analyzing → review. Mode toggle: รูป+ข้อความ (OCR) vs รูปอย่างเดียว (image only)
+- ✅ **Typhoon OCR** (primary) — Thai-optimized OCR via `api.opentyphoon.ai`. Outperforms GPT-4o/Gemini 2.5 Flash on stylized Canva posters. Falls back to GPT-4o vision on 5xx/timeout
+- ✅ **gpt-4o-mini Structurer** (`announcement-agent.ts`) — Converts OCR markdown → JSON: title_th/en, content, category, event_date (ISO), location, has_dorm_score, folder_id, tag_ids. Validates returned IDs against existing DB, drops hallucinations
+- ✅ **AI Suggestion Dialog** — 4-state flow (loading → main edit → thumbs feedback → comment). All fields editable before save. Feedback stored in `announcement_ai_feedback` table
+- ✅ **New `event_date` DB column** — Date of the event itself (separate from published_at). Extracted by AI. Shown in student activity carousel and announcement detail
+- ✅ **Bot RAG integration** — `announcements.embedding vector(1536)` + `is_bot_searchable` toggle. `match_documents` RPC extended via UNION — น้องซีมะโด่ง can now answer questions about announcements and returns Flex resource cards (cover image + title + ดูประกาศ CTA)
+- ✅ **Year filter** on organize page — derived from `created_at`, shows พ.ศ. year dropdown
+- ✅ **"Paste from Facebook" mockup pill** — opens future-feature dialog (no backend yet)
+- ✅ **Bot searchable switch** in create form — default ON
+- ✅ `scripts/embed-existing-announcements.ts` — one-shot backfill for existing published announcements
+
+### New Files
+- `src/lib/ai/typhoon-ocr.ts`, `src/lib/ai/agents/announcement-agent.ts`
+- `src/app/api/admin/announcements/analyze-poster/route.ts`, `[id]/embed/route.ts`, `[id]/ai-feedback/route.ts`
+- `src/lib/chatbot/flex-builders/announcement-resource-card.ts`
+- `src/components/admin/announcements/poster-upload-flow.tsx`, `ai-suggestion-dialog.tsx`
+- `scripts/embed-existing-announcements.ts`
+- `supabase/migrations/20260501_announcement_ai_extraction.sql`
+
+### Modified Files
+- `src/lib/chatbot/rag/vector-search.ts` (SearchResult type + source_type field)
+- `src/lib/chatbot/rag/answer-generator.ts` (announcement carousel on high-similarity hits)
+- `src/lib/chatbot/handlers/knowledge.ts` (replyToken param for multi-message reply)
+- `src/lib/chatbot/webhook-handler.ts` (pass replyToken to knowledge handler)
+- `src/app/api/admin/announcements/route.ts` (POST handler + year filter)
+- `src/app/api/admin/knowledge/query/route.ts` (filter source_type=document only)
+- `src/components/admin/announcements/new-announcement-page-content.tsx` (AI CTA + new fields)
+- `src/components/admin/announcements/organize/components/filter-bar.tsx` (year dropdown)
+- `src/components/student/announcements/announcement-detail-content.tsx` (event_date display)
+- `src/components/student/news/featured-activity-carousel.tsx` (event_date in caption)
+- `src/lib/supabase/types.ts` (regenerated + 18 aliases + pre-existing enum fixes)
+- Env: `TYPHOON_OCR_API_KEY` added to Vercel prod + `.env.local.example`
+
+### AI Pipeline Cost
+- Typhoon OCR: ~฿0.50/poster | gpt-4o-mini structure: ~฿0.10 | embedding: ~฿0.01 → **~฿0.61/poster**
+
+### Commit
+- `da90965` — feat(announcements): AI poster upload — Typhoon OCR + bot RAG v2.4.0
+
+---
+
 ## Student Menu Nav + Bottom Sheet Arrangement (DEPLOYED — 2026-04-23)
 
 ### Features

@@ -1,6 +1,6 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 2.9
+> **Version**: 3.0
 > **Last Updated**: 2026-04-27
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
@@ -1140,6 +1140,7 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 - ✅ **Knowledge Base AI v2.7 (2026-04-24)** — Knowledge Base AI suggestions, version control, and feedback analytics card on admin dashboard
 - ✅ **Dorm Calendar v1 (2026-04-26)** — Mandatory task calendar (8 categories), hybrid flag-first sources, admin CRUD + batch, D-7/D-3/D-1/D-0 cron reminders, Framer Motion UX
 - ✅ **Bed Selection v2.3.0 (2026-04-27)** — Annual mandatory bed selection flow: floor selector (1-17), room grid with live mock occupancy, 10-min countdown client timer, confirm page (personal info + bed transition card), success page, auto-confirm cron D-0 23:59 BKT, dorm_calendar completion + score integration
+- ✅ **Announcement AI Poster Upload v2.4.0 (2026-04-27)** — Admin uploads Canva poster → Typhoon OCR extracts Thai text → gpt-4o-mini structures into title/body/event_date/category/tags → AI suggestion dialog (4-state, editable, feedback loop). New `event_date` column shown in student activity carousel. Published announcements embedded (vector 1536) into `match_documents` UNION — น้องซีมะโด่ง can answer questions about announcements and return Flex resource cards. Commit: `da90965`
 
 #### Technical Metrics (V1)
 - **Pages**: 36 (student + admin)
