@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateEmbedding } from "@/lib/chatbot/rag/embeddings";
+import { hasAnnouncementPermission } from "@/lib/rbac/announcement-permissions";
+import { Permission } from "@/lib/rbac/permissions";
 
 export async function PATCH(
   request: NextRequest,
@@ -18,7 +20,7 @@ export async function PATCH(
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head", "super_admin"].includes(profile.role!)) {
+    if (!hasAnnouncementPermission(profile?.role, Permission.ANNOUNCEMENTS_EDIT)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

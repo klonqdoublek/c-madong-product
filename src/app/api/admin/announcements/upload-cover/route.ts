@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { hasAnnouncementPermission } from "@/lib/rbac/announcement-permissions";
+import { Permission } from "@/lib/rbac/permissions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +23,7 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head", "super_admin"].includes(profile.role!)) {
+    if (!hasAnnouncementPermission(profile?.role, Permission.ANNOUNCEMENTS_CREATE)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -60,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to Supabase Storage
     const adminDb = createAdminClient();
-    const { data, error } = await adminDb.storage
+    const { error } = await adminDb.storage
       .from("announcement-covers")
       .upload(fileName, file, {
         contentType: file.type,
