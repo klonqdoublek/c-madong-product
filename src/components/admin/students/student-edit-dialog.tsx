@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useBuildings, useRooms, useBeds } from "@/hooks/use-buildings";
 import { useTags } from "@/hooks/use-tags";
 import { useUpdateStudent } from "@/hooks/use-students";
@@ -44,17 +45,22 @@ export function StudentEditDialog({ student, open, onClose }: Props) {
   }, [open, student]);
 
   async function handleSave() {
-    await updateStudent.mutateAsync({
-      id: student.id,
-      full_name_th: fullNameTh,
-      student_id: studentIdVal || null,
-      building_id: buildingId || null,
-      room_id: roomId || null,
-      bed_id: bedId || null,
-      tags,
-      status,
-    });
-    onClose();
+    try {
+      await updateStudent.mutateAsync({
+        id: student.id,
+        full_name_th: fullNameTh,
+        student_id: studentIdVal || null,
+        building_id: buildingId || null,
+        room_id: roomId || null,
+        bed_id: bedId || null,
+        tags,
+        status,
+      });
+      toast.success("บันทึกข้อมูลนิสิตเรียบร้อยแล้ว");
+      onClose();
+    } catch (err: any) {
+      toast.error(err.message ?? "บันทึกไม่สำเร็จ");
+    }
   }
 
   if (!open) return null;

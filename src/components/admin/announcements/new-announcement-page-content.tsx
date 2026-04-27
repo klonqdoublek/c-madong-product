@@ -178,6 +178,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     try {
       await saveViaApi(status);
       queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      toast.success("บันทึกร่างเรียบร้อยแล้ว");
       router.push("/admin/announcements");
     } catch (err: any) {
       toast.error(err.message ?? "บันทึกไม่สำเร็จ");
@@ -191,11 +192,16 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     try {
       const id = await saveViaApi("sent");
       queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
-      await fetch("/api/admin/announcements/send", {
+      const sendRes = await fetch("/api/admin/announcements/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ announcementId: id, targetType, targetTags, messageType, content: contentTh, flexJson }),
       });
+      if (!sendRes.ok) {
+        toast.warning("บันทึกสำเร็จ แต่ส่ง LINE ไม่ได้ — ลองส่งใหม่ในหน้ารายการ");
+      } else {
+        toast.success("ส่งประกาศสำเร็จแล้ว 🎉");
+      }
       router.push("/admin/announcements");
     } catch (err: any) {
       toast.error(err.message ?? "ส่งประกาศไม่สำเร็จ");
