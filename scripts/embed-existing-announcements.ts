@@ -5,6 +5,24 @@
  * Run: npx tsx scripts/embed-existing-announcements.ts
  */
 
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+// Load .env.local manually (tsx doesn't auto-load it)
+try {
+  const envPath = resolve(process.cwd(), ".env.local");
+  const lines = readFileSync(envPath, "utf-8").split("\n");
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eqIdx = trimmed.indexOf("=");
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    const val = trimmed.slice(eqIdx + 1).trim();
+    if (!process.env[key]) process.env[key] = val;
+  }
+} catch { /* .env.local not found, rely on existing env */ }
+
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 

@@ -4,15 +4,12 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Sparkles, Upload, Bot, Eye, EyeOff,
-} from "lucide-react";
+import { Sparkles, Upload, Bot } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { useCreateAnnouncement, useUpdateAnnouncement, useAnnouncement } from "@/hooks/use-announcements";
+import { useAnnouncement } from "@/hooks/use-announcements";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTags } from "@/hooks/use-tags";
 import { useAnnouncementFolders } from "@/hooks/use-announcement-organize";
 import { FlexMessageEditor } from "@/components/admin/flex-editor/flex-message-editor";
@@ -41,8 +38,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const t = useTranslations("admin.newAnnouncement");
   const router = useRouter();
   const { data: existing } = useAnnouncement(announcementId ?? null);
-  const createAnnouncement = useCreateAnnouncement();
-  const updateAnnouncement = useUpdateAnnouncement();
+  const queryClient = useQueryClient();
   const { data: tags } = useTags();
   const { data: folders } = useAnnouncementFolders();
 
@@ -151,36 +147,58 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       ai_extracted: (aiExtracted?.suggestion ?? null) as any,
       ai_provider: aiExtracted?.ocr_provider ?? null,
       embed_text: aiExtracted?.embed_text ?? null,
-      author_id: "",
     };
   }
 
-  async function handleSave(status: string) {
+  async function saveViaApi(status: string): Promise<string> {
+    const body = buildSaveData(status);
     if (announcementId) {
-      await updateAnnouncement.mutateAsync({ id: announcementId, ...buildSaveData(status) } as any);
+      const res = await fetch(`/api/admin/announcements/${announcementId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update");
+      const data = await res.json();
+      return data.announcement?.id ?? announcementId;
     } else {
-      await (createAnnouncement as any).mutateAsync(buildSaveData(status));
+      const res = await fetch("/api/admin/announcements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to create");
+      const data = await res.json();
+      return data.announcement?.id;
     }
-    router.push("/admin/announcements");
+  }
+
+  async function handleSave(status: string) {
+    setSending(true);
+    try {
+      await saveViaApi(status);
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      router.push("/admin/announcements");
+    } catch (err: any) {
+      toast.error(err.message ?? "บันทึกไม่สำเร็จ");
+    } finally {
+      setSending(false);
+    }
   }
 
   async function handleSend() {
     setSending(true);
     try {
-      const data = { ...buildSaveData("sent"), sent_at: new Date().toISOString() };
-      let id = announcementId;
-      if (id) {
-        await updateAnnouncement.mutateAsync({ id, ...data } as any);
-      } else {
-        const result = await (createAnnouncement as any).mutateAsync(data);
-        id = result.announcement?.id ?? result.id;
-      }
+      const id = await saveViaApi("sent");
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
       await fetch("/api/admin/announcements/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ announcementId: id, targetType, targetTags, messageType, content: contentTh, flexJson }),
       });
       router.push("/admin/announcements");
+    } catch (err: any) {
+      toast.error(err.message ?? "ส่งประกาศไม่สำเร็จ");
     } finally {
       setSending(false);
     }
@@ -417,7 +435,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       <div className="flex gap-2 pb-6">
         <button
           onClick={() => handleSave("draft")}
-          disabled={createAnnouncement.isPending || updateAnnouncement.isPending}
+          disabled={sending}
           className="rounded-lg border px-4 py-2 text-sm hover:bg-muted/50 disabled:opacity-50"
         >
           {t("saveDraft")}
