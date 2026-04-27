@@ -164,6 +164,7 @@ export async function POST(request: NextRequest) {
     const adminDb = createAdminClient();
 
     const insertData: Record<string, unknown> = {
+      title: title_th || title_en || "",
       title_th,
       title_en: title_en || title_th,
       content_th,

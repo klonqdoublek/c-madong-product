@@ -42,7 +42,7 @@ export async function PATCH(
       updated_at: new Date().toISOString(),
     };
 
-    if (title_th !== undefined) updateData.title_th = title_th;
+    if (title_th !== undefined) { updateData.title_th = title_th; updateData.title = title_th; }
     if (title_en !== undefined) updateData.title_en = title_en || title_th;
     if (content_th !== undefined) updateData.content_th = content_th;
     if (content_en !== undefined) updateData.content_en = content_en || content_th;
