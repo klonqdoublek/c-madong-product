@@ -133,7 +133,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       message_type: messageType,
       flex_json: (messageType === "flex" ? flexJson : null) as any,
       target_type: targetType,
-      target_tags: targetType === "tags" ? targetTags : [],
+      target_tags: targetType === "targeted" ? targetTags : [],
       is_pinned: isPinned,
       cover_image: coverImage,
       status,
@@ -370,9 +370,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
           className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
         >
           <option value="broadcast">{t("targetBroadcast")}</option>
-          <option value="tags">{t("targetTags")}</option>
+          <option value="targeted">{t("targetTags")}</option>
         </select>
-        {targetType === "tags" && (
+        {targetType === "targeted" && (
           <div className="mt-2 flex flex-wrap gap-2">
             {tags?.map((tag) => (
               <button

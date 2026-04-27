@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateEmbedding } from "@/lib/chatbot/rag/embeddings";
+import { hasAnnouncementPermission } from "@/lib/rbac/announcement-permissions";
+import { Permission } from "@/lib/rbac/permissions";
 
 export async function GET(request: NextRequest) {
   try {
@@ -144,7 +146,7 @@ export async function POST(request: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    if (!profile || !["admin", "head", "super_admin"].includes(profile.role!)) {
+    if (!hasAnnouncementPermission(profile?.role, Permission.ANNOUNCEMENTS_CREATE)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -171,7 +173,7 @@ export async function POST(request: NextRequest) {
       content_en: content_en || content_th,
       message_type: message_type ?? "text",
       flex_json: flex_json ?? null,
-      target_type: target_type ?? "broadcast",
+      target_type: (target_type === "tags" ? "targeted" : target_type) ?? "broadcast",
       target_tags: target_tags ?? [],
       is_pinned: is_pinned ?? false,
       cover_image: cover_image ?? null,
