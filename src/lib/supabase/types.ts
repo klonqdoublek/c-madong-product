@@ -483,6 +483,10 @@ export type Database = {
           created_by: string | null
           embedding: string | null
           event_date: string | null
+          event_end_date: string | null
+          event_all_day: boolean | null
+          event_start_time: string | null
+          event_end_time: string | null
           expire_at: string | null
           extraction_mode: string | null
           flex_json: Json | null
@@ -523,6 +527,10 @@ export type Database = {
           created_by?: string | null
           embedding?: string | null
           event_date?: string | null
+          event_end_date?: string | null
+          event_all_day?: boolean | null
+          event_start_time?: string | null
+          event_end_time?: string | null
           expire_at?: string | null
           extraction_mode?: string | null
           flex_json?: Json | null
@@ -563,6 +571,10 @@ export type Database = {
           created_by?: string | null
           embedding?: string | null
           event_date?: string | null
+          event_end_date?: string | null
+          event_all_day?: boolean | null
+          event_start_time?: string | null
+          event_end_time?: string | null
           expire_at?: string | null
           extraction_mode?: string | null
           carousel_images?: string[] | null

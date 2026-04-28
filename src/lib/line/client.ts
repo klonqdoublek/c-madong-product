@@ -126,6 +126,54 @@ export async function broadcastImageMessage(
   })
 }
 
+export async function broadcastImageCarousel(
+  columns: Array<{ imageUrl: string; ctaUrl?: string; label?: string }>
+): Promise<void> {
+  const api = getClient()
+  await api.broadcast({
+    messages: [
+      {
+        type: "template",
+        altText: "รูปภาพประกาศ",
+        template: {
+          type: "image_carousel",
+          columns: columns.slice(0, 10).map((col) => ({
+            imageUrl: col.imageUrl,
+            action: col.ctaUrl
+              ? { type: "uri", label: col.label ?? "ดูรายละเอียด", uri: col.ctaUrl }
+              : { type: "message", label: "ดูประกาศ", text: "ดูประกาศ" },
+          })),
+        },
+      } as unknown as import("@line/bot-sdk").messagingApi.Message,
+    ],
+  })
+}
+
+export async function pushImageCarousel(
+  lineUid: string,
+  columns: Array<{ imageUrl: string; ctaUrl?: string; label?: string }>
+): Promise<void> {
+  const api = getClient()
+  await api.pushMessage({
+    to: lineUid,
+    messages: [
+      {
+        type: "template",
+        altText: "รูปภาพประกาศ",
+        template: {
+          type: "image_carousel",
+          columns: columns.slice(0, 10).map((col) => ({
+            imageUrl: col.imageUrl,
+            action: col.ctaUrl
+              ? { type: "uri", label: col.label ?? "ดูรายละเอียด", uri: col.ctaUrl }
+              : { type: "message", label: "ดูประกาศ", text: "ดูประกาศ" },
+          })),
+        },
+      } as unknown as import("@line/bot-sdk").messagingApi.Message,
+    ],
+  })
+}
+
 export async function pushImageMessage(
   lineUid: string,
   originalContentUrl: string,

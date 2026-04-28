@@ -37,6 +37,7 @@ export async function PATCH(
       is_bot_searchable,
       embed_text,
       carousel_images,
+      event_end_date, event_all_day, event_start_time, event_end_time,
     } = body;
 
     const adminDb = createAdminClient();
@@ -69,6 +70,10 @@ export async function PATCH(
     if (extraction_mode !== undefined) updateData.extraction_mode = extraction_mode;
     if (folder_id !== undefined) updateData.folder_id = folder_id || null;
     if (carousel_images !== undefined) updateData.carousel_images = carousel_images ?? [];
+    if (event_end_date !== undefined) updateData.event_end_date = event_end_date || null;
+    if (event_all_day !== undefined) updateData.event_all_day = event_all_day;
+    if (event_start_time !== undefined) updateData.event_start_time = event_start_time || null;
+    if (event_end_time !== undefined) updateData.event_end_time = event_end_time || null;
 
     if (status === "sent") {
       updateData.sent_at = new Date().toISOString();

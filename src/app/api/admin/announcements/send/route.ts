@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage, pushFlexMessage, broadcastImageMessage, pushImageMessage } from "@/lib/line/client";
+import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage, pushFlexMessage, broadcastImageMessage, pushImageMessage, broadcastImageCarousel, pushImageCarousel } from "@/lib/line/client";
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,11 +28,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { announcementId, targetType, targetTags, messageType, content, flexJson, imageUrl } = body;
+    const {
+      announcementId, targetType, targetTags, messageType, content, flexJson,
+      imageUrl, imageUrls, imageCarouselMode,
+    } = body;
 
     const adminDb = createAdminClient();
 
-    // Resolve flex payload: use provided flexJson, or auto-build from DB data
+    // Resolve flex payload
     let resolvedFlexJson: FlexMessagePayload | null = flexJson ?? null;
     if (messageType === "flex" && !resolvedFlexJson && announcementId) {
       const { data: ann } = await (adminDb as any)
@@ -43,12 +46,17 @@ export async function POST(request: Request) {
       resolvedFlexJson = (ann?.flex_json as FlexMessagePayload) ?? null;
     }
 
-    // Resolve image URL for image message type
-    const resolvedImageUrl: string | null = imageUrl ?? null;
+    // Resolve image data
+    const resolvedImageUrl: string | null = imageUrl ?? (imageUrls?.[0] ?? null);
+    const resolvedImageUrls: string[] = imageUrls ?? (imageUrl ? [imageUrl] : []);
+    const isCarousel = imageCarouselMode && resolvedImageUrls.length > 1;
+
+    const carouselColumns = resolvedImageUrls.map((url: string) => ({ imageUrl: url }));
 
     async function sendToTarget(lineUid: string) {
-      if (messageType === "image" && resolvedImageUrl) {
-        return pushImageMessage(lineUid, resolvedImageUrl, resolvedImageUrl);
+      if (messageType === "image") {
+        if (isCarousel) return pushImageCarousel(lineUid, carouselColumns);
+        if (resolvedImageUrl) return pushImageMessage(lineUid, resolvedImageUrl, resolvedImageUrl);
       }
       if (messageType === "flex" && resolvedFlexJson) {
         return pushFlexMessage(lineUid, resolvedFlexJson);
@@ -57,8 +65,9 @@ export async function POST(request: Request) {
     }
 
     if (targetType === "broadcast") {
-      if (messageType === "image" && resolvedImageUrl) {
-        await broadcastImageMessage(resolvedImageUrl, resolvedImageUrl);
+      if (messageType === "image") {
+        if (isCarousel) await broadcastImageCarousel(carouselColumns);
+        else if (resolvedImageUrl) await broadcastImageMessage(resolvedImageUrl, resolvedImageUrl);
       } else if (messageType === "flex" && resolvedFlexJson) {
         await broadcastFlexMessage(resolvedFlexJson);
       } else if (content) {

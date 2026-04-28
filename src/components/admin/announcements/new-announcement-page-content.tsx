@@ -22,7 +22,8 @@ import { FlexMessagePreview } from "@/components/admin/announcements/flex-messag
 import { AnnouncementStepper } from "@/components/admin/announcements/announcement-stepper";
 import { AnnouncementCategoryPills } from "@/components/admin/announcements/announcement-category-pills";
 import { AnnouncementMessageTypeCards } from "@/components/admin/announcements/announcement-message-type-cards";
-import { AnnouncementImageMessage } from "@/components/admin/announcements/announcement-image-message";
+import { AnnouncementImageMessage, type ImageMessageState } from "@/components/admin/announcements/announcement-image-message";
+import { AnnouncementEventDate, type EventDateValues } from "@/components/admin/announcements/announcement-event-date";
 import { AnnouncementStep2, type Step2Values } from "@/components/admin/announcements/announcement-step2";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
@@ -35,19 +36,28 @@ function LinePreviewPanel({
   body,
   coverImage,
   messageType,
-  imageUrl,
+  imageUrls,
+  carouselMode,
   date,
-  category,
 }: {
   title: string;
   body: string;
   coverImage: string | null;
   messageType: "text" | "flex" | "image";
-  imageUrl?: string | null;
+  imageUrls: string[];
+  carouselMode: boolean;
   date?: string;
-  category?: string;
 }) {
-  const displayImage = messageType === "image" ? (imageUrl ?? null) : coverImage;
+  const [previewIdx, setPreviewIdx] = useState(0);
+  const activeImage = messageType === "image"
+    ? (imageUrls[previewIdx] ?? null)
+    : coverImage;
+
+  const typeBadge =
+    messageType === "text" ? "Text Message"
+    : messageType === "flex" ? "Flex Message"
+    : carouselMode && imageUrls.length > 1 ? "Image Carousel"
+    : "Image Message";
 
   return (
     <div className="hidden xl:flex flex-col items-center gap-3">
@@ -57,10 +67,8 @@ function LinePreviewPanel({
 
       {/* Phone frame */}
       <div className="relative h-[520px] w-[260px] rounded-[32px] border-[6px] border-gray-800 bg-gray-800 shadow-2xl">
-        {/* Notch */}
         <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-gray-900" />
 
-        {/* Screen */}
         <div className="flex h-full flex-col overflow-hidden rounded-[28px] bg-[#EFEFF4]">
           {/* Status bar */}
           <div className="flex items-center justify-between bg-white px-4 pb-1 pt-5 text-[9px] font-semibold text-gray-500">
@@ -84,17 +92,48 @@ function LinePreviewPanel({
                 <p className="mt-1 text-[9px] leading-relaxed text-gray-500 line-clamp-5">
                   {body || "เนื้อหาประกาศ..."}
                 </p>
+                {date && <p className="mt-1 text-[8px] text-gray-400">{date}</p>}
               </div>
-            ) : messageType === "image" && displayImage ? (
-              <div className="max-w-[200px] overflow-hidden rounded-xl shadow-sm">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={displayImage} alt="" className="w-full object-cover" />
+
+            ) : messageType === "image" ? (
+              <div className="space-y-1.5">
+                {imageUrls.length > 0 ? (
+                  <div className="max-w-[200px] overflow-hidden rounded-xl shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={imageUrls[previewIdx]}
+                      alt=""
+                      className="w-full object-cover transition-all duration-300"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-24 w-[200px] items-center justify-center rounded-xl bg-muted/50 text-[10px] text-muted-foreground">
+                    ยังไม่มีรูปภาพ
+                  </div>
+                )}
+                {/* Carousel dots */}
+                {carouselMode && imageUrls.length > 1 && (
+                  <div className="flex items-center gap-1 pl-1">
+                    {imageUrls.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPreviewIdx(i)}
+                        className={`rounded-full transition-all ${
+                          i === previewIdx ? "h-1.5 w-4 bg-primary" : "h-1.5 w-1.5 bg-gray-300"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
+
             ) : (
+              /* Flex / default */
               <div className="max-w-[200px] overflow-hidden rounded-xl bg-white shadow-sm">
-                {displayImage && (
+                {activeImage && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImage} alt="" className="h-24 w-full object-cover" />
+                  <img src={activeImage} alt="" className="h-24 w-full object-cover" />
                 )}
                 <div className="p-2.5">
                   <p className="text-[11px] font-bold text-gray-900 line-clamp-1">
@@ -103,9 +142,7 @@ function LinePreviewPanel({
                   <p className="mt-0.5 text-[9px] text-gray-400 line-clamp-2">
                     {body || "เนื้อหา..."}
                   </p>
-                  {date && (
-                    <p className="mt-1 text-[8px] text-gray-400">{date}</p>
-                  )}
+                  {date && <p className="mt-1 text-[8px] text-gray-400">{date}</p>}
                   <div className="mt-1.5 rounded bg-primary py-1 text-center text-[9px] font-semibold text-white">
                     ดูรายละเอียด
                   </div>
@@ -118,7 +155,7 @@ function LinePreviewPanel({
 
       {/* Type badge */}
       <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-        {messageType === "text" ? "Text Message" : messageType === "flex" ? "Flex Message" : "Image Message"}
+        {typeBadge}
       </span>
     </div>
   );
@@ -164,7 +201,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [isPinned, setIsPinned] = useState(existing?.is_pinned ?? false);
   const [coverImage, setCoverImage] = useState<string | null>(existing?.cover_image ?? null);
   const [coverPath, setCoverPath] = useState<string | null>(null);
-  const [imageMessageUrl, setImageMessageUrl] = useState<string | null>(null);
+  const [imageMsg, setImageMsg] = useState<ImageMessageState>({ imageUrls: [], carouselMode: false });
   const [carouselImages, setCarouselImages] = useState<string[]>(
     (existing as any)?.carousel_images ?? []
   );
@@ -172,7 +209,13 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
 
   /* ── AI / metadata ── */
   const [category, setCategory] = useState((existing as any)?.category ?? "announcement");
-  const [eventDate, setEventDate] = useState((existing as any)?.event_date ?? "");
+  const [eventDateValues, setEventDateValues] = useState<EventDateValues>({
+    allDay: true,
+    startDate: (existing as any)?.event_date ?? "",
+    endDate: (existing as any)?.event_end_date ?? "",
+    startTime: (existing as any)?.event_start_time ?? "",
+    endTime: (existing as any)?.event_end_time ?? "",
+  });
   const [location, setLocation] = useState((existing as any)?.location ?? "");
   const [hasDormScore, setHasDormScore] = useState((existing as any)?.has_dorm_score ?? false);
   const [scorePoints, setScorePoints] = useState(String((existing as any)?.score_points ?? ""));
@@ -229,7 +272,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     setTitleEn(applied.title_en);
     setContentTh(applied.content_th);
     setCategory(applied.category);
-    setEventDate(applied.event_date ?? "");
+    setEventDateValues((prev) => ({ ...prev, startDate: applied.event_date ?? "" }));
     setLocation(applied.location ?? "");
     setHasDormScore(applied.has_dorm_score);
     setScorePoints(String(applied.score_points ?? ""));
@@ -247,10 +290,14 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       target_type: step2.targetType,
       target_tags: step2.targetType === "targeted" ? step2.targetTags : [],
       is_pinned: isPinned,
-      cover_image: coverImage,
+      cover_image: messageType === "image" ? (imageMsg.imageUrls[0] ?? null) : coverImage,
       status,
       category,
-      event_date: eventDate || null,
+      event_date: eventDateValues.startDate || null,
+      event_end_date: eventDateValues.endDate || null,
+      event_all_day: eventDateValues.allDay,
+      event_start_time: !eventDateValues.allDay ? (eventDateValues.startTime || null) : null,
+      event_end_time: !eventDateValues.allDay ? (eventDateValues.endTime || null) : null,
       location: location || null,
       has_dorm_score: hasDormScore,
       score_points: hasDormScore && scorePoints ? Number(scorePoints) : null,
@@ -259,7 +306,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       ai_extracted: (aiExtracted?.suggestion ?? null) as any,
       ai_provider: aiExtracted?.ocr_provider ?? null,
       embed_text: aiExtracted?.embed_text ?? null,
-      carousel_images: carouselImages,
+      carousel_images: messageType === "flex" ? carouselImages : (imageMsg.carouselMode ? imageMsg.imageUrls : []),
       ...(step2.schedulingEnabled && step2.scheduledDate
         ? {
             scheduled_at: `${step2.scheduledDate}T${step2.scheduledTime || "00:00"}:00+07:00`,
@@ -340,7 +387,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
             messageType,
             content: contentTh,
             flexJson,
-            imageUrl: messageType === "image" ? imageMessageUrl : null,
+            imageUrl: messageType === "image" ? (imageMsg.imageUrls[0] ?? null) : null,
+            imageUrls: messageType === "image" ? imageMsg.imageUrls : [],
+            imageCarouselMode: imageMsg.carouselMode,
           }),
         });
         if (!sendRes.ok) {
@@ -524,7 +573,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                     <FlexMessagePreview
                       extractedFields={
                         titleTh
-                          ? { title: titleTh, body: contentTh, date: eventDate || null, category }
+                          ? { title: titleTh, body: contentTh, date: eventDateValues.startDate || null, category }
                           : null
                       }
                       coverImage={coverImage}
@@ -548,8 +597,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-foreground">รูปภาพสำหรับส่ง</label>
                     <AnnouncementImageMessage
-                      imageUrl={imageMessageUrl}
-                      onImageChange={setImageMessageUrl}
+                      state={imageMsg}
+                      onChange={(partial) => setImageMsg((prev) => ({ ...prev, ...partial }))}
                     />
                   </div>
                 )}
@@ -568,20 +617,20 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                   </div>
                 )}
 
-                {/* Additional fields: date, location */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 flex items-center gap-1 text-sm font-semibold text-foreground">
-                      วันที่จัดงาน
-                      {isAiFilled("event_date") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-                    </label>
-                    <input
-                      type="date"
-                      value={eventDate}
-                      onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none"
-                    />
-                  </div>
+                {/* Event date */}
+                <div>
+                  <label className="mb-2 flex items-center gap-1 text-sm font-semibold text-foreground">
+                    วันที่จัดงาน
+                    {isAiFilled("event_date") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                  </label>
+                  <AnnouncementEventDate
+                    values={eventDateValues}
+                    onChange={(partial) => setEventDateValues((prev) => ({ ...prev, ...partial }))}
+                  />
+                </div>
+
+                {/* Location */}
+                <div className="grid grid-cols-1 gap-3">
                   <div>
                     <label className="mb-1 flex items-center gap-1 text-sm font-semibold text-foreground">
                       สถานที่
@@ -654,9 +703,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                   body={contentTh}
                   coverImage={coverImage}
                   messageType={messageType}
-                  imageUrl={imageMessageUrl}
-                  date={eventDate}
-                  category={category}
+                  imageUrls={imageMsg.imageUrls}
+                  carouselMode={imageMsg.carouselMode}
+                  date={eventDateValues.startDate}
                 />
               </div>
             </div>
@@ -681,7 +730,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                   coverImage={coverImage}
                   category={category}
                   messageType={messageType}
-                  imageUrl={imageMessageUrl}
+                  imageUrl={imageMsg.imageUrls[0] ?? null}
                   values={step2}
                   onChange={(partial) => setStep2((prev) => ({ ...prev, ...partial }))}
                   sending={sending}
@@ -692,16 +741,16 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                 />
               </div>
 
-              {/* Right: LINE preview persists */}
+              {/* Right: LINE preview persists on step 2 */}
               <div className="sticky top-6 self-start">
                 <LinePreviewPanel
                   title={titleTh}
                   body={contentTh}
                   coverImage={coverImage}
                   messageType={messageType}
-                  imageUrl={imageMessageUrl}
-                  date={eventDate}
-                  category={category}
+                  imageUrls={imageMsg.imageUrls}
+                  carouselMode={imageMsg.carouselMode}
+                  date={eventDateValues.startDate}
                 />
               </div>
             </div>
