@@ -109,3 +109,37 @@ export async function broadcastTextMessage(text: string): Promise<void> {
     messages: [{ type: "text", text }],
   })
 }
+
+export async function broadcastImageMessage(
+  originalContentUrl: string,
+  previewImageUrl: string
+): Promise<void> {
+  const api = getClient()
+  await api.broadcast({
+    messages: [
+      {
+        type: "image",
+        originalContentUrl,
+        previewImageUrl,
+      } as unknown as import("@line/bot-sdk").messagingApi.Message,
+    ],
+  })
+}
+
+export async function pushImageMessage(
+  lineUid: string,
+  originalContentUrl: string,
+  previewImageUrl: string
+): Promise<void> {
+  const api = getClient()
+  await api.pushMessage({
+    to: lineUid,
+    messages: [
+      {
+        type: "image",
+        originalContentUrl,
+        previewImageUrl,
+      } as unknown as import("@line/bot-sdk").messagingApi.Message,
+    ],
+  })
+}

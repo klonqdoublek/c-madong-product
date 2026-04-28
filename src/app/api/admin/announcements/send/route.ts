@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage, pushFlexMessage } from "@/lib/line/client";
+import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage, pushFlexMessage, broadcastImageMessage, pushImageMessage } from "@/lib/line/client";
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { announcementId, targetType, targetTags, messageType, content, flexJson } = body;
+    const { announcementId, targetType, targetTags, messageType, content, flexJson, imageUrl } = body;
 
     const adminDb = createAdminClient();
 
@@ -43,8 +43,23 @@ export async function POST(request: Request) {
       resolvedFlexJson = (ann?.flex_json as FlexMessagePayload) ?? null;
     }
 
-    if (targetType === "broadcast") {
+    // Resolve image URL for image message type
+    const resolvedImageUrl: string | null = imageUrl ?? null;
+
+    async function sendToTarget(lineUid: string) {
+      if (messageType === "image" && resolvedImageUrl) {
+        return pushImageMessage(lineUid, resolvedImageUrl, resolvedImageUrl);
+      }
       if (messageType === "flex" && resolvedFlexJson) {
+        return pushFlexMessage(lineUid, resolvedFlexJson);
+      }
+      return pushTextMessage(lineUid, content ?? "");
+    }
+
+    if (targetType === "broadcast") {
+      if (messageType === "image" && resolvedImageUrl) {
+        await broadcastImageMessage(resolvedImageUrl, resolvedImageUrl);
+      } else if (messageType === "flex" && resolvedFlexJson) {
         await broadcastFlexMessage(resolvedFlexJson);
       } else if (content) {
         await broadcastTextMessage(content);
@@ -64,10 +79,7 @@ export async function POST(request: Request) {
       await Promise.allSettled(
         matchingProfiles.map((p) => {
           if (!p.line_uid) return Promise.resolve();
-          if (messageType === "flex" && resolvedFlexJson) {
-            return pushFlexMessage(p.line_uid, resolvedFlexJson);
-          }
-          return pushTextMessage(p.line_uid, content);
+          return sendToTarget(p.line_uid);
         })
       );
     }

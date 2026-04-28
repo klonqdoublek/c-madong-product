@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Upload, Bot } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Sparkles, Upload, Bot, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
@@ -19,21 +19,125 @@ import { UploadArea } from "@/components/admin/announcements/upload-area";
 import { PosterUploadFlow } from "@/components/admin/announcements/poster-upload-flow";
 import { AnnouncementAISuggestionDialog, type AppliedSuggestion } from "@/components/admin/announcements/ai-suggestion-dialog";
 import { FlexMessagePreview } from "@/components/admin/announcements/flex-message-preview";
+import { AnnouncementStepper } from "@/components/admin/announcements/announcement-stepper";
+import { AnnouncementCategoryPills } from "@/components/admin/announcements/announcement-category-pills";
+import { AnnouncementMessageTypeCards } from "@/components/admin/announcements/announcement-message-type-cards";
+import { AnnouncementImageMessage } from "@/components/admin/announcements/announcement-image-message";
+import { AnnouncementStep2, type Step2Values } from "@/components/admin/announcements/announcement-step2";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 import type { AnalyzePosterResult, AnnouncementSuggestion } from "@/hooks/use-announcement-organize";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  announcement: "ประกาศทั่วไป",
-  alert: "แจ้งเตือนด่วน",
-  activity: "กิจกรรม",
-  news: "ข่าวสาร",
-  pr: "ประชาสัมพันธ์",
-};
+/* ── LINE preview phone mock (right panel) ─────────────────────── */
+
+function LinePreviewPanel({
+  title,
+  body,
+  coverImage,
+  messageType,
+  imageUrl,
+  date,
+  category,
+}: {
+  title: string;
+  body: string;
+  coverImage: string | null;
+  messageType: "text" | "flex" | "image";
+  imageUrl?: string | null;
+  date?: string;
+  category?: string;
+}) {
+  const displayImage = messageType === "image" ? (imageUrl ?? null) : coverImage;
+
+  return (
+    <div className="hidden xl:flex flex-col items-center gap-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        ตัวอย่างบน LINE
+      </p>
+
+      {/* Phone frame */}
+      <div className="relative h-[520px] w-[260px] rounded-[32px] border-[6px] border-gray-800 bg-gray-800 shadow-2xl">
+        {/* Notch */}
+        <div className="absolute left-1/2 top-2 z-10 h-4 w-16 -translate-x-1/2 rounded-full bg-gray-900" />
+
+        {/* Screen */}
+        <div className="flex h-full flex-col overflow-hidden rounded-[28px] bg-[#EFEFF4]">
+          {/* Status bar */}
+          <div className="flex items-center justify-between bg-white px-4 pb-1 pt-5 text-[9px] font-semibold text-gray-500">
+            <span>9:41</span>
+            <span>LINE</span>
+            <span>100%</span>
+          </div>
+          {/* Chat header */}
+          <div className="flex items-center gap-2 border-b bg-white px-3 py-1.5">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">ซ</div>
+            <span className="text-[10px] font-semibold text-gray-800">หอพักนิสิต</span>
+          </div>
+
+          {/* Message area */}
+          <div className="flex flex-1 flex-col gap-2 overflow-y-auto px-2 py-3">
+            {messageType === "text" ? (
+              <div className="max-w-[200px] rounded-xl bg-white p-3 shadow-sm">
+                <p className="text-[11px] font-bold text-gray-900 leading-tight line-clamp-2">
+                  {title || "หัวข้อประกาศ"}
+                </p>
+                <p className="mt-1 text-[9px] leading-relaxed text-gray-500 line-clamp-5">
+                  {body || "เนื้อหาประกาศ..."}
+                </p>
+              </div>
+            ) : messageType === "image" && displayImage ? (
+              <div className="max-w-[200px] overflow-hidden rounded-xl shadow-sm">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={displayImage} alt="" className="w-full object-cover" />
+              </div>
+            ) : (
+              <div className="max-w-[200px] overflow-hidden rounded-xl bg-white shadow-sm">
+                {displayImage && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={displayImage} alt="" className="h-24 w-full object-cover" />
+                )}
+                <div className="p-2.5">
+                  <p className="text-[11px] font-bold text-gray-900 line-clamp-1">
+                    {title || "หัวข้อประกาศ"}
+                  </p>
+                  <p className="mt-0.5 text-[9px] text-gray-400 line-clamp-2">
+                    {body || "เนื้อหา..."}
+                  </p>
+                  {date && (
+                    <p className="mt-1 text-[8px] text-gray-400">{date}</p>
+                  )}
+                  <div className="mt-1.5 rounded bg-primary py-1 text-center text-[9px] font-semibold text-white">
+                    ดูรายละเอียด
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Type badge */}
+      <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+        {messageType === "text" ? "Text Message" : messageType === "flex" ? "Flex Message" : "Image Message"}
+      </span>
+    </div>
+  );
+}
+
+/* ── Step 1 form ────────────────────────────────────────────────── */
 
 interface Props {
   announcementId?: string;
 }
+
+const DEFAULT_STEP2: Step2Values = {
+  targetType: "broadcast",
+  targetTags: [],
+  schedulingEnabled: false,
+  schedulingMode: "once",
+  scheduledDate: "",
+  scheduledTime: "",
+};
 
 export function NewAnnouncementPageContent({ announcementId }: Props) {
   const t = useTranslations("admin.newAnnouncement");
@@ -43,28 +147,30 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const { data: tags } = useTags();
   const { data: folders } = useAnnouncementFolders();
 
-  // Core fields
+  /* ── Step state ── */
+  const [step, setStep] = useState<1 | 2>(1);
+
+  /* ── Core fields ── */
   const [titleTh, setTitleTh] = useState(existing?.title_th ?? "");
   const [titleEn, setTitleEn] = useState(existing?.title_en ?? "");
   const [contentTh, setContentTh] = useState(existing?.content_th ?? "");
   const [contentEn, setContentEn] = useState(existing?.content_en ?? "");
-  const [messageType, setMessageType] = useState<"text" | "flex">(
-    (existing?.message_type as "text" | "flex") ?? "text"
+  const [messageType, setMessageType] = useState<"text" | "flex" | "image">(
+    (existing?.message_type as "text" | "flex" | "image") ?? "text"
   );
   const [flexJson, setFlexJson] = useState<Record<string, unknown> | null>(
     (existing?.flex_json as Record<string, unknown>) ?? null
   );
-  const [targetType, setTargetType] = useState(existing?.target_type ?? "broadcast");
-  const [targetTags, setTargetTags] = useState<string[]>(existing?.target_tags ?? []);
   const [isPinned, setIsPinned] = useState(existing?.is_pinned ?? false);
   const [coverImage, setCoverImage] = useState<string | null>(existing?.cover_image ?? null);
   const [coverPath, setCoverPath] = useState<string | null>(null);
+  const [imageMessageUrl, setImageMessageUrl] = useState<string | null>(null);
   const [carouselImages, setCarouselImages] = useState<string[]>(
     (existing as any)?.carousel_images ?? []
   );
   const [savedAnnouncementId, setSavedAnnouncementId] = useState<string | null>(announcementId ?? null);
 
-  // AI / new fields
+  /* ── AI / metadata ── */
   const [category, setCategory] = useState((existing as any)?.category ?? "announcement");
   const [eventDate, setEventDate] = useState((existing as any)?.event_date ?? "");
   const [location, setLocation] = useState((existing as any)?.location ?? "");
@@ -74,7 +180,10 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [aiExtracted, setAiExtracted] = useState<AnalyzePosterResult | null>(null);
   const [pendingSuggestion, setPendingSuggestion] = useState<AnnouncementSuggestion | null>(null);
 
-  // UI state
+  /* ── Step 2 state ── */
+  const [step2, setStep2] = useState<Step2Values>(DEFAULT_STEP2);
+
+  /* ── UI ── */
   const [showPosterUpload, setShowPosterUpload] = useState(false);
   const [showAISuggest, setShowAISuggest] = useState(false);
   const [showAI, setShowAI] = useState(false);
@@ -82,16 +191,14 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [sending, setSending] = useState(false);
   const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
 
-  // Sync existing data when it loads
+  // Sync existing data
   if (existing && !titleTh && existing.title_th) {
     setTitleTh(existing.title_th);
     setContentTh(existing.content_th);
     setTitleEn(existing.title_en);
     setContentEn(existing.content_en);
-    setMessageType((existing.message_type as "text" | "flex") ?? "text");
+    setMessageType((existing.message_type as "text" | "flex" | "image") ?? "text");
     setFlexJson((existing.flex_json as Record<string, unknown>) ?? null);
-    setTargetType(existing.target_type ?? "broadcast");
-    setTargetTags(existing.target_tags ?? []);
     setIsPinned(existing.is_pinned ?? false);
   }
 
@@ -107,10 +214,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     setCoverImage(url);
     setCoverPath(path);
     setAiExtracted(result);
-    // Auto-populate carousel with the poster image
     setCarouselImages((prev) => (prev.length === 0 ? [url] : prev));
     setShowPosterUpload(false);
-
     if (result.suggestion) {
       setPendingSuggestion(result.suggestion);
       setShowAISuggest(true);
@@ -139,8 +244,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       content_en: contentEn || contentTh,
       message_type: messageType,
       flex_json: (messageType === "flex" ? flexJson : null) as any,
-      target_type: targetType,
-      target_tags: targetType === "targeted" ? targetTags : [],
+      target_type: step2.targetType,
+      target_tags: step2.targetType === "targeted" ? step2.targetTags : [],
       is_pinned: isPinned,
       cover_image: coverImage,
       status,
@@ -155,6 +260,11 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       ai_provider: aiExtracted?.ocr_provider ?? null,
       embed_text: aiExtracted?.embed_text ?? null,
       carousel_images: carouselImages,
+      ...(step2.schedulingEnabled && step2.scheduledDate
+        ? {
+            scheduled_at: `${step2.scheduledDate}T${step2.scheduledTime || "00:00"}:00+07:00`,
+          }
+        : {}),
     };
   }
 
@@ -183,12 +293,26 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     }
   }
 
-  async function handleSave(status: string) {
+  async function handleSaveDraft() {
     setSending(true);
     try {
-      await saveViaApi(status);
+      await saveViaApi("draft");
       queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
       toast.success("บันทึกร่างเรียบร้อยแล้ว");
+      router.push("/admin/announcements");
+    } catch (err: any) {
+      toast.error(err.message ?? "บันทึกไม่สำเร็จ");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  async function handleSaveTemplate() {
+    setSending(true);
+    try {
+      await saveViaApi("draft");
+      queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
+      toast.success("บันทึกเป็นเทมเพลตแล้ว");
       router.push("/admin/announcements");
     } catch (err: any) {
       toast.error(err.message ?? "บันทึกไม่สำเร็จ");
@@ -200,17 +324,32 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   async function handleSend() {
     setSending(true);
     try {
-      const id = await saveViaApi("sent");
+      const resolvedStatus =
+        step2.schedulingEnabled && step2.scheduledDate ? "scheduled" : "sent";
+      const id = await saveViaApi(resolvedStatus);
       queryClient.invalidateQueries({ queryKey: ["admin-announcements"] });
-      const sendRes = await fetch("/api/admin/announcements/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ announcementId: id, targetType, targetTags, messageType, content: contentTh, flexJson }),
-      });
-      if (!sendRes.ok) {
-        toast.warning("บันทึกสำเร็จ แต่ส่ง LINE ไม่ได้ — ลองส่งใหม่ในหน้ารายการ");
+
+      if (resolvedStatus === "sent") {
+        const sendRes = await fetch("/api/admin/announcements/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            announcementId: id,
+            targetType: step2.targetType,
+            targetTags: step2.targetTags,
+            messageType,
+            content: contentTh,
+            flexJson,
+            imageUrl: messageType === "image" ? imageMessageUrl : null,
+          }),
+        });
+        if (!sendRes.ok) {
+          toast.warning("บันทึกสำเร็จ แต่ส่ง LINE ไม่ได้ — ลองส่งใหม่ในหน้ารายการ");
+        } else {
+          toast.success("ส่งประกาศสำเร็จแล้ว");
+        }
       } else {
-        toast.success("ส่งประกาศสำเร็จแล้ว 🎉");
+        toast.success("ตั้งเวลาส่งเรียบร้อย");
       }
       router.push("/admin/announcements");
     } catch (err: any) {
@@ -223,275 +362,354 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const isAiFilled = (field: string) => aiFilledFields.has(field);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="space-y-6">
       <AdminBreadcrumb />
-      <h1 className="font-heading text-2xl font-bold">
-        {announcementId ? t("editTitle") : t("title")}
-      </h1>
 
-      {/* Poster AI Upload CTA */}
-      {!announcementId && !coverImage && (
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          onClick={() => setShowPosterUpload(true)}
-          className="flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-5 text-left transition-colors hover:border-primary/70 hover:bg-primary/10"
-        >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-primary">อัปโหลดโปสเตอร์ — AI กรอกข้อมูลให้</p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              สกัดข้อความ แยกหัวข้อ วันที่ หมวดหมู่ จากรูป Canva อัตโนมัติ
+      {/* ── Page header ─────────────────────────────────────────── */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => step === 2 ? setStep(1) : router.push("/admin/announcements")}
+            className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-muted"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div>
+            <h1 className="font-heading text-2xl font-bold text-foreground">
+              สร้างประกาศใหม่
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              สร้างและส่งประกาศไปยังนิสิตผ่าน LINE OA
             </p>
           </div>
-          <Upload className="h-5 w-5 text-primary/60" />
-        </motion.button>
-      )}
+        </div>
 
-      {/* Cover Image */}
-      <UploadArea
-        imageUrl={coverImage}
-        onUploaded={(url, path) => { setCoverImage(url); setCoverPath(path); }}
-        onRemove={() => { setCoverImage(null); setCoverPath(null); }}
-      />
+        {/* Stepper */}
+        <AnnouncementStepper currentStep={step} />
+      </div>
 
-      {/* AI filled indicator */}
-      <AnimatePresence>
-        {aiFilledFields.size > 0 && (
+      {/* ── Step content ────────────────────────────────────────── */}
+      <AnimatePresence mode="wait">
+        {step === 1 ? (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-2 rounded-xl bg-primary/8 px-4 py-2.5 text-sm text-primary"
+            key="step1"
+            initial={{ opacity: 0, x: -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 12 }}
+            transition={{ duration: 0.2 }}
           >
-            <Sparkles className="h-4 w-4 shrink-0" />
-            AI กรอกข้อมูลให้แล้ว — แก้ไขได้ตามต้องการ
+            {/* 2-column layout: form | LINE preview */}
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
+
+              {/* ── Left: Form ── */}
+              <div className="space-y-6">
+
+                {/* Poster AI upload CTA */}
+                {!announcementId && !coverImage && (
+                  <motion.button
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.995 }}
+                    onClick={() => setShowPosterUpload(true)}
+                    className="flex w-full items-center gap-4 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 p-5 text-left transition-colors hover:border-primary/70 hover:bg-primary/10"
+                  >
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                      <Sparkles className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-primary">อัปโหลดโปสเตอร์ — AI กรอกข้อมูลให้</p>
+                      <p className="mt-0.5 text-sm text-muted-foreground">
+                        สกัดข้อความ แยกหัวข้อ วันที่ หมวดหมู่ จากรูป Canva อัตโนมัติ
+                      </p>
+                    </div>
+                    <Upload className="h-5 w-5 text-primary/60" />
+                  </motion.button>
+                )}
+
+                {/* AI filled indicator */}
+                <AnimatePresence>
+                  {aiFilledFields.size > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="flex items-center gap-2 rounded-xl bg-primary/8 px-4 py-2.5 text-sm text-primary"
+                    >
+                      <Sparkles className="h-4 w-4 shrink-0" />
+                      AI กรอกข้อมูลให้แล้ว — แก้ไขได้ตามต้องการ
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* ── ประเภท (Category) ── */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-foreground">ประเภท</label>
+                  <AnnouncementCategoryPills value={category} onChange={setCategory} />
+                </div>
+
+                {/* ── หัวข้อ (Title) ── */}
+                <div>
+                  <div className="mb-2 flex items-center justify-between">
+                    <label className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                      หัวข้อประกาศ
+                      <span className="text-destructive">*</span>
+                      {isAiFilled("title_th") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                    </label>
+                    <button
+                      onClick={() => setShowTemplates(true)}
+                      className="flex items-center gap-1 rounded-lg border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary/5"
+                    >
+                      เลือกจากเทมเพลต
+                    </button>
+                  </div>
+                  <input
+                    value={titleTh}
+                    onChange={(e) => setTitleTh(e.target.value)}
+                    placeholder="เช่น ประกาศค่าหอพักเดือนกุมภาพันธ์"
+                    className="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+
+                {/* ── รูปแบบข้อความ (Message type cards) ── */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-foreground">รูปแบบข้อความ</label>
+                  <p className="mb-3 text-xs text-muted-foreground">เลือกรูปแบบข้อความที่ต้องการจะส่ง</p>
+                  <AnnouncementMessageTypeCards
+                    value={messageType}
+                    onChange={setMessageType}
+                  />
+                </div>
+
+                {/* ── Content area (varies by message type) ── */}
+                {messageType === "text" && (
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <label className="flex items-center gap-1 text-sm font-semibold text-foreground">
+                        เนื้อหาข้อความ
+                        {isAiFilled("content_th") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                      </label>
+                      <button
+                        onClick={() => setShowAI(true)}
+                        className="flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        AI ช่วยเขียน
+                      </button>
+                    </div>
+                    <textarea
+                      value={contentTh}
+                      onChange={(e) => setContentTh(e.target.value)}
+                      placeholder="เช่น ประกาศค่าหอพักเดือนกุมภาพันธ์"
+                      rows={6}
+                      className="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                  </div>
+                )}
+
+                {messageType === "flex" && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-semibold text-foreground">เนื้อหาข้อความ</label>
+                      <button onClick={() => setShowAI(true)} className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        AI ช่วยเขียน
+                      </button>
+                    </div>
+                    <textarea
+                      value={contentTh}
+                      onChange={(e) => setContentTh(e.target.value)}
+                      placeholder="เนื้อหาสำรอง (ใช้เป็น fallback text)"
+                      rows={3}
+                      className="w-full rounded-xl border bg-background px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    <FlexMessagePreview
+                      extractedFields={
+                        titleTh
+                          ? { title: titleTh, body: contentTh, date: eventDate || null, category }
+                          : null
+                      }
+                      coverImage={coverImage}
+                      carouselImages={carouselImages}
+                      announcementId={savedAnnouncementId}
+                      onImagesChange={setCarouselImages}
+                      onFlexJsonChange={setFlexJson}
+                    />
+                    <details className="rounded-xl border">
+                      <summary className="cursor-pointer px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                        แก้ไข Flex JSON โดยตรง
+                      </summary>
+                      <div className="border-t p-2">
+                        <FlexMessageEditor value={flexJson} onChange={setFlexJson} />
+                      </div>
+                    </details>
+                  </div>
+                )}
+
+                {messageType === "image" && (
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-foreground">รูปภาพสำหรับส่ง</label>
+                    <AnnouncementImageMessage
+                      imageUrl={imageMessageUrl}
+                      onImageChange={setImageMessageUrl}
+                    />
+                  </div>
+                )}
+
+                {/* Cover image (for non-image types) */}
+                {messageType !== "image" && (
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-foreground">
+                      รูปปกประกาศ
+                    </label>
+                    <UploadArea
+                      imageUrl={coverImage}
+                      onUploaded={(url, path) => { setCoverImage(url); setCoverPath(path); }}
+                      onRemove={() => { setCoverImage(null); setCoverPath(null); }}
+                    />
+                  </div>
+                )}
+
+                {/* Additional fields: date, location */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 flex items-center gap-1 text-sm font-semibold text-foreground">
+                      วันที่จัดงาน
+                      {isAiFilled("event_date") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                    </label>
+                    <input
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 flex items-center gap-1 text-sm font-semibold text-foreground">
+                      สถานที่
+                      {isAiFilled("location") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
+                    </label>
+                    <input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="เช่น ห้องประชุม"
+                      className="w-full rounded-xl border bg-background px-3 py-2 text-sm outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Options */}
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} className="rounded" />
+                    ปักหมุดประกาศ
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={hasDormScore}
+                      onChange={(e) => setHasDormScore(e.target.checked)}
+                      className="rounded"
+                    />
+                    ให้คะแนนหอพัก
+                    {hasDormScore && (
+                      <input
+                        type="number"
+                        value={scorePoints}
+                        onChange={(e) => setScorePoints(e.target.value)}
+                        placeholder="คะแนน"
+                        className="ml-1 w-20 rounded border bg-background px-2 py-0.5 text-xs"
+                        min={0}
+                      />
+                    )}
+                  </label>
+                </div>
+
+                {/* Bot searchable */}
+                <div className="flex items-center justify-between rounded-2xl border bg-muted/20 px-4 py-3">
+                  <div className="flex items-center gap-2.5">
+                    <Bot className="h-4 w-4 text-primary" />
+                    <div>
+                      <p className="text-sm font-medium">ให้น้องซีมะโด่งใช้ตอบนิสิต</p>
+                      <p className="text-xs text-muted-foreground">Bot สามารถค้นหาและอ้างอิงประกาศนี้ได้</p>
+                    </div>
+                  </div>
+                  <Switch checked={isBotSearchable} onCheckedChange={setIsBotSearchable} />
+                </div>
+
+                {/* Next button */}
+                <div className="pb-6">
+                  <button
+                    onClick={() => setStep(2)}
+                    disabled={!titleTh.trim()}
+                    className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(221,89,139,0.3)] transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-50"
+                  >
+                    ต่อไป
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Right: LINE preview ── */}
+              <div className="sticky top-6 self-start">
+                <LinePreviewPanel
+                  title={titleTh}
+                  body={contentTh}
+                  coverImage={coverImage}
+                  messageType={messageType}
+                  imageUrl={imageMessageUrl}
+                  date={eventDate}
+                  category={category}
+                />
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -12 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Step 2: 2-column with right panel still */}
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
+              <div>
+                <h2 className="font-heading text-3xl font-bold text-foreground mb-6">
+                  ยืนยันการสร้างประกาศ
+                </h2>
+                <AnnouncementStep2
+                  titleTh={titleTh}
+                  contentTh={contentTh}
+                  coverImage={coverImage}
+                  category={category}
+                  messageType={messageType}
+                  imageUrl={imageMessageUrl}
+                  values={step2}
+                  onChange={(partial) => setStep2((prev) => ({ ...prev, ...partial }))}
+                  sending={sending}
+                  onSendNow={handleSend}
+                  onSaveDraft={handleSaveDraft}
+                  onSaveTemplate={handleSaveTemplate}
+                  onBack={() => setStep(1)}
+                />
+              </div>
+
+              {/* Right: LINE preview persists */}
+              <div className="sticky top-6 self-start">
+                <LinePreviewPanel
+                  title={titleTh}
+                  body={contentTh}
+                  coverImage={coverImage}
+                  messageType={messageType}
+                  imageUrl={imageMessageUrl}
+                  date={eventDate}
+                  category={category}
+                />
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Title */}
-      <div>
-        <label className="mb-1 flex items-center gap-1 text-sm font-medium">
-          {t("titleLabel")}
-          {isAiFilled("title_th") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-        </label>
-        <input
-          value={titleTh}
-          onChange={(e) => setTitleTh(e.target.value)}
-          placeholder={t("titlePlaceholder")}
-          className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary/40"
-        />
-      </div>
-
-      {/* Category + Event Date */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 flex items-center gap-1 text-sm font-medium">
-            หมวดหมู่
-            {isAiFilled("category") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-          </label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none"
-          >
-            {Object.entries(CATEGORY_LABELS).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1 flex items-center gap-1 text-sm font-medium">
-            วันที่จัดงาน
-            {isAiFilled("event_date") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-          </label>
-          <input
-            type="date"
-            value={eventDate}
-            onChange={(e) => setEventDate(e.target.value)}
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-      </div>
-
-      {/* Location */}
-      <div>
-        <label className="mb-1 flex items-center gap-1 text-sm font-medium">
-          สถานที่
-          {isAiFilled("location") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-        </label>
-        <input
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="เช่น ห้องประชุม อาคาร A"
-          className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none"
-        />
-      </div>
-
-      {/* Message Type Toggle */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1">
-        <button
-          onClick={() => setMessageType("text")}
-          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${messageType === "text" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
-        >
-          {t("typeText")}
-        </button>
-        <button
-          onClick={() => setMessageType("flex")}
-          className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${messageType === "flex" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
-        >
-          {t("typeFlex")}
-        </button>
-      </div>
-
-      {/* Content */}
-      {messageType === "text" ? (
-        <div>
-          <label className="mb-1 flex items-center gap-1 text-sm font-medium">
-            {t("contentLabel")}
-            {isAiFilled("content_th") && <Sparkles className="h-3.5 w-3.5 text-primary" />}
-          </label>
-          <textarea
-            value={contentTh}
-            onChange={(e) => setContentTh(e.target.value)}
-            placeholder={t("contentPlaceholder")}
-            rows={6}
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none"
-          />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <FlexMessagePreview
-            extractedFields={
-              titleTh
-                ? { title: titleTh, body: contentTh, date: eventDate || null, category }
-                : null
-            }
-            coverImage={coverImage}
-            carouselImages={carouselImages}
-            announcementId={savedAnnouncementId}
-            onImagesChange={(imgs) => {
-              setCarouselImages(imgs);
-            }}
-            onFlexJsonChange={(json) => setFlexJson(json)}
-          />
-          {/* Keep raw editor available for advanced editing */}
-          <details className="rounded-xl border">
-            <summary className="cursor-pointer px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
-              แก้ไข Flex JSON โดยตรง
-            </summary>
-            <div className="border-t p-2">
-              <FlexMessageEditor value={flexJson} onChange={setFlexJson} />
-            </div>
-          </details>
-        </div>
-      )}
-
-      {/* AI + Template buttons */}
-      <div className="flex gap-2">
-        <button onClick={() => setShowAI(true)} className="rounded-lg border px-3 py-1.5 text-sm hover:bg-muted/50">
-          {t("aiAssist")}
-        </button>
-        <button onClick={() => setShowTemplates(true)} className="rounded-lg border px-3 py-1.5 text-sm hover:bg-muted/50">
-          {t("fromTemplate")}
-        </button>
-      </div>
-
-      {/* Target */}
-      <div>
-        <label className="mb-1 block text-sm font-medium">{t("target")}</label>
-        <select
-          value={targetType}
-          onChange={(e) => setTargetType(e.target.value)}
-          className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-        >
-          <option value="broadcast">{t("targetBroadcast")}</option>
-          <option value="targeted">{t("targetTags")}</option>
-        </select>
-        {targetType === "targeted" && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {tags?.map((tag) => (
-              <button
-                key={tag.id}
-                onClick={() =>
-                  setTargetTags((prev) =>
-                    prev.includes(tag.name) ? prev.filter((t) => t !== tag.name) : [...prev, tag.name]
-                  )
-                }
-                className={`rounded-full px-3 py-1 text-xs font-medium ${targetTags.includes(tag.name) ? "text-white" : "bg-muted text-muted-foreground"}`}
-                style={targetTags.includes(tag.name) ? { backgroundColor: tag.color ?? undefined } : undefined}
-              >
-                {tag.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Options row */}
-      <div className="flex flex-wrap gap-4">
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} className="rounded" />
-          {t("pinAnnouncement")}
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={hasDormScore}
-            onChange={(e) => setHasDormScore(e.target.checked)}
-            className="rounded"
-          />
-          ให้คะแนนหอพัก
-          {hasDormScore && (
-            <input
-              type="number"
-              value={scorePoints}
-              onChange={(e) => setScorePoints(e.target.value)}
-              placeholder="คะแนน"
-              className="ml-1 w-20 rounded border bg-background px-2 py-0.5 text-xs"
-              min={0}
-            />
-          )}
-        </label>
-      </div>
-
-      {/* Bot searchable switch */}
-      <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <Bot className="h-4 w-4 text-primary" />
-          <div>
-            <p className="text-sm font-medium">ให้น้องซีมะโด่งใช้ตอบนิสิต</p>
-            <p className="text-xs text-muted-foreground">Bot สามารถค้นหาและอ้างอิงประกาศนี้ได้</p>
-          </div>
-        </div>
-        <Switch checked={isBotSearchable} onCheckedChange={setIsBotSearchable} />
-      </div>
-
-      {/* Actions */}
-      <div className="flex gap-2 pb-6">
-        <button
-          onClick={() => handleSave("draft")}
-          disabled={sending}
-          className="rounded-lg border px-4 py-2 text-sm hover:bg-muted/50 disabled:opacity-50"
-        >
-          {t("saveDraft")}
-        </button>
-        <button
-          onClick={handleSend}
-          disabled={sending || !titleTh.trim()}
-          className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
-          {sending ? t("sending") : t("sendNow")}
-        </button>
-      </div>
-
       {/* ── Dialogs ── */}
-
-      {/* Poster upload wizard */}
       <Dialog open={showPosterUpload} onOpenChange={setShowPosterUpload}>
         <DialogContent className="sm:max-w-[480px]">
           <DialogTitle className="sr-only">อัปโหลดโปสเตอร์</DialogTitle>
@@ -502,7 +720,6 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
         </DialogContent>
       </Dialog>
 
-      {/* AI suggestion review */}
       {pendingSuggestion && (
         <AnnouncementAISuggestionDialog
           open={showAISuggest}
