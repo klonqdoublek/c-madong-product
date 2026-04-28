@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import {
-  Users, Radio, Building2, Clock, Calendar, RotateCcw,
-  Send, FileText, BookTemplate, ChevronLeft,
+  Users, Radio, Clock, Calendar, RotateCcw,
+  Send, FileText, BookTemplate, ChevronLeft, Loader2,
 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
+import { useTags } from "@/hooks/use-tags"
 
 /* ── Types ────────────────────────────────────────────────────── */
 
@@ -38,14 +39,6 @@ interface AnnouncementStep2Props {
   onBack: () => void
 }
 
-/* ── Audience data ────────────────────────────────────────────── */
-
-const YEAR_TAGS = [
-  "นิสิตปีที่ 1", "นิสิตปีที่ 2", "นิสิตปีที่ 3",
-  "นิสิตปีที่ 4", "นิสิตบัณฑิตศึกษา",
-]
-const GENDER_TAGS = ["นิสิตชาย", "นิสิตหญิง"]
-const BUILDING_TAGS = ["ชวนชม", "จำปา", "จำปี", "พุดตาน", "พุดซ้อน"]
 
 const CATEGORY_LABELS: Record<string, string> = {
   news: "ข่าวสาร", announcement: "ประกาศ", activity: "กิจกรรม",
@@ -128,11 +121,12 @@ export function AnnouncementStep2({
   sending, onSendNow, onSaveDraft, onSaveTemplate, onBack,
 }: AnnouncementStep2Props) {
   const { targetType, targetTags, schedulingEnabled, schedulingMode, scheduledDate, scheduledTime } = values
+  const { data: allTags, isLoading: tagsLoading } = useTags()
 
-  function toggleTag(tag: string) {
-    const next = targetTags.includes(tag)
-      ? targetTags.filter((t) => t !== tag)
-      : [...targetTags, tag]
+  function toggleTag(tagName: string) {
+    const next = targetTags.includes(tagName)
+      ? targetTags.filter((t) => t !== tagName)
+      : [...targetTags, tagName]
     onChange({ targetTags: next })
   }
 
@@ -213,26 +207,23 @@ export function AnnouncementStep2({
             <div className="space-y-3 pt-1">
               <div>
                 <p className="mb-2 text-xs font-semibold text-muted-foreground">เลือกกลุ่มเป้าหมาย</p>
-                <div className="flex flex-wrap gap-2">
-                  {YEAR_TAGS.map((t) => (
-                    <TagPill key={t} label={t} active={targetTags.includes(t)} onClick={() => toggleTag(t)} />
-                  ))}
-                  {GENDER_TAGS.map((t) => (
-                    <TagPill key={t} label={t} active={targetTags.includes(t)} onClick={() => toggleTag(t)} />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <p className="mb-2 text-xs font-semibold text-muted-foreground">เลือกตึก</p>
-                <div className="flex flex-wrap gap-2">
-                  {BUILDING_TAGS.map((t) => {
-                    const tag = `ตึก${t}`
-                    return (
-                      <TagPill key={t} label={`ตึก${t}`} active={targetTags.includes(tag)} onClick={() => toggleTag(tag)} />
-                    )
-                  })}
-                </div>
+                {tagsLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    กำลังโหลด tag...
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {(allTags ?? []).map((tag) => (
+                      <TagPill
+                        key={tag.id}
+                        label={tag.name}
+                        active={targetTags.includes(tag.name)}
+                        onClick={() => toggleTag(tag.name)}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               {targetTags.length > 0 && (
