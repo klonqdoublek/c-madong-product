@@ -312,7 +312,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       ai_extracted: (aiExtracted?.suggestion ?? null) as any,
       ai_provider: aiExtracted?.ocr_provider ?? null,
       embed_text: aiExtracted?.embed_text ?? null,
-      carousel_images: messageType === "flex" ? carouselImages : (imageMsg.carouselMode ? imageMsg.imageUrls : []),
+      carousel_images: messageType === "flex"
+        ? (carouselImages.length > 0 ? carouselImages : coverImage ? [coverImage] : [])
+        : (imageMsg.carouselMode ? imageMsg.imageUrls : []),
       ...(step2.schedulingEnabled && step2.scheduledDate
         ? {
             scheduled_at: `${step2.scheduledDate}T${step2.scheduledTime || "00:00"}:00+07:00`,
@@ -422,6 +424,10 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     const ctaUrl = (!ctas?.primary && savedAnnouncementId)
       ? `${process.env.NEXT_PUBLIC_WEB_BASE ?? ""}/th/announcements/${savedAnnouncementId}`
       : undefined;
+    // Use carouselImages if set; fall back to coverImage so the image is always included
+    const images = carouselImages.length > 0
+      ? carouselImages
+      : coverImage ? [coverImage] : [];
     return buildAnnouncementPosterFlex(
       {
         title: titleTh,
@@ -431,7 +437,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
         ctaUrl,
         ctas: ctas ?? null,
       },
-      carouselImages
+      images
     ) as unknown as Record<string, unknown>;
   }
 
