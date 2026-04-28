@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react"
 import { ImagePlus, X, GripVertical, Loader2, Info, Sparkles, Calendar, Tag } from "lucide-react"
 import { buildAnnouncementPosterFlex } from "@/lib/line/flex-builders/announcement-poster-flex"
+import { cn } from "@/lib/utils"
+
+import type { CTAConfig } from "@/types/announcement-cta"
 
 interface FlexMessagePreviewProps {
   extractedFields: {
@@ -14,6 +17,7 @@ interface FlexMessagePreviewProps {
   coverImage: string | null
   carouselImages: string[]
   announcementId?: string | null
+  ctas?: CTAConfig | null
   onImagesChange: (imgs: string[]) => void
   onFlexJsonChange: (json: Record<string, unknown>) => void
 }
@@ -43,6 +47,7 @@ export function FlexMessagePreview({
   coverImage,
   carouselImages,
   announcementId,
+  ctas,
   onImagesChange,
   onFlexJsonChange,
 }: FlexMessagePreviewProps) {
@@ -63,7 +68,7 @@ export function FlexMessagePreview({
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => {
       if (!extractedFields?.title) return
-      const ctaUrl = announcementId
+      const ctaUrl = (!ctas?.primary && announcementId)
         ? `${process.env.NEXT_PUBLIC_WEB_BASE ?? ""}/th/announcements/${announcementId}`
         : undefined
       const flex = buildAnnouncementPosterFlex(
@@ -73,6 +78,7 @@ export function FlexMessagePreview({
           date: extractedFields.date,
           category: extractedFields.category,
           ctaUrl,
+          ctas: ctas ?? null,
         },
         carouselImages.length > 0 ? carouselImages : []
       )
@@ -81,7 +87,7 @@ export function FlexMessagePreview({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current)
     }
-  }, [extractedFields, carouselImages, announcementId, onFlexJsonChange])
+  }, [extractedFields, carouselImages, announcementId, ctas, onFlexJsonChange])
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -198,12 +204,38 @@ export function FlexMessagePreview({
                     )}
                   </div>
 
-                  {/* CTA */}
-                  <div className="border-t px-3 py-2">
-                    <div className="rounded-lg bg-primary py-1.5 text-center text-[10px] font-semibold text-white">
-                      ดูรายละเอียด
+                  {/* CTA footer */}
+                  {(ctas?.primary || ctas?.secondary || announcementId) && (
+                    <div className="border-t px-2 py-2 space-y-1">
+                      {ctas?.primary ? (
+                        <div className={cn(
+                          "rounded py-1 text-center text-[9px] font-semibold",
+                          ctas.primary.style === "primary"   && "bg-primary text-white",
+                          ctas.primary.style === "secondary" && "border border-primary text-primary",
+                          ctas.primary.style === "link"      && "text-primary underline bg-transparent",
+                        )}>
+                          {ctas.primary.label || "ปุ่ม Primary"}
+                        </div>
+                      ) : announcementId ? (
+                        <div className="rounded bg-primary py-1 text-center text-[9px] font-semibold text-white">
+                          ดูรายละเอียด
+                        </div>
+                      ) : null}
+                      {ctas?.secondary && (
+                        <>
+                          <div className="border-t" />
+                          <div className={cn(
+                            "rounded py-1 text-center text-[9px] font-semibold",
+                            ctas.secondary.style === "primary"   && "bg-primary text-white",
+                            ctas.secondary.style === "secondary" && "border border-primary text-primary",
+                            ctas.secondary.style === "link"      && "text-primary underline bg-transparent",
+                          )}>
+                            {ctas.secondary.label || "ปุ่ม Secondary"}
+                          </div>
+                        </>
+                      )}
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Carousel dots */}

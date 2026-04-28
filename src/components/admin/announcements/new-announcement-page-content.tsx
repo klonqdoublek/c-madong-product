@@ -25,6 +25,9 @@ import { AnnouncementMessageTypeCards } from "@/components/admin/announcements/a
 import { AnnouncementImageMessage, type ImageMessageState } from "@/components/admin/announcements/announcement-image-message";
 import { AnnouncementEventDate, type EventDateValues } from "@/components/admin/announcements/announcement-event-date";
 import { AnnouncementStep2, type Step2Values } from "@/components/admin/announcements/announcement-step2";
+import { AnnouncementCTAEditor } from "@/components/admin/announcements/announcement-cta-editor";
+import { DEFAULT_CTA_CONFIG } from "@/types/announcement-cta";
+import type { CTAConfig } from "@/types/announcement-cta";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 import type { AnalyzePosterResult, AnnouncementSuggestion } from "@/hooks/use-announcement-organize";
@@ -222,6 +225,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [isBotSearchable, setIsBotSearchable] = useState(true);
   const [aiExtracted, setAiExtracted] = useState<AnalyzePosterResult | null>(null);
   const [pendingSuggestion, setPendingSuggestion] = useState<AnnouncementSuggestion | null>(null);
+
+  /* ── CTA state (Flex message only) ── */
+  const [ctas, setCtas] = useState<CTAConfig>(DEFAULT_CTA_CONFIG);
 
   /* ── Step 2 state ── */
   const [step2, setStep2] = useState<Step2Values>(DEFAULT_STEP2);
@@ -579,9 +585,11 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                       coverImage={coverImage}
                       carouselImages={carouselImages}
                       announcementId={savedAnnouncementId}
+                      ctas={ctas}
                       onImagesChange={setCarouselImages}
                       onFlexJsonChange={setFlexJson}
                     />
+                    <AnnouncementCTAEditor value={ctas} onChange={setCtas} />
                     <details className="rounded-xl border">
                       <summary className="cursor-pointer px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
                         แก้ไข Flex JSON โดยตรง

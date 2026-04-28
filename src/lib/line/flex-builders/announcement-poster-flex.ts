@@ -1,12 +1,15 @@
 import type { FlexMessagePayload } from "./bill-reminder"
+import type { CTAButton, CTAConfig } from "@/types/announcement-cta"
 
 export interface AnnouncementFlexFields {
   title: string
   body: string
   date?: string | null
   category?: string | null
+  /** @deprecated use ctas instead */
   ctaUrl?: string | null
   announcementId?: string | null
+  ctas?: CTAConfig | null
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -117,24 +120,65 @@ function buildBubble(
     }
   }
 
-  if (fields.ctaUrl) {
+  // Build footer buttons from ctas config (preferred) or legacy ctaUrl
+  const footerButtons: unknown[] = []
+
+  function buildAction(btn: CTAButton): Record<string, unknown> {
+    if (btn.actionType === "uri") {
+      return { type: "uri", label: btn.label.slice(0, 20), uri: btn.actionValue }
+    }
+    if (btn.actionType === "message") {
+      return { type: "message", label: btn.label.slice(0, 20), text: btn.actionValue.slice(0, 300) }
+    }
+    // postback
+    return {
+      type: "postback",
+      label: btn.label.slice(0, 20),
+      data: btn.actionValue.slice(0, 300),
+      ...(btn.displayText ? { displayText: btn.displayText.slice(0, 300) } : {}),
+    }
+  }
+
+  if (fields.ctas?.primary) {
+    const p = fields.ctas.primary
+    footerButtons.push({
+      type: "button",
+      style: p.style,
+      color: p.style === "primary" ? "#DD598B" : undefined,
+      height: "sm",
+      action: buildAction(p),
+    })
+  } else if (fields.ctaUrl) {
+    // legacy fallback
+    footerButtons.push({
+      type: "button",
+      style: "primary",
+      color: "#DD598B",
+      height: "sm",
+      action: { type: "uri", label: "ดูรายละเอียด", uri: fields.ctaUrl },
+    })
+  }
+
+  if (fields.ctas?.secondary) {
+    const s = fields.ctas.secondary
+    if (footerButtons.length > 0) {
+      footerButtons.push({ type: "separator", margin: "sm" })
+    }
+    footerButtons.push({
+      type: "button",
+      style: s.style,
+      height: "sm",
+      action: buildAction(s),
+    })
+  }
+
+  if (footerButtons.length > 0) {
     bubble.footer = {
       type: "box",
       layout: "vertical",
       paddingAll: "12px",
-      contents: [
-        {
-          type: "button",
-          action: {
-            type: "uri",
-            label: "ดูรายละเอียด →",
-            uri: fields.ctaUrl,
-          },
-          style: "primary",
-          color: "#DD598B",
-          height: "sm",
-        },
-      ],
+      spacing: "none",
+      contents: footerButtons,
     }
   }
 
