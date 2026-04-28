@@ -25,7 +25,6 @@ import { AnnouncementMessageTypeCards } from "@/components/admin/announcements/a
 import { AnnouncementImageMessage, type ImageMessageState } from "@/components/admin/announcements/announcement-image-message";
 import { AnnouncementEventDate, type EventDateValues } from "@/components/admin/announcements/announcement-event-date";
 import { AnnouncementStep2, type Step2Values } from "@/components/admin/announcements/announcement-step2";
-import { AnnouncementCTAEditor } from "@/components/admin/announcements/announcement-cta-editor";
 import { DEFAULT_CTA_CONFIG } from "@/types/announcement-cta";
 import type { CTAConfig } from "@/types/announcement-cta";
 import type { MessageTemplate } from "@/types/announcements";
@@ -421,25 +420,42 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       <AdminBreadcrumb />
 
       {/* ── Page header ─────────────────────────────────────────── */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left: back + title + stepper */}
+        <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={() => step === 2 ? setStep(1) : router.push("/admin/announcements")}
-            className="flex h-9 w-9 items-center justify-center rounded-full border transition-colors hover:bg-muted"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors hover:bg-muted"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <div>
-            <h1 className="font-heading text-2xl font-bold text-foreground">
+          <div className="min-w-0">
+            <h1 className="font-heading text-xl font-bold text-foreground leading-tight">
               สร้างประกาศใหม่
             </h1>
             <p className="text-xs text-muted-foreground">
               สร้างและส่งประกาศไปยังนิสิตผ่าน LINE OA
             </p>
           </div>
+          <div className="hidden sm:block ml-2">
+            <AnnouncementStepper currentStep={step} />
+          </div>
         </div>
 
-        {/* Stepper */}
+        {/* Right: action button */}
+        {step === 1 && (
+          <button
+            onClick={() => setStep(2)}
+            disabled={!titleTh.trim()}
+            className="shrink-0 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(221,89,139,0.3)] transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-50"
+          >
+            ต่อไป →
+          </button>
+        )}
+      </div>
+
+      {/* Mobile stepper */}
+      <div className="sm:hidden">
         <AnnouncementStepper currentStep={step} />
       </div>
 
@@ -588,8 +604,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                       ctas={ctas}
                       onImagesChange={setCarouselImages}
                       onFlexJsonChange={setFlexJson}
+                      onCtasChange={setCtas}
                     />
-                    <AnnouncementCTAEditor value={ctas} onChange={setCtas} />
                     <details className="rounded-xl border">
                       <summary className="cursor-pointer px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
                         แก้ไข Flex JSON โดยตรง
@@ -614,14 +630,14 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                 {/* Cover image (for non-image types) */}
                 {messageType !== "image" && (
                   <div>
-                    <label className="mb-2 block text-sm font-semibold text-foreground">
-                      รูปปกประกาศ
-                    </label>
-                    <UploadArea
-                      imageUrl={coverImage}
-                      onUploaded={(url, path) => { setCoverImage(url); setCoverPath(path); }}
-                      onRemove={() => { setCoverImage(null); setCoverPath(null); }}
-                    />
+                    <label className="mb-2 block text-sm font-semibold text-foreground">รูปปกประกาศ</label>
+                    <div className={coverImage ? "max-h-36 overflow-hidden rounded-xl" : "max-h-36 overflow-hidden"}>
+                      <UploadArea
+                        imageUrl={coverImage}
+                        onUploaded={(url, path) => { setCoverImage(url); setCoverPath(path); }}
+                        onRemove={() => { setCoverImage(null); setCoverPath(null); }}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -692,16 +708,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
                   <Switch checked={isBotSearchable} onCheckedChange={setIsBotSearchable} />
                 </div>
 
-                {/* Next button */}
-                <div className="pb-6">
-                  <button
-                    onClick={() => setStep(2)}
-                    disabled={!titleTh.trim()}
-                    className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(221,89,139,0.3)] transition-all hover:bg-primary/90 active:scale-[0.99] disabled:opacity-50"
-                  >
-                    ต่อไป
-                  </button>
-                </div>
+                {/* spacer bottom */}
+                <div className="pb-4" />
               </div>
 
               {/* ── Right: LINE preview ── */}
