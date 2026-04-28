@@ -27,6 +27,7 @@ import { AnnouncementEventDate, type EventDateValues } from "@/components/admin/
 import { AnnouncementStep2, type Step2Values } from "@/components/admin/announcements/announcement-step2";
 import { DEFAULT_CTA_CONFIG } from "@/types/announcement-cta";
 import type { CTAConfig } from "@/types/announcement-cta";
+import { buildAnnouncementPosterFlex } from "@/lib/line/flex-builders/announcement-poster-flex";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 import type { AnalyzePosterResult, AnnouncementSuggestion } from "@/hooks/use-announcement-organize";
@@ -291,7 +292,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       content_th: contentTh,
       content_en: contentEn || contentTh,
       message_type: messageType,
-      flex_json: (messageType === "flex" ? flexJson : null) as any,
+      flex_json: (messageType === "flex" ? (buildCurrentFlexJson() ?? flexJson) : null) as any,
       target_type: step2.targetType,
       target_tags: step2.targetType === "targeted" ? step2.targetTags : [],
       is_pinned: isPinned,
@@ -391,7 +392,7 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
             targetTags: step2.targetTags,
             messageType,
             content: contentTh,
-            flexJson,
+            flexJson: messageType === "flex" ? (buildCurrentFlexJson() ?? flexJson) : flexJson,
             imageUrl: messageType === "image" ? (imageMsg.imageUrls[0] ?? null) : null,
             imageUrls: messageType === "image" ? imageMsg.imageUrls : [],
             imageCarouselMode: imageMsg.carouselMode,
@@ -414,6 +415,25 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   }
 
   const isAiFilled = (field: string) => aiFilledFields.has(field);
+
+  /** Build Flex JSON synchronously from current state — avoids debounce race. */
+  function buildCurrentFlexJson(): Record<string, unknown> | null {
+    if (messageType !== "flex") return null;
+    const ctaUrl = (!ctas?.primary && savedAnnouncementId)
+      ? `${process.env.NEXT_PUBLIC_WEB_BASE ?? ""}/th/announcements/${savedAnnouncementId}`
+      : undefined;
+    return buildAnnouncementPosterFlex(
+      {
+        title: titleTh,
+        body: contentTh,
+        date: eventDateValues.startDate || null,
+        category,
+        ctaUrl,
+        ctas: ctas ?? null,
+      },
+      carouselImages
+    ) as unknown as Record<string, unknown>;
+  }
 
   return (
     <div className="space-y-6">
