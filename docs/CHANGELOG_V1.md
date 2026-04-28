@@ -1,7 +1,36 @@
 # C-Madong Product — Changelog
 
-> **Version 2.3.0** Release Date: 2026-04-27
-> Bed Selection — annual mandatory dorm task with floor/room grid UI, 10-min countdown, auto-confirm cron
+> **Version 2.5.0** Release Date: 2026-04-28
+> Announcement Send Fix — admin create/send/draft fully working, LINE broadcast to all followers, student tag saving fixed
+
+---
+
+## 🐛 V2.5.0 Bug Fixes (2026-04-28)
+
+### Announcement Admin — Create / Send / Save Draft
+
+**Root causes found and fixed (8 commits: 8326c21→2c8a308)**
+
+- **Silent create failure**: `useCreateAnnouncement` used user Supabase client → RLS blocked `super_admin` (is_admin() checks only `admin|head`). `author_id: ""` also caused UUID constraint error. Fix: route POST/PATCH through API routes using `createAdminClient()`.
+- **`published_at` never set**: Direct Supabase insert path skipped `published_at` → announcements sorted wrong for students. API route now sets `sent_at` + `published_at` when `status = "sent"`.
+- **`title` NOT NULL violation**: POST API was missing `title` field (required column, no DB default). Added `title: title_th || title_en || ""` to insertData.
+- **`target_type` check constraint**: DB constraint `announcements_target_type_check` only allows `broadcast` / `targeted`. Component was sending `"tags"`. Fixed option value → `"targeted"`, added defensive map in API.
+- **`announcement-permissions.ts` never committed**: Build failed on Vercel — "Module not found". New RBAC helper file was local-only. Committed alongside modified API routes.
+- **LINE broadcast text to unregistered users**: Text broadcast was individual-pushing only profiles with `line_uid`. Unregistered followers (added OA but no account) never received. Fixed: `broadcastTextMessage()` uses LINE broadcast API → sends to ALL followers.
+- **Student tag save blocked by RLS**: `useUpdateStudent` used user client → `super_admin` RLS blocked UPDATE on profiles. Created `PATCH /api/admin/students/[id]` with `adminClient()`. Hook now calls API.
+- **`send/route.ts` shadow variable**: Duplicate `const supabase = await createClient()` inside targeted block. Removed; uses `adminDb` (adminClient) throughout.
+
+**New files**:
+- `src/app/api/admin/announcements/[id]/route.ts` — PATCH handler (update announcement via adminClient)
+- `src/app/api/admin/students/[id]/route.ts` — PATCH handler (update student/tags via adminClient)
+- `src/lib/rbac/announcement-permissions.ts` — `hasAnnouncementPermission()` helper (legacy + RBAC roles)
+- `src/lib/line/client.ts` — added `broadcastTextMessage()`
+
+**Modified**:
+- `new-announcement-page-content.tsx` — `saveViaApi()` replaces direct mutations; success/error toast; `"tags"` → `"targeted"`
+- `send/route.ts` — adminClient for profile queries, `broadcastTextMessage` for text broadcast, `"targeted"` type check
+- `use-students.ts` — `useUpdateStudent` calls PATCH API instead of direct Supabase
+- `student-edit-dialog.tsx` — success/error toast on save
 
 ---
 
