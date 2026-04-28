@@ -8,6 +8,8 @@ import {
   MessageCircleQuestion,
   PanelLeftClose,
   PanelLeftOpen,
+  Megaphone,
+  ChevronDown,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useKnowledgeStore } from "@/stores/knowledge-store";
 import { FolderTree } from "./folder-tree";
 import { FileListSidebar } from "./file-list-sidebar";
+import { AnnouncementsInKB } from "./announcements-in-kb";
 import type { FolderTreeNode, KnowledgeDocument } from "@/hooks/use-knowledge";
 
 interface KnowledgeSidebarProps {
@@ -104,6 +107,16 @@ export function KnowledgeSidebar({
           {/* Spacer */}
           <div className="flex-1" />
 
+          {/* Announcements icon */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+                <Megaphone className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">ประกาศในฐานข้อมูล Bot</TooltipContent>
+          </Tooltip>
+
           {/* Q&A icon — playground entry point */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -184,6 +197,18 @@ export function KnowledgeSidebar({
           <FileListSidebar documents={documents} />
         )}
       </ScrollArea>
+
+      {/* Announcements in Bot section */}
+      <details className="group border-t">
+        <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground">
+          <Megaphone className="h-3.5 w-3.5 text-primary" />
+          <span className="flex-1">ประกาศในฐานข้อมูล Bot</span>
+          <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="max-h-52 overflow-y-auto border-t bg-muted/10">
+          <AnnouncementsInKB />
+        </div>
+      </details>
 
       {/* Q&A quick access — only playground entry point */}
       <div className="border-t p-3">

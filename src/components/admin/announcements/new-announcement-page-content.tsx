@@ -18,6 +18,7 @@ import { TemplateSelector } from "@/components/admin/flex-editor/template-select
 import { UploadArea } from "@/components/admin/announcements/upload-area";
 import { PosterUploadFlow } from "@/components/admin/announcements/poster-upload-flow";
 import { AnnouncementAISuggestionDialog, type AppliedSuggestion } from "@/components/admin/announcements/ai-suggestion-dialog";
+import { FlexMessagePreview } from "@/components/admin/announcements/flex-message-preview";
 import type { MessageTemplate } from "@/types/announcements";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
 import type { AnalyzePosterResult, AnnouncementSuggestion } from "@/hooks/use-announcement-organize";
@@ -58,6 +59,10 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
   const [isPinned, setIsPinned] = useState(existing?.is_pinned ?? false);
   const [coverImage, setCoverImage] = useState<string | null>(existing?.cover_image ?? null);
   const [coverPath, setCoverPath] = useState<string | null>(null);
+  const [carouselImages, setCarouselImages] = useState<string[]>(
+    (existing as any)?.carousel_images ?? []
+  );
+  const [savedAnnouncementId, setSavedAnnouncementId] = useState<string | null>(announcementId ?? null);
 
   // AI / new fields
   const [category, setCategory] = useState((existing as any)?.category ?? "announcement");
@@ -102,6 +107,8 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
     setCoverImage(url);
     setCoverPath(path);
     setAiExtracted(result);
+    // Auto-populate carousel with the poster image
+    setCarouselImages((prev) => (prev.length === 0 ? [url] : prev));
     setShowPosterUpload(false);
 
     if (result.suggestion) {
@@ -147,20 +154,21 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       ai_extracted: (aiExtracted?.suggestion ?? null) as any,
       ai_provider: aiExtracted?.ocr_provider ?? null,
       embed_text: aiExtracted?.embed_text ?? null,
+      carousel_images: carouselImages,
     };
   }
 
   async function saveViaApi(status: string): Promise<string> {
     const body = buildSaveData(status);
-    if (announcementId) {
-      const res = await fetch(`/api/admin/announcements/${announcementId}`, {
+    if (savedAnnouncementId) {
+      const res = await fetch(`/api/admin/announcements/${savedAnnouncementId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update");
       const data = await res.json();
-      return data.announcement?.id ?? announcementId;
+      return data.announcement?.id ?? savedAnnouncementId;
     } else {
       const res = await fetch("/api/admin/announcements", {
         method: "POST",
@@ -169,7 +177,9 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed to create");
       const data = await res.json();
-      return data.announcement?.id;
+      const newId = data.announcement?.id;
+      setSavedAnnouncementId(newId);
+      return newId;
     }
   }
 
@@ -354,7 +364,31 @@ export function NewAnnouncementPageContent({ announcementId }: Props) {
           />
         </div>
       ) : (
-        <FlexMessageEditor value={flexJson} onChange={setFlexJson} />
+        <div className="space-y-3">
+          <FlexMessagePreview
+            extractedFields={
+              titleTh
+                ? { title: titleTh, body: contentTh, date: eventDate || null, category }
+                : null
+            }
+            coverImage={coverImage}
+            carouselImages={carouselImages}
+            announcementId={savedAnnouncementId}
+            onImagesChange={(imgs) => {
+              setCarouselImages(imgs);
+            }}
+            onFlexJsonChange={(json) => setFlexJson(json)}
+          />
+          {/* Keep raw editor available for advanced editing */}
+          <details className="rounded-xl border">
+            <summary className="cursor-pointer px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+              แก้ไข Flex JSON โดยตรง
+            </summary>
+            <div className="border-t p-2">
+              <FlexMessageEditor value={flexJson} onChange={setFlexJson} />
+            </div>
+          </details>
+        </div>
       )}
 
       {/* AI + Template buttons */}

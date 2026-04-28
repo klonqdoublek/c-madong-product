@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage } from "@/lib/line/client";
+import { broadcastFlexMessage, broadcastTextMessage, pushTextMessage, pushFlexMessage } from "@/lib/line/client";
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,13 +28,24 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { targetType, targetTags, messageType, content, flexJson } = body;
+    const { announcementId, targetType, targetTags, messageType, content, flexJson } = body;
 
     const adminDb = createAdminClient();
 
+    // Resolve flex payload: use provided flexJson, or auto-build from DB data
+    let resolvedFlexJson: FlexMessagePayload | null = flexJson ?? null;
+    if (messageType === "flex" && !resolvedFlexJson && announcementId) {
+      const { data: ann } = await (adminDb as any)
+        .from("announcements")
+        .select("flex_json")
+        .eq("id", announcementId)
+        .single();
+      resolvedFlexJson = (ann?.flex_json as FlexMessagePayload) ?? null;
+    }
+
     if (targetType === "broadcast") {
-      if (messageType === "flex" && flexJson) {
-        await broadcastFlexMessage(flexJson as unknown as FlexMessagePayload);
+      if (messageType === "flex" && resolvedFlexJson) {
+        await broadcastFlexMessage(resolvedFlexJson);
       } else if (content) {
         await broadcastTextMessage(content);
       }
@@ -53,8 +64,8 @@ export async function POST(request: Request) {
       await Promise.allSettled(
         matchingProfiles.map((p) => {
           if (!p.line_uid) return Promise.resolve();
-          if (messageType === "flex" && flexJson) {
-            return pushTextMessage(p.line_uid, content || "New announcement");
+          if (messageType === "flex" && resolvedFlexJson) {
+            return pushFlexMessage(p.line_uid, resolvedFlexJson);
           }
           return pushTextMessage(p.line_uid, content);
         })

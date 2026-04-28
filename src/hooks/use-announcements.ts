@@ -347,6 +347,33 @@ export function useMyBookmarkedAnnouncements() {
   });
 }
 
+export function useBotSearchableAnnouncements() {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["bot-searchable-announcements"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("announcements")
+        .select("id, title_th, sent_at, category, ai_confidence, embedding")
+        .eq("status", "sent")
+        .eq("is_bot_searchable", true)
+        .is("archived_at", null)
+        .order("sent_at", { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        title_th: string;
+        sent_at: string | null;
+        category: string | null;
+        ai_confidence: number | null;
+        embedding: string | null;
+      }>;
+    },
+  });
+}
+
 export function useAnnouncementDocuments(announcementId: string) {
   const supabase = useSupabase();
 

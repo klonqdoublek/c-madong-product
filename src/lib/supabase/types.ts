@@ -489,6 +489,7 @@ export type Database = {
           folder_id: string | null
           has_dorm_score: boolean
           id: string
+          carousel_images: string[] | null
           is_bot_searchable: boolean | null
           is_calendar_pinned: boolean | null
           is_pinned: boolean
@@ -527,6 +528,7 @@ export type Database = {
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean
+          carousel_images?: string[] | null
           id?: string
           is_bot_searchable?: boolean | null
           is_calendar_pinned?: boolean | null
@@ -563,6 +565,7 @@ export type Database = {
           event_date?: string | null
           expire_at?: string | null
           extraction_mode?: string | null
+          carousel_images?: string[] | null
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean

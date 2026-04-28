@@ -36,6 +36,7 @@ export async function PATCH(
       ai_extracted, ocr_text, ai_confidence, ai_provider, extraction_mode,
       is_bot_searchable,
       embed_text,
+      carousel_images,
     } = body;
 
     const adminDb = createAdminClient();
@@ -67,6 +68,7 @@ export async function PATCH(
     if (ai_provider !== undefined) updateData.ai_provider = ai_provider;
     if (extraction_mode !== undefined) updateData.extraction_mode = extraction_mode;
     if (folder_id !== undefined) updateData.folder_id = folder_id || null;
+    if (carousel_images !== undefined) updateData.carousel_images = carousel_images ?? [];
 
     if (status === "sent") {
       updateData.sent_at = new Date().toISOString();
