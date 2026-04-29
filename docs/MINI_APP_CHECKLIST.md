@@ -1,7 +1,6 @@
 # LINE Mini App Upgrade Checklist
 
-ใช้ checklist นี้ก่อน submit Mini App listing บน LINE Developer Console  
-LIFF v1 ต้องทำงานได้ stable บน production ก่อน
+ใช้ checklist นี้ก่อน submit Mini App listing บน LINE Developer Console
 
 ---
 
@@ -9,12 +8,15 @@ LIFF v1 ต้องทำงานได้ stable บน production ก่อ�
 
 | Field | Value |
 |---|---|
+| Channel type | **LINE MINI App** (ไม่ใช่ LINE Login) |
 | LIFF App ID | `NEXT_PUBLIC_LINE_LIFF_ID` in Vercel env |
 | Endpoint URL | `https://c-madong-product.vercel.app/th` |
 | Size | Full |
-| Bot link | ON (เชื่อม OA เดิม) |
+| Bot link | ON (เชื่อม C-Madong OA — ทำให้ follow event ยังทำงานได้) |
 | Scope | `profile`, `openid` |
 | Module mode | OFF |
+
+> **สำคัญ**: ต้องสร้าง LIFF app ภายใน Mini App channel ก่อน จึงจะได้ LIFF ID ใหม่
 
 ---
 
@@ -22,12 +24,12 @@ LIFF v1 ต้องทำงานได้ stable บน production ก่อ�
 
 | Asset | Spec | Status |
 |---|---|---|
-| App icon | 1024×1024 PNG, no rounded corners (LINE adds them) | TODO |
+| App icon | 1024×1024 PNG, no rounded corners (LINE adds them) | TODO — see `assets/mini-app/README.md` |
 | Screenshots | 5+ ภาพ, 1242×2208 px (portrait), ไม่มี status bar | TODO |
-| App name (TH) | ≤ 40 chars: **ซีมะโด่ง — หอพัก มศว** (ตัวอย่าง) | TODO |
-| App name (EN) | ≤ 40 chars: **C-Madong Dorm** | TODO |
-| Description (TH) | ≤ 200 chars | TODO |
-| Description (EN) | ≤ 200 chars | TODO |
+| App name (TH) | ≤ 40 chars: **ซีมะโด่ง — หอพักนิสิต CU** | ✅ Draft ready |
+| App name (EN) | ≤ 40 chars: **C-Madong Dorm** | ✅ Draft ready |
+| Description (TH) | ≤ 200 chars — see `assets/mini-app/README.md` | ✅ Draft ready |
+| Description (EN) | ≤ 200 chars — see `assets/mini-app/README.md` | ✅ Draft ready |
 
 ---
 
@@ -35,48 +37,84 @@ LIFF v1 ต้องทำงานได้ stable บน production ก่อ�
 
 ### Terms of Service
 - URL: `https://c-madong-product.vercel.app/th/legal/terms`
-- Content: ข้อกำหนดการใช้งาน, สิทธิ์ข้อมูลที่เก็บ (line_uid, display_name, email)
-- ต้องสร้างหน้า `/[locale]/legal/terms/page.tsx`
+- File: `src/app/[locale]/legal/terms/page.tsx` — **✅ BUILT**
+- Public route: **✅ Added to `PUBLIC_ROUTES` in `middleware.ts`**
 
 ### Privacy Policy
 - URL: `https://c-madong-product.vercel.app/th/legal/privacy`
-- Content: ข้อมูลที่เก็บ, วัตถุประสงค์, ผู้รับข้อมูล, สิทธิ์ของผู้ใช้
-- ต้องสร้างหน้า `/[locale]/legal/privacy/page.tsx`
-
-> ทั้งสองหน้าต้องเป็น public route (เพิ่มใน `PUBLIC_ROUTES` ใน `middleware.ts`)
+- File: `src/app/[locale]/legal/privacy/page.tsx` — **✅ BUILT**
+- Covers: line_uid, display_name, full name, student ID, faculty, email, phone, building/room/bed, repair photos, parcel images, evaluation docs, score history, attendance, billing
 
 ---
 
 ## 4. Category
 
-LINE Mini App category → **Education** หรือ **Lifestyle**  
-แนะนำ: **Education** (university dormitory management)
+LINE Mini App category → **Education** (university dormitory management)
 
 ---
 
-## 5. Submission Flow
+## 5. Deploy Steps (Phase 4 — after Console setup)
 
-1. เปิด LINE Developer Console → เลือก Provider → เลือก Channel (LINE Login)
-2. ไปที่ **LINE MINI App** tab → **Create**
-3. กรอก: App name, Description, Category, Icon, Screenshots
-4. ใส่ Terms URL + Privacy URL
-5. เลือก LIFF App ที่สร้างแล้ว (endpoint `/th`)
+Execute in order:
+
+```bash
+# 1. Sync new LIFF ID to local env
+echo "NEXT_PUBLIC_LINE_LIFF_ID=2007xxxxxxx" >> .env.local
+
+# 2. Update Vercel env (via Dashboard or CLI)
+vercel env add NEXT_PUBLIC_LINE_LIFF_ID production
+
+# 3. Trigger Vercel redeploy (env change requires rebuild)
+vercel --prod
+
+# 4. Regen rich menus pointing to new LIFF ID
+npx tsx scripts/setup-rich-menus.ts --deploy-liff
+# Output shows new RICH_MENU_GUEST + RICH_MENU_REGISTERED IDs
+
+# 5. Update rich menu IDs in Vercel + redeploy
+vercel env add RICH_MENU_GUEST production
+vercel env add RICH_MENU_REGISTERED production
+vercel --prod
+```
+
+---
+
+## 6. Submission Flow
+
+1. LINE Developer Console → Provider → Mini App channel
+2. LIFF tab → Create LIFF app (endpoint `/th`, Full, Bot link ON, scopes `profile openid`)
+3. Copy LIFF ID → execute Phase 4 deploy steps above
+4. Listing tab → fill: App name, Description, Category, Icon, Screenshots
+5. Legal: Terms URL + Privacy URL
 6. Submit for review
 
 **คาดว่า review ใช้เวลา 7–14 วันทำการ**
 
 ---
 
-## 6. Common Rejection Reasons
+## 7. Verification Before Submit
 
-- **Privacy Policy หรือ Terms ไม่สมบูรณ์** → ต้องระบุข้อมูลที่ app เก็บอย่างชัดเจน
-- **App ทำงานไม่ได้** → ทดสอบ LIFF flow บนมือถือก่อน submit
-- **Description ไม่ชัดเจน** → อธิบาย value prop ให้ user ที่ไม่รู้จัก C-Madong เข้าใจได้
-- **Screenshots ไม่ตรงกับ app จริง** → screenshot จาก device จริง ไม่ใช่ simulator
+- [ ] `https://c-madong-product.vercel.app/th/legal/terms` loads (no auth required)
+- [ ] `https://c-madong-product.vercel.app/th/legal/privacy` loads (no auth required)
+- [ ] Rich menu URLs in Console contain new LIFF ID prefix
+- [ ] Real device: Menu A (guest) → register → onboarding → dashboard
+- [ ] Real device: Menu B (registered) → dashboard direct
+- [ ] Real device: ShareTargetPicker works (announcement share)
+- [ ] Bot follow event → welcome flex fires
+- [ ] Old LIFF channel disabled in Console (after 24-48h soak)
 
 ---
 
-## 7. Post-Approval Notes
+## 8. Common Rejection Reasons
+
+- **Privacy Policy หรือ Terms ไม่สมบูรณ์** → ระบุข้อมูลที่เก็บชัดเจน (เรา list ครบแล้ว)
+- **App ทำงานไม่ได้** → ทดสอบ LIFF flow บนมือถือก่อน submit
+- **Description ไม่ชัดเจน** → อธิบาย value prop ให้ผู้รีวิวที่ไม่รู้จัก C-Madong เข้าใจ
+- **Screenshots ไม่ตรงกับ app จริง** → capture จาก real device ไม่ใช่ simulator
+
+---
+
+## 9. Post-Approval Notes
 
 - **Code update** (UI/API/logic): push to Vercel → live ทันที — ไม่ต้อง re-review
 - **Metadata change** (icon/name/description/Terms URL/scope): ต้อง re-submit review
@@ -84,7 +122,7 @@ LINE Mini App category → **Education** หรือ **Lifestyle**
 
 ---
 
-## 8. Differences: LIFF vs Mini App
+## 10. Differences: LIFF vs Mini App
 
 | | LIFF | Mini App |
 |---|---|---|
@@ -95,3 +133,5 @@ LINE Mini App category → **Education** หรือ **Lifestyle**
 | Review required for code change | ❌ | ❌ |
 | Review required for metadata change | ❌ | ✅ |
 | Install button in LINE | ❌ | ✅ |
+| Permission API (camera/location) | ❌ | ✅ |
+| `isMiniApp()` helper in codebase | — | ✅ `src/lib/liff/index.ts` |

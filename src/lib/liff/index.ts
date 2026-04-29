@@ -69,3 +69,40 @@ export function liffOpenExternal(url: string): void {
   }
   liffInstance.openWindow({ url, external: true });
 }
+
+// Mini App detection — permission API only available on Mini App channels
+export function isMiniApp(): boolean {
+  if (!liffInstance) return false;
+  return typeof (liffInstance as unknown as Record<string, unknown>).permission !== "undefined";
+}
+
+// Permission wrappers — forward-compat for Mini App camera/location flows
+export async function liffPermissionQuery(
+  name: "camera" | "location"
+): Promise<"granted" | "denied" | "prompt" | null> {
+  if (!isMiniApp() || !liffInstance) return null;
+  try {
+    const perm = ((liffInstance as unknown as Record<string, unknown>).permission) as {
+      query: (n: { name: string }) => Promise<{ state: string }>;
+    };
+    const result = await perm.query({ name });
+    return result.state as "granted" | "denied" | "prompt";
+  } catch {
+    return null;
+  }
+}
+
+export async function liffPermissionRequest(
+  name: "camera" | "location"
+): Promise<boolean> {
+  if (!isMiniApp() || !liffInstance) return false;
+  try {
+    const perm = ((liffInstance as unknown as Record<string, unknown>).permission) as {
+      request: (n: { name: string }) => Promise<{ state: string }>;
+    };
+    const result = await perm.request({ name });
+    return result.state === "granted";
+  } catch {
+    return false;
+  }
+}

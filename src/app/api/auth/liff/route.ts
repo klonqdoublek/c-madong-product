@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { linkRegisteredMenu } from "@/lib/line/rich-menu";
 
 interface LineVerifyResponse {
   scope: string;
@@ -41,13 +42,18 @@ export async function POST(request: NextRequest) {
 
     const verifyData: LineVerifyResponse = await verifyRes.json();
 
-    // Verify the token belongs to our LINE Login channel
-    if (verifyData.client_id !== process.env.LINE_LOGIN_CHANNEL_ID) {
+    // Verify token belongs to our LINE Login channel OR Mini App channel
+    const allowedChannels = [
+      process.env.LINE_LOGIN_CHANNEL_ID,
+      process.env.LINE_MINI_APP_CHANNEL_ID,
+    ].filter(Boolean);
+
+    if (!allowedChannels.includes(verifyData.client_id)) {
       console.error(
         "[LIFF Auth] Channel mismatch:",
         verifyData.client_id,
-        "!=",
-        process.env.LINE_LOGIN_CHANNEL_ID
+        "not in",
+        allowedChannels
       );
       return NextResponse.json(
         { error: "Token not from expected channel" },
@@ -103,6 +109,11 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         );
       }
+
+      // Swap to registered rich menu (fire-and-forget, non-blocking)
+      linkRegisteredMenu(lineProfile.userId).catch((err) =>
+        console.error("[LIFF Auth] Rich menu swap failed:", err)
+      );
 
       const locale = existingProfile.language || "th";
       return NextResponse.json({

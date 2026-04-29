@@ -51,3 +51,7 @@ next-env.d.ts
 # temp directories
 /content
 /supabase/.temp
+
+# mini-app binary assets (images uploaded to LINE Console manually)
+/assets/mini-app/icon-1024.png
+/assets/mini-app/screenshots/

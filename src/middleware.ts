@@ -6,7 +6,7 @@ import { routing } from "@/i18n/routing";
 const intlMiddleware = createIntlMiddleware(routing);
 
 // Routes that don't require auth
-const PUBLIC_ROUTES = ["/login", "/register", "/guide"];
+const PUBLIC_ROUTES = ["/login", "/register", "/guide", "/legal"];
 
 // Routes only accessible to admin/head
 const ADMIN_ROUTE_PREFIX = "/admin";
@@ -116,8 +116,8 @@ export async function middleware(request: NextRequest) {
     ) {
       return response;
     }
-    // Guide pages are accessible to logged-in users too
-    if (strippedPath.startsWith("/guide")) {
+    // Guide + legal pages are accessible to logged-in users too
+    if (strippedPath.startsWith("/guide") || strippedPath.startsWith("/legal")) {
       return response;
     }
     // Already logged in, redirect away from login/register

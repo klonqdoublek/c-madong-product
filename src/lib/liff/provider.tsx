@@ -11,7 +11,7 @@ function getLocaleFromPath(): string {
 
 export function LiffProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
-  const { setLiffContext, setInitialized } = useLiffStore();
+  const { setLiffContext, setInitialized, setMiniApp } = useLiffStore();
 
   useEffect(() => {
     let cancelled = false;
@@ -35,10 +35,24 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
             ? (liffModule.getOS() as "ios" | "android" | "web")
             : null;
           setLiffContext(inLiff, os);
+          const { isMiniApp: detectMiniApp } = await import("@/lib/liff");
+          setMiniApp(detectMiniApp());
         }
 
-        // 4. If already authenticated, done
+        // 4. If already authenticated, done — but still sync rich menu if in LIFF
         if (authenticated) {
+          if (inLiff) {
+            // Fire-and-forget — ensure registered menu is linked for this session
+            const { getLiffAccessToken } = await import("@/lib/liff");
+            const token = getLiffAccessToken();
+            if (token) {
+              fetch("/api/auth/liff/sync-menu", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ accessToken: token }),
+              }).catch(() => {/* non-critical */});
+            }
+          }
           if (!cancelled) {
             setInitialized(true);
             setReady(true);
@@ -104,7 +118,7 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [setLiffContext, setInitialized]);
+  }, [setLiffContext, setInitialized, setMiniApp]);
 
   if (!ready) {
     return (
