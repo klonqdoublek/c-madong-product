@@ -1,7 +1,50 @@
 # C-Madong Product — Changelog
 
-> **Version 2.5.0** Release Date: 2026-04-28
-> Announcement Send Fix — admin create/send/draft fully working, LINE broadcast to all followers, student tag saving fixed
+> **Version 2.7.0** Release Date: 2026-04-29
+> LIFF Production Launch — auth bridge in student layout, shareTargetPicker for announcements, external link routing, rich menu LIFF URLs
+
+---
+
+## 🚀 V2.7.0 — LIFF Production Launch (2026-04-29)
+
+### LIFF Auth Bridge
+- `LiffProvider` client component injected into `(student)/layout.tsx` — runs `liff.init()` + auth bridge on every student route
+- `liff-store.ts` (Zustand) — `isLiff`, `liffOs`, `isInitialized` flags available app-wide
+- `/api/auth/me` — lightweight session probe (GET → `{authenticated: boolean}`)
+- Middleware detects `Line/` user-agent + `liff.state` param → allows unauthenticated LIFF traffic through
+- Legacy `/liff/[[...path]]` kept as fallback; removed `sessionStorage` flag write
+
+### LIFF-Native Features
+- `liff.shareTargetPicker()` — announcement detail share button routes through LINE picker when in LIFF
+- `openExternalLink()` util — `liff.openWindow({external:true})` inside LIFF, `window.open()` outside
+- Announcement document links use `openExternalLink` (open in Safari/Chrome, not in-app webview)
+- New SDK wrappers: `liffShareTargetPicker`, `liffScanCode`, `liffOpenExternal`, `getLiffOS`
+
+### Rich Menu + Config
+- `setup-rich-menus.ts --deploy-liff` flag — Menu B URIs point to LIFF URLs (`liff.line.me/{LIFF_ID}/...`)
+- `dotenv` loaded inside script (no wrapper needed)
+- `NEXT_PUBLIC_LINE_LIFF_ID=2009102535-rPuYP2Du` set on Vercel production
+
+### Navigation
+- Removed `isLiff` hide-nav logic from `StudentShell` — bottom nav always shows based on route
+
+### LINE Console Config Required
+- Endpoint URL: `https://c-madong-product.vercel.app/th`
+- Size: Full
+- Scope: `openid` + `profile`
+- `shareTargetPicker`: ON
+- Bot link: ON
+
+### Files
+- NEW: `src/stores/liff-store.ts`, `src/lib/liff/provider.tsx`, `src/app/api/auth/me/route.ts`, `src/lib/utils/external-link.ts`, `src/components/student/announcements/share-button.tsx`, `docs/MINI_APP_CHECKLIST.md`
+- MODIFIED: `src/lib/liff/index.ts`, `src/middleware.ts`, `src/components/layout/student-shell.tsx`, `src/app/[locale]/(student)/layout.tsx`, `src/app/liff/[[...path]]/page.tsx`, `announcement-detail-content.tsx`, `scripts/setup-rich-menus.ts`, `th.json`, `en.json`
+- Commit: `15ac8c6`
+
+---
+
+## 🐛 V2.5.0 Bug Fixes (2026-04-28)
+
+### Announcement Admin — Create / Send / Save Draft
 
 ---
 

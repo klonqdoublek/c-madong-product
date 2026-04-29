@@ -12,6 +12,10 @@
 
 import fs from "fs"
 import path from "path"
+import { config } from "dotenv"
+
+// Load .env.local (project root)
+config({ path: path.resolve(process.cwd(), ".env.local") })
 
 const TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN
 if (!TOKEN) {
@@ -202,7 +206,9 @@ async function deploy(useLiff = false) {
 
   // 4. Create Menu B
   console.log("\n📝 Step 4: Creating Menu B (Registered)...")
-  const resB = (await api("POST", "/richmenu", buildMenuB(useLiff))) as { richMenuId: string }
+  const menuB = buildMenuB(useLiff)
+  console.log("   URIs:", menuB.areas.filter((a: any) => a.action.type === "uri").map((a: any) => a.action.uri))
+  const resB = (await api("POST", "/richmenu", menuB)) as { richMenuId: string }
   console.log(`   Created: ${resB.richMenuId}`)
 
   // 5. Upload image B
