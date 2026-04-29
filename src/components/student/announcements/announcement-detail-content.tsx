@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { openExternalLink } from "@/lib/utils/external-link";
+import { useLiffStore } from "@/stores/liff-store";
 import {
   useAnnouncement,
   useMyRegistration,
@@ -59,8 +61,40 @@ export function AnnouncementDetailContent({
 
   const isRegistered = !!registration;
   const isBookmarked = !!bookmark;
+  const isLiff = useLiffStore((s) => s.isLiff);
 
   const handleShare = async () => {
+    // In LIFF: use LINE shareTargetPicker for a native share experience
+    if (isLiff && announcement) {
+      try {
+        const { buildAnnouncementPosterFlex } = await import(
+          "@/lib/line/flex-builders/announcement-poster-flex"
+        );
+        const { liffShareTargetPicker } = await import("@/lib/liff");
+        const ann2 = announcement as any;
+        const images: string[] = ann2.carousel_images?.length
+          ? ann2.carousel_images
+          : ann2.cover_image
+          ? [ann2.cover_image]
+          : [];
+        const payload = buildAnnouncementPosterFlex(
+          {
+            title: ann2.title_th || ann2.title_en || "",
+            body: ann2.content_th || ann2.content_en || "",
+            category: ann2.category ?? null,
+            date: ann2.event_date ?? ann2.published_at ?? null,
+            announcementId: announcementId,
+          },
+          images
+        );
+        await liffShareTargetPicker([payload as any]);
+      } catch {
+        // User cancelled or share picker unavailable
+      }
+      return;
+    }
+
+    // Web: native share → clipboard fallback
     const url = window.location.href;
     const title = (announcement as any)?.title_th || "";
     if (navigator.share) {
@@ -209,12 +243,11 @@ export function AnnouncementDetailContent({
             </h2>
             <div className="space-y-2">
               {documents.map((doc: any) => (
-                <a
+                <button
                   key={doc.id}
-                  href={doc.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 rounded-lg bg-pink-50 px-3 py-2.5"
+                  type="button"
+                  onClick={() => openExternalLink(doc.file_url)}
+                  className="flex w-full items-center gap-3 rounded-lg bg-pink-50 px-3 py-2.5 text-left"
                 >
                   <FileText className="h-5 w-5 text-primary" />
                   <div className="flex-1">
@@ -225,7 +258,7 @@ export function AnnouncementDetailContent({
                       </p>
                     )}
                   </div>
-                </a>
+                </button>
               ))}
             </div>
           </div>

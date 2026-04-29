@@ -1414,5 +1414,15 @@
     "categoryDormMeeting": "Dorm Meeting",
     "categoryDormInspection": "Dorm Inspection",
     "categoryImportantAnno": "Important Notice"
+  },
+  "liff": {
+    "loading": "Signing in...",
+    "share": "Share",
+    "shareSuccess": "Shared successfully",
+    "shareError": "Unable to share",
+    "scanQR": "Scan QR",
+    "scanSuccess": "Scanned successfully",
+    "scanError": "Unable to scan",
+    "openExternal": "Open in browser"
   }
 }

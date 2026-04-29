@@ -76,6 +76,14 @@ export async function middleware(request: NextRequest) {
 
   // 7. Auth logic
   if (!user) {
+    // LIFF in-app browser: let LiffProvider handle auth client-side
+    const ua = request.headers.get("user-agent") ?? "";
+    const hasLiffState = request.nextUrl.searchParams.has("liff.state");
+    const isLiffClient = ua.includes("Line/") || hasLiffState;
+    if (isLiffClient && !isPublicRoute) {
+      return response;
+    }
+
     // Dev mode on localhost: skip auth redirect, let pages load (they'll show empty state)
     const isLocalDev =
       process.env.NEXT_PUBLIC_DEV_LOGIN === "true" &&

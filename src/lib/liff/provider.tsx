@@ -1,0 +1,121 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useLiffStore } from "@/stores/liff-store";
+
+function getLocaleFromPath(): string {
+  if (typeof window === "undefined") return "th";
+  const match = window.location.pathname.match(/^\/(th|en)(\/|$)/);
+  return match?.[1] ?? "th";
+}
+
+export function LiffProvider({ children }: { children: React.ReactNode }) {
+  const [ready, setReady] = useState(false);
+  const { setLiffContext, setInitialized } = useLiffStore();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      try {
+        // 1. Check existing Supabase session first (cheap probe)
+        const meRes = await fetch("/api/auth/me");
+        const { authenticated } = await meRes.json();
+
+        // 2. Init LIFF SDK
+        const { initLiff, isInLiffClient } = await import("@/lib/liff");
+        await initLiff();
+
+        const inLiff = isInLiffClient();
+
+        // 3. Update store
+        if (!cancelled) {
+          const { default: liffModule } = await import("@line/liff");
+          const os = inLiff
+            ? (liffModule.getOS() as "ios" | "android" | "web")
+            : null;
+          setLiffContext(inLiff, os);
+        }
+
+        // 4. If already authenticated, done
+        if (authenticated) {
+          if (!cancelled) {
+            setInitialized(true);
+            setReady(true);
+          }
+          return;
+        }
+
+        // 5. Not authenticated — only auth-bridge if inside LINE client
+        if (!inLiff) {
+          // Web browser, unauthenticated — middleware should have caught this,
+          // but just in case: don't block render
+          if (!cancelled) {
+            setInitialized(true);
+            setReady(true);
+          }
+          return;
+        }
+
+        // 6. LIFF auth bridge
+        const { getLiffAccessToken, liffLogin } = await import("@/lib/liff");
+        const accessToken = getLiffAccessToken();
+
+        if (!accessToken) {
+          liffLogin();
+          return;
+        }
+
+        const authRes = await fetch("/api/auth/liff", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accessToken }),
+        });
+
+        if (!authRes.ok) {
+          if (!cancelled) {
+            setInitialized(true);
+            setReady(true);
+          }
+          return;
+        }
+
+        const data = await authRes.json();
+
+        if (!data.ok && data.action === "register") {
+          const locale = getLocaleFromPath();
+          window.location.replace(`/${locale}/register`);
+          return;
+        }
+
+        // 7. Reload to pick up session cookies
+        window.location.reload();
+      } catch (err) {
+        console.error("[LiffProvider] init error:", err);
+        if (!cancelled) {
+          // Fail open — don't block the app if LIFF init fails
+          setInitialized(true);
+          setReady(true);
+        }
+      }
+    }
+
+    init();
+    return () => {
+      cancelled = true;
+    };
+  }, [setLiffContext, setInitialized]);
+
+  if (!ready) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500" />
+          <p className="mt-4 text-sm text-muted-foreground">กำลังเข้าสู่ระบบ...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}

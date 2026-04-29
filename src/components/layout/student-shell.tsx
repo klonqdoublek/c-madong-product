@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { BottomNav } from "./bottom-nav";
 import { MenuModal } from "./menu-modal";
@@ -19,15 +19,10 @@ function shouldShowNav(pathname: string): boolean {
 }
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
-  const [isLiff, setIsLiff] = useState(false);
   const pathname = usePathname();
   const setMenuModalOpen = useMenuStore((state) => state.setMenuModalOpen);
   const isDashboard = pathname === "/dashboard";
-  const showNav = !isLiff && shouldShowNav(pathname);
-
-  useEffect(() => {
-    setIsLiff(sessionStorage.getItem("c-madong-liff") === "1");
-  }, []);
+  const showNav = shouldShowNav(pathname);
 
   useEffect(() => {
     setMenuModalOpen(false);
@@ -38,10 +33,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
       {!isDashboard && <NotificationModal />}
       <MenuModal />
       <ChatModal />
-      <main className={`flex-1 ${isLiff ? "" : showNav ? "pb-28 md:pb-0" : "pb-6 md:pb-0"}`}>
+      <main className={`flex-1 ${showNav ? "pb-28 md:pb-0" : "pb-6 md:pb-0"}`}>
         {children}
       </main>
-      {!isLiff && <ChatFAB showNav={showNav} />}
+      <ChatFAB showNav={showNav} />
       <BottomNav visible={showNav} />
     </div>
   );

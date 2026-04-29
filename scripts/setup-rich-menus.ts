@@ -21,6 +21,15 @@ if (!TOKEN) {
 
 const BASE = "https://api.line.me/v2/bot"
 const WEB_URL = "https://c-madong-product.vercel.app/th"
+const LIFF_ID = process.env.NEXT_PUBLIC_LINE_LIFF_ID ?? ""
+
+/** Returns LIFF URL if LIFF_ID set, else web URL */
+function liffOrWeb(webPath: string, useLiff: boolean): string {
+  if (useLiff && LIFF_ID) {
+    return `https://liff.line.me/${LIFF_ID}${webPath}`
+  }
+  return `${WEB_URL}${webPath}`
+}
 
 const headers = {
   Authorization: `Bearer ${TOKEN}`,
@@ -117,57 +126,65 @@ async function cleanAll() {
 
 // ─── Menu definitions ─────────────────────────────────────
 
-const MENU_A = {
-  size: { width: 2500, height: 843 },
-  selected: true,
-  name: "C-Madong Guest Menu",
-  chatBarText: "เมนู",
-  areas: [
-    {
-      bounds: { x: 0, y: 0, width: 2500, height: 843 },
-      action: { type: "uri", uri: `${WEB_URL}/login` },
-    },
-  ],
+function buildMenuA(useLiff: boolean) {
+  return {
+    size: { width: 2500, height: 843 },
+    selected: true,
+    name: "C-Madong Guest Menu",
+    chatBarText: "เมนู",
+    areas: [
+      {
+        // Guest menu always uses web login (LIFF requires auth first)
+        bounds: { x: 0, y: 0, width: 2500, height: 843 },
+        action: { type: "uri", uri: `${WEB_URL}/login` },
+      },
+    ],
+  }
 }
 
-const MENU_B = {
-  size: { width: 2500, height: 1686 },
-  selected: true,
-  name: "C-Madong Registered Menu",
-  chatBarText: "เมนู",
-  areas: [
-    // Top-left: Website RCU
-    {
-      bounds: { x: 0, y: 0, width: 1250, height: 843 },
-      action: { type: "uri", uri: `${WEB_URL}/dashboard` },
-    },
-    // Top-right: คุยกับน้องชี
-    {
-      bounds: { x: 1250, y: 0, width: 1250, height: 843 },
-      action: { type: "message", text: "คุยกับน้องชี" },
-    },
-    // Bottom-left: ข่าวสารและกิจกรรม
-    {
-      bounds: { x: 0, y: 843, width: 833, height: 843 },
-      action: { type: "uri", uri: `${WEB_URL}/announcements` },
-    },
-    // Bottom-center: คะแนนของฉัน
-    {
-      bounds: { x: 833, y: 843, width: 834, height: 843 },
-      action: { type: "uri", uri: `${WEB_URL}/score` },
-    },
-    // Bottom-right: แจ้งซ่อม
-    {
-      bounds: { x: 1667, y: 843, width: 833, height: 843 },
-      action: { type: "message", text: "แจ้งซ่อม" },
-    },
-  ],
+function buildMenuB(useLiff: boolean) {
+  return {
+    size: { width: 2500, height: 1686 },
+    selected: true,
+    name: "C-Madong Registered Menu",
+    chatBarText: "เมนู",
+    areas: [
+      {
+        bounds: { x: 0, y: 0, width: 1250, height: 843 },
+        action: { type: "uri", uri: liffOrWeb("/dashboard", useLiff) },
+      },
+      {
+        bounds: { x: 1250, y: 0, width: 1250, height: 843 },
+        action: { type: "message", text: "คุยกับน้องชี" },
+      },
+      {
+        bounds: { x: 0, y: 843, width: 833, height: 843 },
+        action: { type: "uri", uri: liffOrWeb("/announcements", useLiff) },
+      },
+      {
+        bounds: { x: 833, y: 843, width: 834, height: 843 },
+        action: { type: "uri", uri: liffOrWeb("/score", useLiff) },
+      },
+      {
+        bounds: { x: 1667, y: 843, width: 833, height: 843 },
+        action: { type: "message", text: "แจ้งซ่อม" },
+      },
+    ],
+  }
 }
 
 // ─── Deploy ───────────────────────────────────────────────
 
-async function deploy() {
+async function deploy(useLiff = false) {
   const imgDir = path.resolve(__dirname, "../public/images/rich-menu")
+  const label = useLiff ? "LIFF" : "Web"
+
+  if (useLiff && !LIFF_ID) {
+    console.error("❌ NEXT_PUBLIC_LINE_LIFF_ID not set — required for LIFF deploy")
+    process.exit(1)
+  }
+
+  console.log(`\n🚀 Deploying rich menus (${label} URLs)...`)
 
   // 1. Clean existing
   console.log("\n🧹 Step 1: Cleaning existing rich menus...")
@@ -175,7 +192,7 @@ async function deploy() {
 
   // 2. Create Menu A
   console.log("\n📝 Step 2: Creating Menu A (Guest)...")
-  const resA = (await api("POST", "/richmenu", MENU_A)) as { richMenuId: string }
+  const resA = (await api("POST", "/richmenu", buildMenuA(useLiff))) as { richMenuId: string }
   console.log(`   Created: ${resA.richMenuId}`)
 
   // 3. Upload image A
@@ -185,7 +202,7 @@ async function deploy() {
 
   // 4. Create Menu B
   console.log("\n📝 Step 4: Creating Menu B (Registered)...")
-  const resB = (await api("POST", "/richmenu", MENU_B)) as { richMenuId: string }
+  const resB = (await api("POST", "/richmenu", buildMenuB(useLiff))) as { richMenuId: string }
   console.log(`   Created: ${resB.richMenuId}`)
 
   // 5. Upload image B
@@ -193,18 +210,22 @@ async function deploy() {
   await uploadImage(resB.richMenuId, path.join(imgDir, "rich-menu-b.jpg"))
   console.log("   Uploaded ✓")
 
-  // 6. Set Menu A as default (all users see guest menu by default)
+  // 6. Set Menu A as default
   console.log("\n🏠 Step 6: Setting Menu A as default...")
   await api("POST", `/user/all/richmenu/${resA.richMenuId}`)
   console.log("   Default set ✓")
 
   // 7. Summary
   console.log("\n" + "=".repeat(50))
-  console.log("✅ Rich Menu deployment complete!")
+  console.log(`✅ Rich Menu deployment complete! (${label} URLs)`)
   console.log("=".repeat(50))
   console.log(`\n  Menu A (Guest):      ${resA.richMenuId}`)
   console.log(`  Menu B (Registered): ${resB.richMenuId}`)
   console.log(`\n  Default: Menu A (Guest)`)
+  if (useLiff) {
+    console.log(`\n  LIFF ID: ${LIFF_ID}`)
+    console.log(`  Menu B links open inside LINE webview ✓`)
+  }
   console.log(`\n💡 To swap a user to Menu B:`)
   console.log(`   POST /v2/bot/user/{userId}/richmenu/${resB.richMenuId}`)
   console.log(`\n💡 Save these IDs as env vars:`)
@@ -220,12 +241,15 @@ async function main() {
   if (arg === "--clean") {
     await cleanAll()
   } else if (arg === "--deploy") {
-    await deploy()
+    await deploy(false)
+  } else if (arg === "--deploy-liff") {
+    await deploy(true)
   } else {
     await listMenus()
     console.log("\n💡 Usage:")
-    console.log("   npx tsx scripts/setup-rich-menus.ts --clean   # delete all menus")
-    console.log("   npx tsx scripts/setup-rich-menus.ts --deploy  # full deploy")
+    console.log("   npx tsx scripts/setup-rich-menus.ts --clean        # delete all menus")
+    console.log("   npx tsx scripts/setup-rich-menus.ts --deploy       # deploy with web URLs")
+    console.log("   npx tsx scripts/setup-rich-menus.ts --deploy-liff  # deploy with LIFF URLs (requires NEXT_PUBLIC_LINE_LIFF_ID)")
   }
 }
 

@@ -62,10 +62,7 @@ export default function LiffBridgePage({
           setStatus("redirecting");
         }
 
-        // 5. Set LIFF flag
-        sessionStorage.setItem("c-madong-liff", "1");
-
-        // 6. Redirect
+        // 5. Redirect
         if (!data.ok && data.action === "register") {
           window.location.replace("/th/register");
           return;

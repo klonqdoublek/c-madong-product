@@ -1412,5 +1412,15 @@
     "categoryDormMeeting": "ประชุมหอพัก",
     "categoryDormInspection": "ตรวจหอพัก",
     "categoryImportantAnno": "ประกาศจำเป็น"
+  },
+  "liff": {
+    "loading": "กำลังเข้าสู่ระบบ...",
+    "share": "แชร์",
+    "shareSuccess": "แชร์เรียบร้อยแล้ว",
+    "shareError": "ไม่สามารถแชร์ได้",
+    "scanQR": "สแกน QR",
+    "scanSuccess": "สแกนสำเร็จ",
+    "scanError": "ไม่สามารถสแกนได้",
+    "openExternal": "เปิดในเบราว์เซอร์"
   }
 }
