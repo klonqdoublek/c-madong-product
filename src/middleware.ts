@@ -77,9 +77,9 @@ export async function middleware(request: NextRequest) {
   // 7. Auth logic
   if (!user) {
     // LIFF in-app browser: let LiffProvider handle auth client-side
-    const ua = request.headers.get("user-agent") ?? "";
     const hasLiffState = request.nextUrl.searchParams.has("liff.state");
-    const isLiffClient = ua.includes("Line/") || hasLiffState;
+    const hasLiffReferrer = request.nextUrl.searchParams.has("liff.referrer");
+    const isLiffClient = hasLiffState || hasLiffReferrer;
     if (isLiffClient && !isPublicRoute) {
       return response;
     }

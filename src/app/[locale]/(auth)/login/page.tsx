@@ -4,7 +4,6 @@ import { Suspense, useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { Link } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginPage() {
@@ -174,9 +173,13 @@ function LoginContent() {
 
                 {/* LINE login button */}
                 <div className="mt-6">
-                  <Link
-                    href="/api/auth/line"
-                    onClick={() => setIsLoading(true)}
+                  <button
+                    type="button"
+                    disabled={isLoading}
+                    onClick={() => {
+                      setIsLoading(true);
+                      window.location.href = "/api/auth/line";
+                    }}
                     className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#07C755] text-base font-bold text-white transition-all hover:bg-[#06b34d] hover:shadow-lg active:scale-[0.98]"
                   >
                     {isLoading ? (
@@ -192,7 +195,7 @@ function LoginContent() {
                         <span>{t("loginWithLine")}</span>
                       </>
                     )}
-                  </Link>
+                  </button>
                 </div>
 
                 {/* Divider */}

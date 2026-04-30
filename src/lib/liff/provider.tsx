@@ -22,15 +22,14 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
         const meRes = await fetch("/api/auth/me");
         const { authenticated } = await meRes.json();
 
-        // 2. Detect LIFF entry — only init LIFF SDK if we entered via liff.line.me
-        //    (raw LINE in-app browser without LIFF context can trigger SDK
-        //    auto-redirect to liff.line.me which bounces the user out)
+        // 2. Detect LIFF entry. Raw LINE in-app browser web URLs are not enough
+        //    for silent auth; Menu B must use liff.line.me so access tokens exist.
         const url = new URL(window.location.href);
         const hasLiffState = url.searchParams.has("liff.state");
         const hasLiffReferrer = url.searchParams.has("liff.referrer");
         const fromLiffEntry = hasLiffState || hasLiffReferrer;
 
-        if (authenticated && !fromLiffEntry) {
+        if (!fromLiffEntry) {
           // Web OAuth path or post-callback render — skip LIFF init entirely
           if (!cancelled) {
             setLiffContext(false, null);
