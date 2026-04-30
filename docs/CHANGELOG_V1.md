@@ -1,5 +1,31 @@
 # C-Madong Product — Changelog
 
+> **Version 2.7.1** Release Date: 2026-04-30
+> Auth + LIFF Hotfixes — LINE login route restored, LIFF deep-link normalization, logout rich menu swap fixed
+
+---
+
+## 🔧 V2.7.1 — Auth + LIFF Hotfixes (2026-04-30)
+
+### Login + LIFF Entry Regression Fix
+- Fixed LINE login 404 introduced by the new login UI: the CTA was using locale-aware navigation for an API route, which could resolve to a localized path instead of `/api/auth/line`
+- Added compatibility route `src/app/[locale]/api/auth/line/route.ts` so stale localized requests like `/th/api/auth/line` still redirect to the real auth endpoint
+- Normalized LIFF root entry on `/${locale}` so `?liff.state=/dashboard` resolves to localized student routes such as `/th/dashboard` instead of falling through to `/th/login`
+- Tightened LIFF detection in middleware and `LiffProvider`: only real LIFF params (`liff.state` / `liff.referrer`) bypass auth bridge behavior, which prevents long loading states in plain LINE in-app browser web URLs
+
+### Logout + Rich Menu Recovery
+- Fixed logout flow so Rich Menu B reliably swaps back to guest state on logout
+- Added explicit guest-menu restoration via `RICH_MENU_GUEST` instead of relying only on per-user unlink + channel default fallback
+- Changed `/api/auth/logout` to return a single response object that both clears Supabase session cookies and finishes the rich-menu restore flow, avoiding cookie/redirect response mismatch
+- Updated student/admin logout clients to wait for successful logout response before redirecting to login
+
+### Files
+- NEW: `src/app/[locale]/api/auth/line/route.ts`
+- MODIFIED: `src/app/[locale]/(auth)/login/page.tsx`, `src/app/[locale]/page.tsx`, `src/lib/liff/provider.tsx`, `src/middleware.ts`, `src/app/api/auth/logout/route.ts`, `src/lib/line/rich-menu.ts`, `src/components/student/logout-button.tsx`, `src/components/layout/admin-shell.tsx`
+- Commits: `7f7e148`, `ab1e0af`
+
+---
+
 > **Version 2.7.0** Release Date: 2026-04-29
 > LIFF Production Launch — auth bridge in student layout, shareTargetPicker for announcements, external link routing, rich menu LIFF URLs
 
