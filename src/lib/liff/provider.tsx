@@ -22,7 +22,26 @@ export function LiffProvider({ children }: { children: React.ReactNode }) {
         const meRes = await fetch("/api/auth/me");
         const { authenticated } = await meRes.json();
 
-        // 2. Init LIFF SDK
+        // 2. Detect LIFF entry — only init LIFF SDK if we entered via liff.line.me
+        //    (raw LINE in-app browser without LIFF context can trigger SDK
+        //    auto-redirect to liff.line.me which bounces the user out)
+        const url = new URL(window.location.href);
+        const hasLiffState = url.searchParams.has("liff.state");
+        const hasLiffReferrer = url.searchParams.has("liff.referrer");
+        const fromLiffEntry = hasLiffState || hasLiffReferrer;
+
+        if (authenticated && !fromLiffEntry) {
+          // Web OAuth path or post-callback render — skip LIFF init entirely
+          if (!cancelled) {
+            setLiffContext(false, null);
+            setMiniApp(false);
+            setInitialized(true);
+            setReady(true);
+          }
+          return;
+        }
+
+        // 3. Init LIFF SDK (only when entering via LIFF URL)
         const { initLiff, isInLiffClient } = await import("@/lib/liff");
         await initLiff();
 
