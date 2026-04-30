@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -67,8 +67,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const profile = useUserStore((s) => s.profile);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/th/login";
+    const res = await fetch("/api/auth/logout", { method: "POST" });
+    if (res.ok) {
+      window.location.replace("/th/login");
+    }
   };
   const { sidebarOpen, setSidebarOpen, toggleSidebar, adminSidebarCollapsed, toggleAdminSidebar } = useUIStore();
 

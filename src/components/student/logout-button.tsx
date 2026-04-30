@@ -7,8 +7,10 @@ export function LogoutButton() {
   const locale = useLocale();
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = `/${locale}/login`;
+    const res = await fetch("/api/auth/logout", { method: "POST" });
+    if (res.ok) {
+      window.location.replace(`/${locale}/login`);
+    }
   };
 
   return (
