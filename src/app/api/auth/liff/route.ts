@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { linkRegisteredMenu } from "@/lib/line/rich-menu";
 
@@ -93,11 +93,34 @@ export async function POST(request: NextRequest) {
         password: tempPassword,
       });
 
-      const { createClient: createServerClient } = await import(
-        "@/lib/supabase/server"
+      // Build response first so we can attach Supabase auth cookies directly
+      // (LIFF webview cookie persistence is fragile — explicit response.cookies
+      // is more reliable than Next's implicit cookies() store + NextResponse.json)
+      const locale = existingProfile.language || "th";
+      const response = NextResponse.json({
+        ok: true,
+        locale,
+        onboardingCompleted: existingProfile.onboarding_completed,
+      });
+
+      const supabaseAuth = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
       );
-      const serverSupabase = await createServerClient();
-      const { error: signInError } = await serverSupabase.auth.signInWithPassword({
+
+      const { error: signInError } = await supabaseAuth.auth.signInWithPassword({
         email,
         password: tempPassword,
       });
@@ -115,17 +138,16 @@ export async function POST(request: NextRequest) {
         console.error("[LIFF Auth] Rich menu swap failed:", err)
       );
 
-      const locale = existingProfile.language || "th";
-      return NextResponse.json({
-        ok: true,
-        locale,
-        onboardingCompleted: existingProfile.onboarding_completed,
-      });
+      return response;
     }
 
-    // 4. New user — set registration cookie
-    const cookieStore = await cookies();
-    cookieStore.set(
+    // 4. New user — set registration cookie on response directly
+    const registerResponse = NextResponse.json({
+      ok: false,
+      action: "register",
+    });
+
+    registerResponse.cookies.set(
       "line_registration_data",
       JSON.stringify({
         lineUid: lineProfile.userId,
@@ -141,10 +163,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    return NextResponse.json({
-      ok: false,
-      action: "register",
-    });
+    return registerResponse;
   } catch (err) {
     console.error(
       "[LIFF Auth] Unexpected error:",

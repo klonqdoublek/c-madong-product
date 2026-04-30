@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { linkRegisteredMenu } from "@/lib/line/rich-menu";
 
@@ -123,26 +124,44 @@ export async function GET(request: NextRequest) {
         password: tempPassword,
       });
 
-      // Create a session by signing in with the temp password
-      const { createClient: createServerClient } = await import(
-        "@/lib/supabase/server"
-      );
-      const serverSupabase = await createServerClient();
-      await serverSupabase.auth.signInWithPassword({ email, password: tempPassword });
-
-      // Swap to registered rich menu (fire-and-forget but awaited)
-      await linkRegisteredMenu(lineProfile.userId);
-
+      // Build redirect response first; attach Supabase auth cookies directly
+      // to it so they survive into the in-LINE / LIFF webview reliably.
       const locale = existingProfile.language || defaultLocale;
       const redirectPath = existingProfile.onboarding_completed
         ? `/${locale}/dashboard`
         : `/${locale}/onboarding`;
+      const response = NextResponse.redirect(`${appUrl}${redirectPath}`);
 
-      return NextResponse.redirect(`${appUrl}${redirectPath}`);
+      const supabaseAuth = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          cookies: {
+            getAll() {
+              return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+              cookiesToSet.forEach(({ name, value, options }) => {
+                response.cookies.set(name, value, options);
+              });
+            },
+          },
+        }
+      );
+
+      await supabaseAuth.auth.signInWithPassword({ email, password: tempPassword });
+
+      // Swap to registered rich menu (fire-and-forget but awaited)
+      await linkRegisteredMenu(lineProfile.userId);
+
+      return response;
     }
 
     // New user — store LINE data in cookie for registration
-    cookieStore.set(
+    const registerResponse = NextResponse.redirect(
+      `${appUrl}/${defaultLocale}/register`
+    );
+    registerResponse.cookies.set(
       "line_registration_data",
       JSON.stringify({
         lineUid: lineProfile.userId,
@@ -157,10 +176,7 @@ export async function GET(request: NextRequest) {
         path: "/",
       }
     );
-
-    return NextResponse.redirect(
-      `${appUrl}/${defaultLocale}/register`
-    );
+    return registerResponse;
   } catch (err) {
     console.error("[Auth Callback] Unexpected error:", err instanceof Error ? err.message : err);
     console.error("[Auth Callback] Stack:", err instanceof Error ? err.stack : "N/A");
