@@ -130,7 +130,7 @@ function LoginContent() {
 
             {/* Top branding (Design 2) */}
             <div className="relative z-10 pt-32 text-center">
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center">
                 <LogoSmall />
                 <p className="font-body text-xs text-white">
                   {t("poweredBy")}
