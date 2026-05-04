@@ -1210,3 +1210,41 @@ Production: https://c-madong-product.vercel.app
 - Commit: `5892ce3`
 
 ---
+
+## LINE OA Banner & Guide Page Image Refresh v2.8.0 (DEPLOYED — 2026-05-04)
+
+### What Changed
+- Replaced all LINE OA flex carousel banner images with new Figma designs
+- Replaced guide page static images with new designs
+- Renamed banner files to `-v2` suffix to bust LINE CDN cache (LINE caches by URL)
+
+### LINE OA Carousel Banners Updated (`public/line-banners/`)
+| File | Description |
+|------|-------------|
+| `howto-1-contact-v2.jpg` | ติดต่อสอบถาม หรือข้อมูลเพิ่มเติม |
+| `howto-2-getting-started-v2.jpg` | วิธีการใช้งานเบื้องต้น |
+| `howto-3-shortcuts-v2.jpg` | คีย์ลัด |
+| `howto-5-faq-v2.jpg` | คำถามที่พบบ่อย |
+| `onboarding-1-start-v2.jpg` | เริ่มต้นใช้งานง่ายๆ |
+| `onboarding-2-ask-v2.jpg` | ถามอะไรตอบได้! |
+| `onboarding-3-repair-v2.jpg` | แจ้งซ่อมได้ ง่ายกว่าที่เคย! |
+| `onboarding-4-notify-v2.jpg` | แจ้งเตือนอัจฉริยะ |
+| `onboarding-5-miniapp-v2.jpg` | LINE MINI APP |
+| `onboarding-6-more-v2.jpg` | ยังมีอีกเยอะ! |
+
+### Guide Pages Updated (`public/guide/`)
+| File | Route |
+|------|-------|
+| `getting-started.jpg` | `/guide/getting-started` |
+| `shortcuts.jpg` | `/guide/shortcuts` |
+| `faq.jpg` | `/guide/faq` |
+
+### Files Changed
+- Modified: `src/lib/chatbot/flex-builders/greeting-carousel.ts` (ONBOARDING_BANNERS + HOWTO_BANNERS → v2 URLs)
+- Replaced: 10 files in `public/line-banners/` + 3 files in `public/guide/`
+
+### Commits
+- `1245de0` — style(assets): update LINE OA flex carousel banners and guide page images
+- `9e69acb` — fix(chatbot): rename banner URLs to v2 to bust LINE CDN cache
+
+---
