@@ -230,12 +230,12 @@ export function buildWelcomeNewEntryFlex(
 // Banner images served from /public/line-banners/ — 1040x1040 square JPEGs
 const BANNER_BASE = "https://c-madong-product.vercel.app/line-banners"
 const ONBOARDING_BANNERS = {
-  start: `${BANNER_BASE}/onboarding-1-start.jpg`, // เริ่มต้นใช้งานง่ายๆ
-  ask: `${BANNER_BASE}/onboarding-2-ask.jpg`, // ถามอะไรตอบได้!
-  repair: `${BANNER_BASE}/onboarding-3-repair.jpg`, // แจ้งซ่อมได้ ง่ายกว่าที่เคย!
-  notify: `${BANNER_BASE}/onboarding-4-notify.jpg`, // แจ้งเตือนอัจฉริยะ
-  miniApp: `${BANNER_BASE}/onboarding-5-miniapp.jpg`, // LINE MINI APP
-  more: `${BANNER_BASE}/onboarding-6-more.jpg`, // ยังมีอีกเยอะ!
+  start: `${BANNER_BASE}/onboarding-1-start-v2.jpg`, // เริ่มต้นใช้งานง่ายๆ
+  ask: `${BANNER_BASE}/onboarding-2-ask-v2.jpg`, // ถามอะไรตอบได้!
+  repair: `${BANNER_BASE}/onboarding-3-repair-v2.jpg`, // แจ้งซ่อมได้ ง่ายกว่าที่เคย!
+  notify: `${BANNER_BASE}/onboarding-4-notify-v2.jpg`, // แจ้งเตือนอัจฉริยะ
+  miniApp: `${BANNER_BASE}/onboarding-5-miniapp-v2.jpg`, // LINE MINI APP
+  more: `${BANNER_BASE}/onboarding-6-more-v2.jpg`, // ยังมีอีกเยอะ!
 }
 
 type FlexAction =
@@ -318,10 +318,10 @@ export function buildOnboardingCarousel(): FlexMessagePayload {
 // 5-bubble set 2 - image-only format (no text/CTAs)
 
 const HOWTO_BANNERS = {
-  contact: `${BANNER_BASE}/howto-1-contact.jpg`,
-  gettingStarted: `${BANNER_BASE}/howto-2-getting-started.jpg`,
-  shortcuts: `${BANNER_BASE}/howto-3-shortcuts.jpg`,
-  faq: `${BANNER_BASE}/howto-5-faq.jpg`,
+  contact: `${BANNER_BASE}/howto-1-contact-v2.jpg`,
+  gettingStarted: `${BANNER_BASE}/howto-2-getting-started-v2.jpg`,
+  shortcuts: `${BANNER_BASE}/howto-3-shortcuts-v2.jpg`,
+  faq: `${BANNER_BASE}/howto-5-faq-v2.jpg`,
 }
 
 /** 4-bubble how-to carousel — shown when user taps "ดูเพิ่มเติม" on card 6 */
