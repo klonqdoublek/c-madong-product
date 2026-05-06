@@ -73,7 +73,7 @@ function ActionSlide({
             )}
           </div>
 
-          <p className="mt-1 line-clamp-2 min-h-[38px] font-heading text-base leading-tight font-bold text-primary">
+          <p className="mt-1 line-clamp-2 pb-0.5 font-heading text-base leading-normal font-bold text-primary">
             {insight.title_th}
           </p>
 
@@ -317,10 +317,10 @@ export function DashboardInfoCard() {
   const isTaskSectionLoading = isUserLoading || isInsightsLoading;
 
   return (
-    <div className="relative mx-auto h-[180px] w-[320px]">
-      {/* Pink gradient card — top layer with user info */}
+    <div className="relative mx-auto w-[320px]">
+      {/* Pink gradient card — header only, fixed height */}
       <div
-        className="absolute inset-x-0 top-0 h-[180px] rounded-xl border border-black/10"
+        className="relative h-[110px] rounded-xl border border-black/10"
         style={{
           background:
             "linear-gradient(180deg, rgba(220,2,108,0.5) 0%, rgba(221,89,139,0.5) 100%), linear-gradient(90deg, #DD598B 0%, #DD598B 100%)",
@@ -375,8 +375,8 @@ export function DashboardInfoCard() {
         </div>
       </div>
 
-      {/* Cream card — overlaps pink card from y=69 */}
-      <div className="absolute inset-x-0 top-[69px] min-h-[111px] rounded-xl border border-black/10 bg-cu-warm-cream px-4 py-2.5">
+      {/* White action card — overlaps pink card, uses negative margin for natural doc-flow height */}
+      <div className="-mt-[41px] relative z-10 rounded-xl border border-black/10 bg-white px-4 py-3 shadow-card">
         {isTaskSectionLoading ? (
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">

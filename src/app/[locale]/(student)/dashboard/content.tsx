@@ -10,7 +10,7 @@ import { DashboardEventsList } from "@/components/student/dashboard/dashboard-ev
 
 export function DashboardPageContent() {
   return (
-    <div className="min-h-screen bg-[#FBF6E9]">
+    <div className="min-h-screen bg-cu-cream">
       <NotificationModal />
 
       {/* Hero background image */}
@@ -24,7 +24,7 @@ export function DashboardPageContent() {
         </div>
 
         {/* Bordered card wrapping quick menu */}
-        <div className="relative z-0 mx-auto mb-6 mt-4 w-[363px] max-w-full rounded-xl border border-black/10 bg-[#FFFBF1] p-4 shadow-sm">
+        <div className="relative z-0 mx-auto mb-6 mt-6 w-[363px] max-w-full rounded-xl border border-black/10 bg-cu-warm-cream p-4 shadow-sm">
           <DashboardQuickMenu />
         </div>
       </div>
