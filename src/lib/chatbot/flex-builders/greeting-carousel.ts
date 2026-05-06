@@ -321,7 +321,7 @@ const HOWTO_BANNERS = {
   contact: `${BANNER_BASE}/howto-1-contact-v2.jpg`,
   gettingStarted: `${BANNER_BASE}/howto-2-getting-started-v2.jpg`,
   shortcuts: `${BANNER_BASE}/howto-3-shortcuts-v2.jpg`,
-  faq: `${BANNER_BASE}/howto-5-faq-v2.jpg`,
+  faq: `${BANNER_BASE}/howto-5-faq-v3.jpg`,
 }
 
 /** 4-bubble how-to carousel — shown when user taps "ดูเพิ่มเติม" on card 6 */
