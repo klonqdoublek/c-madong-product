@@ -54,7 +54,7 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
       exit={{ opacity: 0, y: -6, height: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
       className={cn(
-        "relative rounded-xl border bg-[#fffbf1] px-3 py-4",
+        "relative rounded-xl border bg-cu-warm-cream px-3 py-4",
         isDone
           ? "border-black/5"
           : "border-black/10",
@@ -64,7 +64,7 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
       {/* Done overlay checkmark */}
       {isDone && (
         <div className="absolute right-3 top-3">
-          <CheckCircle2 className="size-5 text-[#4da376]" />
+          <CheckCircle2 className="size-5 text-cu-task-green-dark" />
         </div>
       )}
 
@@ -73,14 +73,14 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
         {/* Left border accent */}
         <div className={cn(
           "w-[3px] shrink-0 self-stretch rounded-full",
-          isDone ? "bg-[#4da376]" : "bg-[#dd598b]"
+          isDone ? "bg-cu-task-green-dark" : "bg-primary"
         )} />
 
         <div className="flex-1 space-y-1.5">
           {/* Title */}
           <p className={cn(
             "font-heading text-base font-bold leading-tight",
-            isDone ? "text-[#565655]/60 line-through" : "text-[#dd598b]"
+            isDone ? "text-cu-grey/60 line-through" : "text-primary"
           )}>
             {item.titleTh}
           </p>
@@ -88,11 +88,11 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
           {/* Status pills */}
           <div className="flex flex-wrap gap-1.5">
             {item.isRequired && (
-              <span className="rounded-full bg-[#dd598b]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#dd598b]">
+              <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold text-primary">
                 จำเป็น
               </span>
             )}
-            <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-[10px] text-[#565655]">
+            <span className="rounded-full bg-black/5 px-2.5 py-0.5 text-[10px] text-cu-grey">
               {item.audience}
             </span>
           </div>
@@ -101,7 +101,7 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
         {/* More menu (placeholder) */}
         {!isDone && (
           <button className="shrink-0 p-1 opacity-40" aria-label="More options">
-            <MoreHorizontal className="size-5 text-[#565655]" />
+            <MoreHorizontal className="size-5 text-cu-grey" />
           </button>
         )}
       </div>
@@ -109,8 +109,8 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
       {/* Date + countdown */}
       <div className="mt-2.5 flex items-center gap-2">
         <div className="flex items-center gap-1">
-          <CalendarIcon className="size-3 text-[#565655]" />
-          <span className="text-[10px] text-[#565655]">{dateLabel}</span>
+          <CalendarIcon className="size-3 text-cu-grey" />
+          <span className="text-[10px] text-cu-grey">{dateLabel}</span>
         </div>
         {!isDone && <CountdownBadge dueAt={item.dueAt} />}
       </div>
@@ -142,7 +142,7 @@ function CtaButton({
         href={item.ctaUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-[#dd598b] text-sm font-bold text-white"
+        className="flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-primary text-sm font-bold text-white"
       >
         {ctaLabel}
         <ExternalLink className="size-3.5" />
@@ -154,7 +154,7 @@ function CtaButton({
     return (
       <Link
         href={`/announcements/${item.sourceId}`}
-        className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white"
+        className="flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white"
       >
         {ctaLabel}
       </Link>
@@ -165,7 +165,7 @@ function CtaButton({
     return (
       <Link
         href={`/events/${item.ctaEventId}/evaluate`}
-        className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white active:scale-95 transition-transform"
+        className="flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white active:scale-95 transition-transform"
       >
         {ctaLabel}
       </Link>
@@ -176,7 +176,7 @@ function CtaButton({
     return (
       <Link
         href={`/dorm-calendar/fire-drill-quiz/${item.id}`}
-        className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white active:scale-95 transition-transform"
+        className="flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white active:scale-95 transition-transform"
       >
         {ctaLabel}
       </Link>
@@ -187,7 +187,7 @@ function CtaButton({
     return (
       <Link
         href="/bed-selection"
-        className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white active:scale-95 transition-transform"
+        className="flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white active:scale-95 transition-transform"
       >
         {ctaLabel}
       </Link>
@@ -199,7 +199,7 @@ function CtaButton({
     <button
       onClick={onAcknowledge}
       disabled={loading}
-      className="flex h-10 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white disabled:opacity-60 active:scale-95 transition-transform"
+      className="flex h-10 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white disabled:opacity-60 active:scale-95 transition-transform"
     >
       {loading ? "กำลังบันทึก..." : ctaLabel}
     </button>

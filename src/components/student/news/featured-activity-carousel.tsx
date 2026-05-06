@@ -43,7 +43,7 @@ export function FeaturedActivityCarousel({ activities }: FeaturedActivityCarouse
         {activities.map((item, idx) => (
           <div key={item.id} className="w-[302px] shrink-0 snap-center">
             <Link href={`/announcements/${item.id}`} className="block">
-              <div className="relative h-[110px] w-full overflow-hidden rounded-2xl border border-black/5 bg-[#FFFEF5] shadow-sm">
+              <div className="relative h-[110px] w-full overflow-hidden rounded-2xl border border-black/5 bg-cu-cream-light shadow-sm">
                 {/* Background Image Placeholder or Item Cover */}
                 <div className="absolute inset-0 z-0 bg-cu-light-pink/30">
                   {item.cover_image && (

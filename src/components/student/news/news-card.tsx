@@ -31,7 +31,7 @@ export function NewsCard({ item }: NewsCardProps) {
 
   return (
     <Link href={`/announcements/${item.id}`} className="block">
-      <div className="flex h-[110px] w-full gap-3 rounded-2xl border border-black/5 bg-[#FFFEF5] p-3 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex h-[110px] w-full gap-3 rounded-2xl border border-black/5 bg-cu-cream-light p-3 shadow-sm hover:shadow-md transition-shadow">
         {/* Date Column */}
         <div className="flex h-full w-[56px] flex-col items-center justify-center rounded-xl bg-cu-pink/5 text-cu-grey">
           <span className="font-heading text-lg font-bold leading-none">{day}-{day+7}</span>

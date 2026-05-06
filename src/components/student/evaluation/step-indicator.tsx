@@ -24,7 +24,7 @@ export function StepIndicator({
               className={`flex size-[30px] items-center justify-center rounded-full font-heading text-[20px] font-bold leading-none transition-colors ${
                 isActive || isCompleted
                   ? "bg-primary text-white"
-                  : "border border-[#d1d5db] bg-white text-[#565655]"
+                  : "border border-[#d1d5db] bg-white text-cu-grey"
               }`}
             >
               {isCompleted ? (

@@ -242,9 +242,9 @@ function ActionCardCarousel({
     <>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
-          <Sparkles className="size-2.5 text-[#52AD7E]" />
+          <Sparkles className="size-2.5 text-cu-task-green" />
           <p className="text-xs font-bold text-cu-grey">
-            <span className="text-[#52AD7E]">{items.length} รายการ </span>
+            <span className="text-cu-task-green">{items.length} รายการ </span>
             ที่ยังไม่ได้ทำ
           </p>
         </div>
@@ -376,7 +376,7 @@ export function DashboardInfoCard() {
       </div>
 
       {/* Cream card — overlaps pink card from y=69 */}
-      <div className="absolute inset-x-0 top-[69px] min-h-[111px] rounded-xl border border-black/10 bg-[#FFFBF1] px-4 py-2.5">
+      <div className="absolute inset-x-0 top-[69px] min-h-[111px] rounded-xl border border-black/10 bg-cu-warm-cream px-4 py-2.5">
         {isTaskSectionLoading ? (
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
@@ -394,9 +394,9 @@ export function DashboardInfoCard() {
           <ActionCardCarousel items={pending} t={t} />
         ) : (
           <div className="flex items-center gap-1">
-            <Sparkles className="size-2.5 text-[#52AD7E]" />
+            <Sparkles className="size-2.5 text-cu-task-green" />
             <p className="text-xs text-cu-grey">
-              <span className="text-[#52AD7E]">0 รายการ </span>
+              <span className="text-cu-task-green">0 รายการ </span>
               ที่ยังไม่ได้ทำ
             </p>
           </div>

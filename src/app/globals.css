@@ -48,6 +48,11 @@
   --color-cu-neutral: #D9D9D9;
   --color-cu-cream: #FBF6E9;
   --color-cu-cream-light: #FFFEF5;
+  --color-cu-warm-cream: #FFFBF1;
+  --color-cu-task-green: #52AD7E;
+  --color-cu-task-green-dark: #4DA376;
+  --color-cu-neutral-warm: #D7D4CC;
+  --color-cu-neutral-warm-dark: #B9B6B0;
 
   /* Success — LINE green */
   --color-success: #06C755;
@@ -247,6 +252,17 @@
 .animation-delay-300 { animation-delay: 0.3s; }
 .animation-delay-500 { animation-delay: 0.5s; }
 .animation-delay-700 { animation-delay: 0.7s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-fade-in-scale,
+  .animate-gentle-bounce {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
 
 .skeleton-sweep {
   position: relative;

@@ -35,9 +35,9 @@ export function DashboardAdaptiveCard() {
     return (
       <div className="px-5 py-4">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="size-2.5 text-[#52AD7E]" />
+          <Sparkles className="size-2.5 text-cu-task-green" />
           <p className="text-xs text-cu-grey">
-            <span className="text-[#52AD7E]">0 รายการ </span>
+            <span className="text-cu-task-green">0 รายการ </span>
             ที่ยังไม่ได้ทำ
           </p>
         </div>
@@ -57,9 +57,9 @@ export function DashboardAdaptiveCard() {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="size-2.5 text-[#52AD7E]" />
+          <Sparkles className="size-2.5 text-cu-task-green" />
           <p className="text-xs text-cu-grey">
-            <span className="text-[#52AD7E]">{pending.length} รายการ </span>
+            <span className="text-cu-task-green">{pending.length} รายการ </span>
             ที่ยังไม่ได้ทำ
           </p>
         </div>

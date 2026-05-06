@@ -34,7 +34,7 @@ export function NewsAnnouncementsHeader({
   };
 
   return (
-    <div className="flex flex-col gap-4 bg-[#FBF6E9] px-4 pb-4 pt-2 shadow-sm">
+    <div className="flex flex-col gap-4 bg-cu-cream px-4 pb-4 pt-2 shadow-sm">
       {/* Page Header */}
       <div className="flex items-center justify-between py-2">
         <button
@@ -50,7 +50,7 @@ export function NewsAnnouncementsHeader({
       </div>
 
       {/* Segmented Control */}
-      <div className="flex h-[46px] w-full items-center rounded-full bg-[#FFFEF5] p-1 shadow-sm border border-black/5">
+      <div className="flex h-[46px] w-full items-center rounded-full bg-cu-cream-light p-1 shadow-sm border border-black/5">
         <button
           onClick={() => handleToggle("announcements")}
           className={`flex flex-1 items-center justify-center gap-2 rounded-full h-full transition-all ${
@@ -92,7 +92,7 @@ export function NewsAnnouncementsHeader({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={placeholder || "ค้นหา..."}
-          className="h-10 rounded-full border border-black/5 bg-[#FFFEF5] pl-9 text-sm shadow-sm focus-visible:ring-cu-pink"
+          className="h-10 rounded-full border border-black/5 bg-cu-cream-light pl-9 text-sm shadow-sm focus-visible:ring-cu-pink"
         />
       </div>
     </div>

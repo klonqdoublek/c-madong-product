@@ -30,7 +30,7 @@ export function SettingsMenuItem({
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cu-light-pink">
           <Icon className="h-4 w-4 text-primary" />
         </div>
-        <span className="text-sm font-medium text-[#565655]">{label}</span>
+        <span className="text-sm font-medium text-cu-grey">{label}</span>
       </div>
       {trailing === "chevron" && (
         <ChevronRight className="h-4 w-4 text-muted-foreground" />

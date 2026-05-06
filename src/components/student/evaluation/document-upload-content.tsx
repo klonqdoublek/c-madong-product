@@ -72,7 +72,7 @@ export function DocumentUploadContent({
 
       {/* Content */}
       <div className="space-y-4 px-4 py-6">
-        <p className="text-center font-bold text-[#565655] text-[14px]">
+        <p className="text-center font-bold text-cu-grey text-[14px]">
           {config.document_label_th}
         </p>
 

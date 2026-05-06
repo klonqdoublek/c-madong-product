@@ -189,10 +189,10 @@ export function ShopEvaluationContent({
             <Store className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <p className="font-heading text-[20px] font-bold text-[#565655]">
+            <p className="font-heading text-[20px] font-bold text-cu-grey">
               {t("shopInfo", { number: currentStep + 1 })}
             </p>
-            <p className="text-[14px] text-[#565655]">
+            <p className="text-[14px] text-cu-grey">
               {currentShop?.name_th}
             </p>
           </div>

@@ -85,12 +85,12 @@ export function DormReapplicationContent({
           <>
             {/* Conditions */}
             <div>
-              <p className="mb-2 font-heading text-[16px] font-bold text-[#565655]">
+              <p className="mb-2 font-heading text-[16px] font-bold text-cu-grey">
                 {t("conditions")}
               </p>
               <ul className="list-disc space-y-2 pl-6">
                 {conditions.map((condition, i) => (
-                  <li key={i} className="text-[14px] leading-relaxed text-[#565655]">
+                  <li key={i} className="text-[14px] leading-relaxed text-cu-grey">
                     {condition}
                   </li>
                 ))}
@@ -102,7 +102,7 @@ export function DormReapplicationContent({
           </>
         ) : (
           <div className="rounded-lg border bg-white p-6 text-center">
-            <p className="font-heading text-[18px] font-bold text-[#565655]">
+            <p className="font-heading text-[18px] font-bold text-cu-grey">
               {t("confirmInfo")}
             </p>
             <p className="mt-2 text-[14px] text-muted-foreground">

@@ -45,14 +45,14 @@ export function CriterionCard({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <ol className="list-none font-heading text-[16px] font-bold text-[#565655]" start={orderNumber}>
+          <ol className="list-none font-heading text-[16px] font-bold text-cu-grey" start={orderNumber}>
             <li className="flex gap-2">
               <span>{orderNumber}.</span>
               <span>{title}</span>
             </li>
           </ol>
           {description && (
-            <p className="mt-1 text-[12px] leading-[21px] text-[#565655]">
+            <p className="mt-1 text-[12px] leading-[21px] text-cu-grey">
               {description}
             </p>
           )}
@@ -61,7 +61,7 @@ export function CriterionCard({
           <button
             type="button"
             onClick={onSkip}
-            className="whitespace-nowrap text-[12px] font-bold text-[#565655] underline"
+            className="whitespace-nowrap text-[12px] font-bold text-cu-grey underline"
           >
             {t("skipCriterion")}
           </button>
@@ -93,7 +93,7 @@ export function CriterionCard({
               value={typeof value === "string" ? value : ""}
               onChange={(e) => onChange(e.target.value)}
               placeholder={t("suggestion")}
-              className="min-h-[122px] resize-none rounded-[11px] border border-[rgba(88,88,86,0.24)]"
+              className="min-h-[122px] resize-none rounded-[11px] border border-cu-grey/25"
             />
           )}
         </div>

@@ -24,7 +24,7 @@ export function ProfileSavedSection() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bookmark className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-[#565655]">
+          <h3 className="text-sm font-semibold text-cu-grey">
             {t("savedAnnouncements")}
           </h3>
         </div>
@@ -85,7 +85,7 @@ export function ProfileSavedSection() {
                 </div>
                 {/* Title */}
                 <div className="p-2">
-                  <p className="line-clamp-2 text-xs font-medium text-[#565655]">
+                  <p className="line-clamp-2 text-xs font-medium text-cu-grey">
                     {title}
                   </p>
                 </div>

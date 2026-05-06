@@ -374,7 +374,7 @@ export default function InformationContent() {
                 {buildingData.staff.name}
               </h4>
             </div>
-            <span className="mt-1 inline-block rounded-full bg-gradient-to-r from-[#4DA376]/10 to-[#3D8A5E]/10 px-3 py-1 text-xs font-semibold text-[#4DA376]">
+            <span className="mt-1 inline-block rounded-full bg-gradient-to-r from-cu-task-green-dark/10 to-[#3D8A5E]/10 px-3 py-1 text-xs font-semibold text-cu-task-green-dark">
               {buildingData.staff.role}
             </span>
           </div>

@@ -20,12 +20,12 @@ export function RatingScale({ value, onChange, disabled }: RatingScaleProps) {
           className={`flex size-[40px] items-center justify-center rounded-full border font-heading text-[16px] font-bold transition-colors ${
             value === 1
               ? "border-primary bg-primary text-white"
-              : "border-[rgba(88,88,86,0.24)] text-[rgba(88,88,86,0.24)]"
+              : "border-cu-grey/25 text-[rgba(88,88,86,0.24)]"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           1
         </button>
-        <p className="text-center text-[12px] text-[#565655]">{t("worst")}</p>
+        <p className="text-center text-[12px] text-cu-grey">{t("worst")}</p>
       </div>
 
       {ratings.slice(1, 4).map((rating) => (
@@ -37,7 +37,7 @@ export function RatingScale({ value, onChange, disabled }: RatingScaleProps) {
           className={`flex size-[40px] items-center justify-center rounded-full border font-heading text-[16px] font-bold transition-colors ${
             value === rating
               ? "border-primary bg-primary text-white"
-              : "border-[rgba(88,88,86,0.24)] text-[rgba(88,88,86,0.24)]"
+              : "border-cu-grey/25 text-[rgba(88,88,86,0.24)]"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           {rating}
@@ -52,12 +52,12 @@ export function RatingScale({ value, onChange, disabled }: RatingScaleProps) {
           className={`flex size-[40px] items-center justify-center rounded-full border font-heading text-[16px] font-bold transition-colors ${
             value === 5
               ? "border-primary bg-primary text-white"
-              : "border-[rgba(88,88,86,0.24)] text-[#d4d0c6]"
+              : "border-cu-grey/25 text-[#d4d0c6]"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
           5
         </button>
-        <p className="text-center text-[12px] text-[#565655]">{t("best")}</p>
+        <p className="text-center text-[12px] text-cu-grey">{t("best")}</p>
       </div>
     </div>
   );

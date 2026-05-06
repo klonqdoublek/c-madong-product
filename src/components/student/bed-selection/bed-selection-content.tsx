@@ -66,7 +66,7 @@ export function BedSelectionContent() {
   const totalAvailable = layout?.availableCount ?? 0;
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#fffbf1]">
+    <div className="relative min-h-[100dvh] bg-cu-warm-cream">
       {/* Page header */}
       <PageHeader
         title="เลือกเตียงใหม่"
@@ -76,7 +76,7 @@ export function BedSelectionContent() {
       {/* Current bed pill (top-right absolute) */}
       {currentBedLabel && (
         <div className="absolute right-4 top-[114px] z-10">
-          <span className="rounded-full bg-[#fbf6e9] px-3 py-1 font-sans text-sm font-bold text-black">
+          <span className="rounded-full bg-cu-cream px-3 py-1 font-sans text-sm font-bold text-black">
             เตียงเดิม {currentBedLabel}
           </span>
         </div>
@@ -84,7 +84,7 @@ export function BedSelectionContent() {
 
       {/* Pink heading */}
       <div className="px-4 pt-[121px]">
-        <h1 className="font-heading text-2xl font-bold text-[#dd598b] tracking-tight">
+        <h1 className="font-heading text-2xl font-bold text-primary tracking-tight">
           เลือกเตียงใหม่
         </h1>
       </div>
@@ -92,8 +92,8 @@ export function BedSelectionContent() {
       {/* Floor selector */}
       <div className="mt-[14px] flex items-center gap-5 px-4">
         <div className="flex shrink-0 items-center gap-1.5">
-          <Layers className="size-4 text-[#565655]" />
-          <span className="font-sans text-[14px] font-bold text-[#565655]">เลือกชั้น</span>
+          <Layers className="size-4 text-cu-grey" />
+          <span className="font-sans text-[14px] font-bold text-cu-grey">เลือกชั้น</span>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
           {FLOORS.map((f) => (
@@ -103,8 +103,8 @@ export function BedSelectionContent() {
               className={cn(
                 "flex size-[28px] shrink-0 items-center justify-center rounded-[5px] border font-sans text-[14px] font-bold transition-all",
                 selectedFloor === f
-                  ? "border-[#dd598b] bg-[#dd598b] text-white"
-                  : "border-[#b2b0a9] text-black/30"
+                  ? "border-primary bg-primary text-white"
+                  : "border-cu-neutral-warm-dark text-black/30"
               )}
             >
               {f}
@@ -116,15 +116,15 @@ export function BedSelectionContent() {
       {/* Status bar */}
       <div className="mt-4 flex items-center justify-center gap-6 px-4">
         <div className="flex items-center gap-2">
-          <span className="font-sans text-[14px] text-[#565655]">สถานะ</span>
-          <span className="rounded-full bg-[#fbf6e9] px-3 py-1 font-sans text-[14px] font-bold text-black">
+          <span className="font-sans text-[14px] text-cu-grey">สถานะ</span>
+          <span className="rounded-full bg-cu-cream px-3 py-1 font-sans text-[14px] font-bold text-black">
             {residence?.building?.name_th ?? "—"} ชั้น {selectedFloor}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <BedDouble className="size-4 text-[#dd598b]" />
-          <span className="font-sans text-[14px] font-bold text-[#dd598b]">เตียงว่าง</span>
-          <span className="min-w-[43px] rounded-full bg-[#dd598b]/10 px-1 py-0.5 text-center font-sans text-[14px] font-bold text-[#dd598b]">
+          <BedDouble className="size-4 text-primary" />
+          <span className="font-sans text-[14px] font-bold text-primary">เตียงว่าง</span>
+          <span className="min-w-[43px] rounded-full bg-primary/10 px-1 py-0.5 text-center font-sans text-[14px] font-bold text-primary">
             {totalAvailable}
           </span>
         </div>
@@ -132,16 +132,16 @@ export function BedSelectionContent() {
 
       {/* Legend */}
       <div className="mt-2 flex items-center gap-3 px-4">
-        <span className="font-sans text-[14px] text-[#565655]">
+        <span className="font-sans text-[14px] text-cu-grey">
           <span className="inline-block align-middle">
-            <BedDouble className="mr-1 inline size-4 text-[#565655]" />
+            <BedDouble className="mr-1 inline size-4 text-cu-grey" />
           </span>
           เลือกเตียงที่ต้องการ
         </span>
         <div className="ml-auto flex items-center gap-3">
-          <LegendItem color="bg-[#52ad7e]" label="กำลังเลือก" />
-          <LegendItem color="border border-[#52ad7e]" label="เตียงว่าง" outline />
-          <LegendItem color="bg-[#d7d4cc]" label="ถูกจองแล้ว" />
+          <LegendItem color="bg-cu-task-green" label="กำลังเลือก" />
+          <LegendItem color="border border-cu-task-green" label="เตียงว่าง" outline />
+          <LegendItem color="bg-cu-neutral-warm" label="ถูกจองแล้ว" />
         </div>
       </div>
 
@@ -153,7 +153,7 @@ export function BedSelectionContent() {
         {isLoading ? (
           <RoomGridSkeleton />
         ) : !layout?.rooms.length ? (
-          <p className="py-10 text-center font-sans text-sm text-[#565655]/60">
+          <p className="py-10 text-center font-sans text-sm text-cu-grey/60">
             ไม่พบห้องในชั้น {selectedFloor}
           </p>
         ) : (
@@ -195,7 +195,7 @@ function LegendItem({
       <span
         className={cn(
           "inline-block size-3 rounded-full",
-          outline ? "border border-[#52ad7e]" : color
+          outline ? "border border-cu-task-green" : color
         )}
       />
       <span className="font-sans text-[10px] text-black">{label}</span>
@@ -209,7 +209,7 @@ function RoomGridSkeleton() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="h-[62px] animate-pulse rounded-[5px] border border-[rgba(88,88,86,0.24)] bg-[rgba(88,88,86,0.06)]"
+          className="h-[62px] animate-pulse rounded-[5px] border border-cu-grey/25 bg-[rgba(88,88,86,0.06)]"
         />
       ))}
     </div>

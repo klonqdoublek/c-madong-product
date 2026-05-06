@@ -78,25 +78,25 @@ export function BedReservationSheet({ open, onClose }: BedReservationSheetProps)
           <div className="flex justify-end px-4 pb-2">
             <button
               onClick={handleClose}
-              className="flex size-9 items-center justify-center rounded-[18px] border border-[rgba(88,88,86,0.24)] bg-[#fbf6e9]"
+              className="flex size-9 items-center justify-center rounded-[18px] border border-cu-grey/25 bg-cu-cream"
             >
-              <X className="size-5 text-[#565655]" />
+              <X className="size-5 text-cu-grey" />
             </button>
           </div>
 
           {/* Sheet card */}
-          <div className="relative rounded-t-[10px] bg-[#fbf6e9] px-4 pt-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
+          <div className="relative rounded-t-[10px] bg-cu-cream px-4 pt-4 pb-8 shadow-[0_-4px_20px_rgba(0,0,0,0.08)]">
             {/* Top row: label + bed badge */}
             <div className="flex items-center justify-between">
-              <p className="font-heading text-base font-bold text-[#dd598b]">
+              <p className="font-heading text-base font-bold text-primary">
                 กำลังเลือกเตียงใหม่
               </p>
 
               <div className="flex items-center gap-2">
-                <span className="font-sans text-base font-bold text-[#565655]">
+                <span className="font-sans text-base font-bold text-cu-grey">
                   ห้อง {store.selectedRoomNumber}
                 </span>
-                <div className="flex h-[28px] w-[65px] items-center justify-center gap-1.5 rounded-[3px] bg-[#52ad7e]">
+                <div className="flex h-[28px] w-[65px] items-center justify-center gap-1.5 rounded-[3px] bg-cu-task-green">
                   <span className="font-sans text-base font-bold text-white">
                     {store.selectedBedLabel}
                   </span>
@@ -112,14 +112,14 @@ export function BedReservationSheet({ open, onClose }: BedReservationSheetProps)
                 disabled={isExpired}
                 className={cn(
                   "h-10 w-[214px] rounded-full font-sans text-base font-bold text-white transition-all active:scale-95",
-                  isExpired ? "bg-[#dd598b]/40" : "bg-[#dd598b]"
+                  isExpired ? "bg-primary/40" : "bg-primary"
                 )}
               >
                 ยืนยัน
               </button>
               <p className={cn(
                 "font-sans text-[10px] text-center",
-                remainingMs < 60000 ? "text-[#ff5d5d]" : "text-[#565655]"
+                remainingMs < 60000 ? "text-[#ff5d5d]" : "text-cu-grey"
               )}>
                 {formatCountdown(remainingMs)} นาที นับถอยหลัง
               </p>

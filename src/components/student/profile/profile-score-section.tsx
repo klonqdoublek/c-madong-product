@@ -45,7 +45,7 @@ export function ProfileScoreSection() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-[#565655]">
+          <h3 className="text-sm font-semibold text-cu-grey">
             {t("dormScore")}
           </h3>
           <p className="text-[10px] text-muted-foreground">

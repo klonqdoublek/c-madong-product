@@ -47,7 +47,7 @@ export function PageHeader({
         {/* Centered title */}
         <h1
           className={cn(
-            "absolute left-1/2 -translate-x-1/2 font-sans text-sm font-bold",
+            "absolute left-1/2 -translate-x-1/2 font-heading text-sm font-bold",
             titleClassName
           )}
         >

@@ -16,7 +16,7 @@ export function EmptyState({ type = "all_done" }: EmptyStateProps) {
         className="opacity-25"
       >
         {/* Placeholder mascot — replace with actual image */}
-        <div className="size-16 rounded-full bg-[#dd598b]/30 flex items-center justify-center">
+        <div className="size-16 rounded-full bg-primary/30 flex items-center justify-center">
           <span className="text-2xl select-none">🏠</span>
         </div>
       </motion.div>

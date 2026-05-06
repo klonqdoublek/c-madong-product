@@ -117,7 +117,7 @@ export function BillDetailContent({ billId }: { billId: string }) {
           ))}
           <Separator />
           <div className="flex items-center justify-between pt-1">
-            <span className="font-heading font-semibold">{t("total")}</span>
+            <span className="font-heading font-bold">{t("total")}</span>
             <span className="font-heading text-lg font-bold text-primary">
               {formatCurrency(Number(bill.total_amount))}
             </span>

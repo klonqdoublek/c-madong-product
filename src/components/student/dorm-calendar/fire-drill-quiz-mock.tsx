@@ -123,22 +123,22 @@ export function FireDrillQuizContent({ itemId }: FireDrillQuizContentProps) {
   }
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#fbf6e9]">
+    <div className="flex min-h-[100dvh] flex-col bg-cu-cream">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-[#fbf6e9]/95 backdrop-blur px-4 py-3">
+      <div className="sticky top-0 z-40 bg-cu-cream/95 backdrop-blur px-4 py-3">
         <div className="flex items-center gap-3">
-          <Link href="/dorm-calendar" className="flex size-9 items-center justify-center rounded-full text-[#565655]">
+          <Link href="/dorm-calendar" className="flex size-9 items-center justify-center rounded-full text-cu-grey">
             <ChevronLeft className="size-5" />
           </Link>
           <div className="flex-1">
-            <p className="font-heading text-sm font-bold text-[#565655]">อบรมดับเพลิง (ทฤษฎี)</p>
+            <p className="font-heading text-sm font-bold text-cu-grey">อบรมดับเพลิง (ทฤษฎี)</p>
             <p className="text-xs text-[#979795]">ข้อ {current + 1} จาก {QUESTIONS.length}</p>
           </div>
         </div>
         {/* Progress bar */}
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/10">
           <motion.div
-            className="h-full rounded-full bg-[#dd598b]"
+            className="h-full rounded-full bg-primary"
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.3 }}
           />
@@ -171,10 +171,10 @@ export function FireDrillQuizContent({ itemId }: FireDrillQuizContentProps) {
                     onClick={() => handleSelect(idx)}
                     className={cn(
                       "w-full rounded-xl border px-4 py-3.5 text-left text-sm font-bold transition-all active:scale-[0.98]",
-                      !showResult && "border-black/10 bg-[#fffbf1] text-[#565655]",
-                      showResult && isCorrect && "border-[#4da376] bg-[#4da376]/10 text-[#4da376]",
+                      !showResult && "border-black/10 bg-cu-warm-cream text-cu-grey",
+                      showResult && isCorrect && "border-cu-task-green-dark bg-cu-task-green-dark/10 text-cu-task-green-dark",
                       showResult && isSelected && !isCorrect && "border-red-400 bg-red-50 text-red-500",
-                      showResult && !isSelected && !isCorrect && "border-black/5 bg-[#fffbf1] text-[#565655]/50"
+                      showResult && !isSelected && !isCorrect && "border-black/5 bg-cu-warm-cream text-cu-grey/50"
                     )}
                   >
                     <span className="mr-2 text-xs opacity-60">{String.fromCharCode(65 + idx)}.</span>
@@ -192,7 +192,7 @@ export function FireDrillQuizContent({ itemId }: FireDrillQuizContentProps) {
         <button
           onClick={handleNext}
           disabled={selected === null || isPending}
-          className="h-12 w-full rounded-full bg-[#dd598b] text-sm font-bold text-white disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="h-12 w-full rounded-full bg-primary text-sm font-bold text-white disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
           {isPending ? "กำลังบันทึก..." : isLast ? "ส่งคำตอบ" : "ข้อถัดไป"}
         </button>
@@ -203,21 +203,21 @@ export function FireDrillQuizContent({ itemId }: FireDrillQuizContentProps) {
 
 function SuccessScreen({ locale }: { locale: string }) {
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#fbf6e9] px-6 text-center">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-cu-cream px-6 text-center">
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 18 }}
       >
-        <CheckCircle2 className="mx-auto size-20 text-[#4da376]" />
+        <CheckCircle2 className="mx-auto size-20 text-cu-task-green-dark" />
       </motion.div>
       <h2 className="mt-4 font-heading text-2xl font-bold text-[#3f3f3d]">ส่งแล้ว!</h2>
-      <p className="mt-2 text-sm text-[#565655]/70">
+      <p className="mt-2 text-sm text-cu-grey/70">
         บันทึกการเข้าร่วมอบรมดับเพลิง (ทฤษฎี) เรียบร้อย
       </p>
       <Link
         href="/dorm-calendar"
-        className="mt-8 flex h-12 w-full items-center justify-center rounded-full bg-[#dd598b] text-sm font-bold text-white"
+        className="mt-8 flex h-12 w-full items-center justify-center rounded-full bg-primary text-sm font-bold text-white"
       >
         กลับสู่ปฏิทิน
       </Link>

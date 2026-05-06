@@ -11,8 +11,8 @@ export function PersonalInfoCard() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <User className="h-3 w-3 text-[#565655]" />
-        <p className="text-[14px] text-[#565655]">{t("verifyInfo")}</p>
+        <User className="h-3 w-3 text-cu-grey" />
+        <p className="text-[14px] text-cu-grey">{t("verifyInfo")}</p>
       </div>
 
       <div className="rounded-[10px] border border-[rgba(88,88,86,0.1)] bg-white p-4 space-y-3">

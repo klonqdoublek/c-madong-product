@@ -67,7 +67,7 @@ export function AnnouncementsPageContent() {
   const newsCount = announcements?.filter((a: any) => a.category === "activity" || a.category === "news" || a.category === "pr").length || 0;
 
   return (
-    <div className="min-h-screen bg-[#FBF6E9] pb-20">
+    <div className="min-h-screen bg-cu-cream pb-20">
       <NewsAnnouncementsHeader
         activeTab="announcements"
         search={search}
@@ -79,7 +79,7 @@ export function AnnouncementsPageContent() {
 
       <div className="mt-4 flex flex-col gap-6 px-4">
         {/* LINE Notification Banner */}
-        <div className="relative flex h-[100px] w-full items-center gap-3 overflow-hidden rounded-2xl bg-[#52AD7E] p-4 text-white shadow-md">
+        <div className="relative flex h-[100px] w-full items-center gap-3 overflow-hidden rounded-2xl bg-cu-task-green p-4 text-white shadow-md">
            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
              <BellRing className="h-6 w-6" />
            </div>
@@ -104,13 +104,13 @@ export function AnnouncementsPageContent() {
                 onClick={() => setActiveFilter(tab.key)}
                 className={`flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 transition-all ${
                   activeFilter === tab.key
-                    ? "bg-[#52AD7E] text-white"
-                    : "bg-[#FFFEF5] text-cu-muted shadow-sm border border-black/5"
+                    ? "bg-cu-task-green text-white"
+                    : "bg-cu-cream-light text-cu-muted shadow-sm border border-black/5"
                 }`}
               >
                 <span className="font-heading text-xs font-bold">{tab.label}</span>
                 <span className={`flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold ${
-                  activeFilter === tab.key ? "bg-white text-[#52AD7E]" : "bg-black/10 text-cu-grey"
+                  activeFilter === tab.key ? "bg-white text-cu-task-green" : "bg-black/10 text-cu-grey"
                 }`}>
                   {count}
                 </span>

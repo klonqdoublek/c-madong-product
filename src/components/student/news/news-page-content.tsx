@@ -50,7 +50,7 @@ export function NewsPageContent() {
   const newsCount = announcements?.filter((a: any) => a.category === "activity" || a.category === "news" || a.category === "pr").length || 0;
 
   return (
-    <div className="min-h-screen bg-[#FBF6E9] pb-20">
+    <div className="min-h-screen bg-cu-cream pb-20">
       <NewsAnnouncementsHeader
         activeTab="news"
         search={search}
@@ -70,7 +70,7 @@ export function NewsPageContent() {
               className={`flex shrink-0 items-center gap-1.5 rounded-full px-5 py-2 transition-all shadow-sm ${
                 activeCategory === cat.key
                   ? "bg-cu-pink text-white"
-                  : "bg-[#FFFEF5] text-cu-muted border border-black/5"
+                  : "bg-cu-cream-light text-cu-muted border border-black/5"
               }`}
             >
               <span className="font-heading text-xs font-bold">{cat.label}</span>

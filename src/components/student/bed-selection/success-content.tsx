@@ -35,35 +35,35 @@ export function SuccessContent({ confirmedAt }: SuccessContentProps) {
       });
 
   return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[#fffbf1] px-6 pb-20">
+    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-cu-warm-cream px-6 pb-20">
       {/* Icon */}
-      <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-[#4da376]/10">
-        <CheckCircle2 className="size-12 text-[#4da376]" />
+      <div className="mb-6 flex size-20 items-center justify-center rounded-full bg-cu-task-green-dark/10">
+        <CheckCircle2 className="size-12 text-cu-task-green-dark" />
       </div>
 
       {/* Title */}
-      <h1 className="font-heading text-[26px] font-bold text-[#dd598b] tracking-tight text-center">
+      <h1 className="font-heading text-[26px] font-bold text-primary tracking-tight text-center">
         ยืนยันเตียงสำเร็จ!
       </h1>
 
       {/* Subtitle */}
-      <p className="mt-2 font-sans text-[14px] text-[#565655] text-center">
+      <p className="mt-2 font-sans text-[14px] text-cu-grey text-center">
         ส่งเมื่อ {submittedLabel}
       </p>
 
       {/* Bed info card */}
       {bedDisplay && (
-        <div className="mt-6 w-full max-w-xs rounded-[10px] border border-[#4da376]/30 bg-white px-4 py-4">
-          <p className="font-sans text-[12px] text-[#565655]/60 mb-1">เตียงของคุณ</p>
+        <div className="mt-6 w-full max-w-xs rounded-[10px] border border-cu-task-green-dark/30 bg-white px-4 py-4">
+          <p className="font-sans text-[12px] text-cu-grey/60 mb-1">เตียงของคุณ</p>
           <div className="flex items-center gap-2">
-            <BedDouble className="size-5 text-[#4da376]" />
-            <p className="font-sans text-[16px] font-bold text-[#565655]">{bedDisplay}</p>
+            <BedDouble className="size-5 text-cu-task-green-dark" />
+            <p className="font-sans text-[16px] font-bold text-cu-grey">{bedDisplay}</p>
           </div>
         </div>
       )}
 
       {/* Note */}
-      <p className="mt-4 max-w-xs text-center font-sans text-[12px] text-[#565655]/60">
+      <p className="mt-4 max-w-xs text-center font-sans text-[12px] text-cu-grey/60">
         หากต้องการเปลี่ยนแปลงภายหลัง กรุณาติดต่อสำนักงานหอพักด้วยตัวเอง
       </p>
 
@@ -71,13 +71,13 @@ export function SuccessContent({ confirmedAt }: SuccessContentProps) {
       <div className="mt-8 flex w-full max-w-xs flex-col gap-3">
         <Link
           href="/dashboard"
-          className="flex h-12 w-full items-center justify-center rounded-full bg-[#dd598b] font-sans text-base font-bold text-white active:scale-95 transition-all"
+          className="flex h-12 w-full items-center justify-center rounded-full bg-primary font-sans text-base font-bold text-white active:scale-95 transition-all"
         >
           กลับสู่หน้าหลัก
         </Link>
         <Link
           href="/dorm-calendar"
-          className="flex h-12 w-full items-center justify-center rounded-full border border-[rgba(88,88,86,0.24)] font-sans text-base font-bold text-[#565655] active:scale-95 transition-all"
+          className="flex h-12 w-full items-center justify-center rounded-full border border-cu-grey/25 font-sans text-base font-bold text-cu-grey active:scale-95 transition-all"
         >
           ดูในปฏิทิน
         </Link>

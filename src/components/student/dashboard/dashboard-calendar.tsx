@@ -88,7 +88,7 @@ export function DashboardCalendar() {
       {/* Calendar + upcoming */}
       <div className="mt-2 flex gap-2">
         {/* Left: mini calendar */}
-        <div className="flex-1 rounded-xl bg-[#FFFEF5] p-3">
+        <div className="flex-1 rounded-xl bg-cu-cream-light p-3">
           <p className="font-heading text-xl font-bold text-primary">
             {THAI_MONTHS[viewMonth]}
           </p>
@@ -136,7 +136,7 @@ export function DashboardCalendar() {
         </div>
 
         {/* Right: upcoming events */}
-        <div className="w-[124px] rounded-xl bg-[#FFFEF5] p-3">
+        <div className="w-[124px] rounded-xl bg-cu-cream-light p-3">
           <p className="text-[10px] font-bold text-cu-grey">เร็วๆนี้</p>
           <div className="mt-2 flex flex-col">
             {upcomingThree.map((event, idx) => {

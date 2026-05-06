@@ -47,7 +47,7 @@ export function ProfileContent() {
                 <FileText className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-[#565655]">
+                <h3 className="text-sm font-semibold text-cu-grey">
                   {t("reapplyStatus")}
                 </h3>
                 <p className="text-xs text-muted-foreground">

@@ -75,10 +75,10 @@ export function DocumentUploadZone({
       >
         <Upload className="h-12 w-12 text-[#bda5ad]" />
         <div className="text-center">
-          <p className="text-[12px] leading-normal text-[#565655]">
+          <p className="text-[12px] leading-normal text-cu-grey">
             {t("acceptedFormats", { formats: formatTypes })}
           </p>
-          <p className="text-[12px] leading-normal text-[#565655]">
+          <p className="text-[12px] leading-normal text-cu-grey">
             {t("maxSize", { size: maxSizeMB })}
           </p>
         </div>
@@ -120,7 +120,7 @@ export function DocumentUploadZone({
           ))}
         </div>
       ) : (
-        <p className="text-center text-[14px] text-[#565655]">
+        <p className="text-center text-[14px] text-cu-grey">
           {t("noFileSelected")}
         </p>
       )}

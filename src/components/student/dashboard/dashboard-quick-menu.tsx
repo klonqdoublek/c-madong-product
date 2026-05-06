@@ -55,7 +55,7 @@ export function DashboardQuickMenu() {
                   href={item.href}
                   className="flex flex-col items-center gap-1.5"
                 >
-                  <div className="flex h-[65px] w-[70px] items-center justify-center rounded-lg border border-black/5 bg-[#FFFEF5]">
+                  <div className="flex h-[65px] w-[70px] items-center justify-center rounded-lg border border-black/5 bg-cu-cream-light">
                     <Icon className="size-6 text-primary" />
                   </div>
                   <span className="min-h-[22px] leading-tight overflow-hidden text-ellipsis whitespace-nowrap text-center text-[11px] font-bold text-cu-grey px-0.5">

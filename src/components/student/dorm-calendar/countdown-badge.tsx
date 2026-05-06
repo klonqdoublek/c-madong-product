@@ -47,8 +47,8 @@ export const CountdownBadge = memo(function CountdownBadge({ dueAt }: CountdownB
       className={cn(
         "text-[10px] font-bold",
         isUrgent  ? "text-red-500"    :
-        isWarning ? "text-[#dd598b]" :
-                    "text-[#dd598b]"
+        isWarning ? "text-primary" :
+                    "text-primary"
       )}
     >
       {label}

@@ -184,12 +184,12 @@ function SectionHeader({
       <div className="h-px flex-1 bg-black/8" />
       <button
         onClick={onToggle}
-        className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-[#fffef5]"
+        className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-cu-cream-light"
       >
         {collapsed ? (
-          <ChevronDown className="size-4 text-[#565655]" />
+          <ChevronDown className="size-4 text-cu-grey" />
         ) : (
-          <ChevronUp className="size-4 text-[#565655]" />
+          <ChevronUp className="size-4 text-cu-grey" />
         )}
       </button>
     </div>
@@ -229,8 +229,8 @@ function TimelineList({
         <div key={dateLabel} className="flex gap-3">
           {/* Left timeline */}
           <div className="flex w-12 flex-col items-center">
-            <span className="font-heading text-sm font-bold text-[#52ad7e]">{dateLabel.split(" ")[0]}</span>
-            <span className="font-heading text-xs text-[#52ad7e]">{dateLabel.split(" ")[1]}</span>
+            <span className="font-heading text-sm font-bold text-cu-task-green">{dateLabel.split(" ")[0]}</span>
+            <span className="font-heading text-xs text-cu-task-green">{dateLabel.split(" ")[1]}</span>
             {gi < grouped.length - 1 && (
               <div className="mt-1 w-[2px] flex-1 bg-black/10" />
             )}

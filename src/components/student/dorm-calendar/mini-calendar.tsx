@@ -41,35 +41,35 @@ export function MiniCalendar({
   }
 
   return (
-    <div className="rounded-xl bg-[#fffbf1] p-3 shadow-sm border border-black/5">
+    <div className="rounded-xl bg-cu-warm-cream p-3 shadow-sm border border-black/5">
       {/* Month nav */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-heading text-[20px] font-bold text-[#dd598b]">
+          <p className="font-heading text-[20px] font-bold text-primary">
             {THAI_MONTHS[month]}
           </p>
-          <p className="font-sans text-xs text-[#565655]/60">
+          <p className="font-sans text-xs text-cu-grey/60">
             วันนี้ {isCurrentMonth ? `วันที่ ${todayD}` : ""}
           </p>
         </div>
         <div className="flex gap-1.5">
           <button
             onClick={prev}
-            className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-[#fffef5]"
+            className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-cu-cream-light"
           >
-            <ChevronLeft className="size-4 text-[#565655]" />
+            <ChevronLeft className="size-4 text-cu-grey" />
           </button>
           <button
             onClick={next}
-            className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-[#fffef5]"
+            className="flex size-[30px] items-center justify-center rounded-full border border-black/15 bg-cu-cream-light"
           >
-            <ChevronRight className="size-4 text-[#565655]" />
+            <ChevronRight className="size-4 text-cu-grey" />
           </button>
         </div>
       </div>
 
       {/* Day headers */}
-      <div className="mt-3 grid grid-cols-7 text-center text-[10px] font-bold text-[#565655]">
+      <div className="mt-3 grid grid-cols-7 text-center text-[10px] font-bold text-cu-grey">
         {THAI_DAYS_SHORT.map((d, i) => (
           <span key={d} className={cn(i === 0 || i === 6 ? "opacity-40" : "")}>
             {d}
@@ -98,9 +98,9 @@ export function MiniCalendar({
               <span
                 className={cn(
                   "flex size-[22px] items-center justify-center rounded-full text-[11px] font-bold",
-                  isToday && "bg-[#dd598b] text-white",
-                  isWeekend && !isToday && "opacity-40 text-[#565655]",
-                  !isToday && !isWeekend && "text-[#565655]"
+                  isToday && "bg-primary text-white",
+                  isWeekend && !isToday && "opacity-40 text-cu-grey",
+                  !isToday && !isWeekend && "text-cu-grey"
                 )}
               >
                 {day}
@@ -111,7 +111,7 @@ export function MiniCalendar({
                   transition={{ duration: 2, repeat: Infinity }}
                   className={cn(
                     "mt-0.5 size-[4px] rounded-full",
-                    isToday ? "bg-white" : "bg-[#dd598b]"
+                    isToday ? "bg-white" : "bg-primary"
                   )}
                 />
               )}

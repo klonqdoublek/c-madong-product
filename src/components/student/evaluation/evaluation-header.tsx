@@ -16,7 +16,7 @@ export function EvaluationHeader({
   showImportantBadge,
 }: EvaluationHeaderProps) {
   return (
-    <div className="rounded-bl-[20px] rounded-br-[20px] bg-[#fbf6e9] px-4 pb-6 pt-4">
+    <div className="rounded-bl-[20px] rounded-br-[20px] bg-cu-cream px-4 pb-6 pt-4">
       {/* Icon + Badge */}
       <div className="flex items-start justify-between">
         {icon && (
@@ -34,13 +34,13 @@ export function EvaluationHeader({
       </div>
 
       {/* Title */}
-      <h1 className="mt-4 font-heading text-[24px] font-bold leading-[21px] text-[#565655]">
+      <h1 className="mt-4 font-heading text-[24px] font-bold leading-[21px] text-cu-grey">
         {title}
       </h1>
 
       {/* Date Range */}
       {dateRange && (
-        <div className="mt-2 flex items-center gap-1.5 text-[#565655]">
+        <div className="mt-2 flex items-center gap-1.5 text-cu-grey">
           <Calendar className="h-4 w-4" />
           <p className="text-[14px] leading-[21px]">{dateRange}</p>
         </div>
@@ -48,7 +48,7 @@ export function EvaluationHeader({
 
       {/* Description */}
       {description && (
-        <p className="mt-2 text-[14px] leading-[21px] text-[#565655]">
+        <p className="mt-2 text-[14px] leading-[21px] text-cu-grey">
           {description}
         </p>
       )}

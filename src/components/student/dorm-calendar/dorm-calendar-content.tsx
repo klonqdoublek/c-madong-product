@@ -21,17 +21,17 @@ export function DormCalendarContent() {
   const [search, setSearch] = useState("");
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#fbf6e9]">
+    <div className="flex min-h-[100dvh] flex-col bg-cu-cream">
       {/* Pink hero bar for calendar view */}
       {view === "calendar" && (
-        <div className="absolute inset-x-0 top-0 h-[298px] bg-[#dd598b]" />
+        <div className="absolute inset-x-0 top-0 h-[298px] bg-primary" />
       )}
 
       <div className="relative z-10">
         <PageHeader
           title={t("title")}
           transparent={view === "calendar"}
-          titleClassName={view === "calendar" ? "text-white/90" : "text-[#565655]"}
+          titleClassName={view === "calendar" ? "text-white/90" : "text-cu-grey"}
           backHref="/dashboard"
           right={<ViewToggle view={view} onChange={setView} />}
         />
@@ -94,7 +94,7 @@ function ViewToggle({
         "flex items-center gap-1 rounded-full p-1 transition-colors",
         isCalendar
           ? "border border-white/30 bg-white/20 backdrop-blur-sm"
-          : "border border-black/10 bg-[#fffef5]"
+          : "border border-black/10 bg-cu-cream-light"
       )}
     >
       <button
@@ -111,8 +111,8 @@ function ViewToggle({
           className={cn(
             "size-[18px]",
             view === "calendar"
-              ? "text-[#dd598b]"
-              : isCalendar ? "text-white" : "text-[#565655]"
+              ? "text-primary"
+              : isCalendar ? "text-white" : "text-cu-grey"
           )}
         />
       </button>
@@ -121,7 +121,7 @@ function ViewToggle({
         className={cn(
           "flex size-[32px] items-center justify-center rounded-full transition-all duration-200",
           view === "list"
-            ? isCalendar ? "bg-white shadow-sm" : "bg-[#dd598b]"
+            ? isCalendar ? "bg-white shadow-sm" : "bg-primary"
             : "opacity-50"
         )}
         aria-label="List view"
@@ -130,8 +130,8 @@ function ViewToggle({
           className={cn(
             "size-[18px]",
             view === "list"
-              ? isCalendar ? "text-[#dd598b]" : "text-white"
-              : isCalendar ? "text-white" : "text-[#565655]"
+              ? isCalendar ? "text-primary" : "text-white"
+              : isCalendar ? "text-white" : "text-cu-grey"
           )}
         />
       </button>

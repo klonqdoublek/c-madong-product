@@ -83,23 +83,23 @@ export function ListView({
   return (
     <div className="flex flex-col">
       {/* Search + filter row */}
-      <div className="flex gap-2 bg-[#fbf6e9] px-4 pb-3 pt-2">
+      <div className="flex gap-2 bg-cu-cream px-4 pb-3 pt-2">
         {/* Search bar */}
-        <div className="flex flex-1 items-center gap-2 rounded-full border border-black/10 bg-[#fffef5] px-3 py-2.5">
-          <Search className="size-4 shrink-0 text-[#818181]" />
+        <div className="flex flex-1 items-center gap-2 rounded-full border border-black/10 bg-cu-cream-light px-3 py-2.5">
+          <Search className="size-4 shrink-0 text-cu-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="ค้นหากิจกรรม"
-            className="min-w-0 flex-1 bg-transparent text-sm text-[#565655] placeholder:text-[#818181] outline-none"
+            className="min-w-0 flex-1 bg-transparent text-sm text-cu-grey placeholder:text-cu-muted outline-none"
           />
         </div>
 
         {/* Category filter */}
         <button
           onClick={() => setFilterOpen(!filterOpen)}
-          className="flex items-center gap-1 rounded-full border border-black/10 bg-[#fffef5] px-3 py-2.5 text-sm font-bold text-[#818181] whitespace-nowrap"
+          className="flex items-center gap-1 rounded-full border border-black/10 bg-cu-cream-light px-3 py-2.5 text-sm font-bold text-cu-muted whitespace-nowrap"
         >
           {activeCategory ?? "หมวดหมู่"}
           <ChevronDown className={cn("size-4 transition-transform", filterOpen && "rotate-180")} />
@@ -114,7 +114,7 @@ export function ListView({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.18 }}
-            className="overflow-hidden bg-[#fbf6e9] px-4 pb-3"
+            className="overflow-hidden bg-cu-cream px-4 pb-3"
           >
             <div className="flex flex-wrap gap-2">
               <CategoryChip
@@ -201,8 +201,8 @@ function CategoryChip({
       className={cn(
         "rounded-full px-3 py-1 text-xs font-bold transition-colors",
         active
-          ? "bg-[#dd598b] text-white"
-          : "border border-black/15 bg-[#fffef5] text-[#565655]"
+          ? "bg-primary text-white"
+          : "border border-black/15 bg-cu-cream-light text-cu-grey"
       )}
     >
       {label}

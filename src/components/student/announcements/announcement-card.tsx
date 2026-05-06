@@ -51,10 +51,10 @@ export function AnnouncementCard({ announcement, isRead = false }: AnnouncementC
   const content = announcement.content_th || announcement.content_en || "";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-[#FFFEF5] p-4 shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-black/5 bg-cu-cream-light p-4 shadow-sm">
       {/* Pinned Icon Overlay - Figma Node 1461:20186 */}
       {announcement.is_pinned && (
-        <div className="absolute right-[-8px] top-[-8px] z-10 flex h-12 w-12 items-center justify-center rounded-full bg-[#52AD7E]/80 shadow-md">
+        <div className="absolute right-[-8px] top-[-8px] z-10 flex h-12 w-12 items-center justify-center rounded-full bg-cu-task-green/80 shadow-md">
            <Pin className="h-5 w-5 rotate-[45deg] text-white" />
         </div>
       )}

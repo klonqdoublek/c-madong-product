@@ -74,7 +74,7 @@ export function DashboardAnnouncementsCarousel() {
         })}
 
         {items.length === 0 && (
-          <div className="flex h-[126px] w-full items-center justify-center rounded-xl bg-[#FFFEF5]">
+          <div className="flex h-[126px] w-full items-center justify-center rounded-xl bg-cu-cream-light">
             <p className="text-sm text-cu-grey/50">ไม่มีประกาศ</p>
           </div>
         )}
