@@ -43,17 +43,20 @@ export interface LineTextMessage {
   type: "text"
   id: string
   text: string
+  markAsReadToken?: string
 }
 
 export interface LineImageMessage {
   type: "image"
   id: string
   contentProvider: { type: "line" | "external"; originalContentUrl?: string }
+  markAsReadToken?: string
 }
 
 export interface LineUnsupportedMessage {
   type: "video" | "audio" | "file" | "location" | "sticker"
   id: string
+  markAsReadToken?: string
 }
 
 export interface LineSource {

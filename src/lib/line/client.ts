@@ -175,6 +175,23 @@ export async function pushImageCarousel(
 }
 
 /**
+ * Mark all messages up to and including the one with this token as read.
+ * Token comes from event.message.markAsReadToken in the webhook payload.
+ */
+export async function markAsRead(markAsReadToken: string): Promise<void> {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN
+  if (!token) return
+  await fetch("https://api.line.me/v2/bot/chat/markAsRead", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ markAsReadToken }),
+  })
+}
+
+/**
  * Show typing/loading dots in LINE chat while bot processes.
  * Only works in 1-on-1 chat (userId). Silently ignored for groups.
  * loadingSeconds: 5–60 in multiples of 5 (default 20).

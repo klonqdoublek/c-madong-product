@@ -1,4 +1,4 @@
-import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages, showLoadingAnimation } from "@/lib/line/client"
+import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages, showLoadingAnimation, markAsRead } from "@/lib/line/client"
 import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
@@ -193,6 +193,11 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
 
   // Show typing animation immediately — fire-and-forget, never block reply
   showLoadingAnimation(lineUid, 20).catch(() => {})
+
+  // Mark user's message as read — makes bot feel less robotic
+  if (event.message.markAsReadToken) {
+    markAsRead(event.message.markAsReadToken).catch(() => {})
+  }
 
   // Handle image messages
   if (event.message.type === "image") {
