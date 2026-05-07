@@ -1,4 +1,4 @@
-import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages } from "@/lib/line/client"
+import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages, showLoadingAnimation } from "@/lib/line/client"
 import { classifyIntent } from "./intent-router"
 import { getOrCreateSession, resetSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
@@ -190,6 +190,9 @@ async function processEvent(event: LineEvent): Promise<void> {
 async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
   const lineUid = event.source.userId
   if (!lineUid) return
+
+  // Show typing animation immediately — fire-and-forget, never block reply
+  showLoadingAnimation(lineUid, 20).catch(() => {})
 
   // Handle image messages
   if (event.message.type === "image") {
@@ -577,6 +580,7 @@ async function handlePostbackEvent(event: LinePostbackEvent): Promise<void> {
   const lineUid = event.source.userId
   if (!lineUid) return
 
+  showLoadingAnimation(lineUid, 20).catch(() => {})
   await handlePostback(event.replyToken, event.postback.data, lineUid)
 }
 

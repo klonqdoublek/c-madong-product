@@ -174,6 +174,20 @@ export async function pushImageCarousel(
   })
 }
 
+/**
+ * Show typing/loading dots in LINE chat while bot processes.
+ * Only works in 1-on-1 chat (userId). Silently ignored for groups.
+ * loadingSeconds: 5–60 in multiples of 5 (default 20).
+ */
+export async function showLoadingAnimation(
+  userId: string,
+  loadingSeconds = 20
+): Promise<void> {
+  const api = getClient()
+  const seconds = Math.min(60, Math.max(5, Math.round(loadingSeconds / 5) * 5))
+  await api.showLoadingAnimation({ chatId: userId, loadingSeconds: seconds })
+}
+
 export async function pushImageMessage(
   lineUid: string,
   originalContentUrl: string,
