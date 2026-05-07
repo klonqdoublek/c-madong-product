@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, shrink-to-fit=no, user-scalable=no";
+export const viewport =
+  "width=device-width, initial-scale=1, shrink-to-fit=no";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
