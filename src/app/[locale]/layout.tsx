@@ -17,9 +17,9 @@ function firstParam(value: string | string[] | undefined): string | undefined {
 export async function generateViewport({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}): Promise<Viewport> {
-  const resolvedSearchParams = await searchParams;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+} = {}): Promise<Viewport> {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
   const hasLiffState = Boolean(
     firstParam(resolvedSearchParams["liff.state"]) ||
       firstParam(resolvedSearchParams["liff.referrer"])
