@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { ImageIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type MessageType = "text" | "flex" | "image"
@@ -15,54 +14,31 @@ interface AnnouncementMessageTypeCardsProps {
 
 function TextPreview() {
   return (
-    <div className="flex h-full w-full items-center justify-center p-3">
-      <div className="w-full rounded-lg bg-white p-3 shadow-sm">
-        {/* Header line */}
-        <div className="mb-2 h-2.5 w-20 rounded-full bg-muted/60" />
-        {/* Body lines */}
-        <div className="space-y-1.5">
-          <div className="h-2 w-full rounded-full bg-muted/30" />
-          <div className="h-2 w-[85%] rounded-full bg-muted/30" />
-          <div className="h-2 w-[60%] rounded-full bg-muted/30" />
-          <div className="h-2 w-[75%] rounded-full bg-muted/30" />
-          <div className="h-2 w-[45%] rounded-full bg-muted/30" />
-        </div>
-      </div>
-    </div>
+    <img
+      src="/announcement-types/text.png"
+      alt="text message preview"
+      className="h-full w-full object-contain"
+    />
   )
 }
 
 function FlexPreview() {
   return (
-    <div className="flex h-full w-full items-center justify-center p-3">
-      <div className="w-[100px] overflow-hidden rounded-xl shadow-sm">
-        {/* Header / hero area */}
-        <div className="flex h-10 items-end bg-muted/40 px-2 pb-1.5">
-          <div className="h-3 w-5 rounded-sm bg-white/60" />
-        </div>
-        {/* Body */}
-        <div className="bg-[#fffef5] px-2 py-2">
-          <div className="space-y-1">
-            <div className="h-1.5 w-[70%] rounded-full bg-muted/40" />
-            <div className="h-1.5 w-full rounded-full bg-muted/25" />
-            <div className="h-1.5 w-[50%] rounded-full bg-muted/25" />
-          </div>
-          {/* CTA button */}
-          <div className="mt-2 h-4 w-full rounded-md bg-primary/60" />
-        </div>
-      </div>
-    </div>
+    <img
+      src="/announcement-types/flex.png"
+      alt="flex message preview"
+      className="h-full w-full object-contain"
+    />
   )
 }
 
 function ImagePreview() {
   return (
-    <div className="flex h-full w-full items-center justify-center">
-      <div className="flex flex-col items-center gap-1.5">
-        <ImageIcon className="h-10 w-10 text-muted/50" strokeWidth={1.5} />
-        <div className="h-1.5 w-12 rounded-full bg-muted/30" />
-      </div>
-    </div>
+    <img
+      src="/announcement-types/photo.png"
+      alt="image message preview"
+      className="h-full w-full object-contain"
+    />
   )
 }
 
@@ -103,7 +79,7 @@ export function AnnouncementMessageTypeCards({
   onChange,
 }: AnnouncementMessageTypeCardsProps) {
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="mx-auto grid max-w-[70%] grid-cols-3 gap-3">
       {CARDS.map(({ value: v, label, labelColor, borderColor, Preview }) => {
         const active = value === v
         return (
@@ -121,7 +97,7 @@ export function AnnouncementMessageTypeCards({
             )}
           >
             {/* Preview box */}
-            <div className="h-32 w-full overflow-hidden rounded-lg bg-[#fbf6e9]">
+            <div className="aspect-[7/6] w-full overflow-hidden rounded-lg bg-[#fbf6e9]">
               <Preview />
             </div>
 
