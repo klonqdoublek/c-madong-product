@@ -5,6 +5,83 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-05-07)
+
+### LIFF Zoom Guard — v2.9.1 — DEPLOYED
+
+**Problem**: LIFF pages inside LINE still allowed pinch/double-tap zoom even after setting `user-scalable=no`. Root cause was split across three places: LIFF deep links were landing on localized routes (`/[locale]/...`) instead of `/liff`, `generateViewport()` was called during prerender without `searchParams`, and auth pages mounted before `StudentLayout` / `LiffProvider`.
+
+**What changed**:
+- `src/app/[locale]/layout.tsx` now uses LIFF-aware `generateViewport()` for localized LIFF entry routes and guards `searchParams` being undefined during static prerender
+- `src/app/layout.tsx` now mounts `LiffZoomGuard` at the root so LINE webview protections also cover `/login`, `/register`, `/onboarding`, and any pre-auth route
+- `src/lib/liff/zoom-guard.tsx` rewrites `meta[name="viewport"]` on the client and blocks pinch zoom, iOS `gesture*` zoom, and double-tap zoom with non-passive listeners
+
+**Verification**:
+- `npx eslint src/app/layout.tsx src/lib/liff/provider.tsx src/lib/liff/zoom-guard.tsx 'src/app/[locale]/layout.tsx'`
+- `npm run build`
+- User confirmed LIFF zoom lock works after deploy
+
+**Commits**:
+- `809112a` — initial LIFF viewport split
+- `e7ec229` — locale-route viewport
+- `8418e55` — prerender guard
+- `5e7379b` — global LINE webview zoom guard
+
+**Gotchas**:
+- **LIFF route detection cannot rely on `/liff` path** — rich menu / LIFF deep links are normalized onto localized app routes such as `/th/dashboard?...`, so any LIFF-specific guard tied only to `/liff` will miss real traffic.
+- **`generateViewport()` may run without `searchParams` during prerender** — static routes like `/th/login` can call layout viewport generation at build time. Always treat `searchParams` as optional in layouts.
+- **Viewport meta alone is not enough in LINE webview** — some LINE/iOS webviews still allow zoom unless you also intercept touch/gesture events on the client.
+- **Placing the zoom guard in `LiffProvider` is too low in the tree** — auth and onboarding routes render before student layout mounts, so zoom prevention must live in the root layout if it needs to cover the whole LIFF journey.
+
+## Recent Changes (2026-05-06)
+
+### Design System Token Migration — v2.9.0 — DEPLOYED
+
+**Audit**: 75 student components audited; 65% had hardcoded hex violations.
+
+**New tokens added to `globals.css`**:
+- `cu-warm-cream: #FFFBF1`
+- `cu-task-green: #52AD7E`
+- `cu-task-green-dark: #4DA376`
+- `cu-neutral-warm: #D7D4CC`
+- `cu-neutral-warm-dark: #B9B6B0`
+- Added `prefers-reduced-motion` guard on all CSS animations (WCAG 2.1 AA)
+
+**Bulk migration**: 277 raw hex values → semantic tokens across 43 student components:
+- `text-[#565655]` (81 hits) → `text-cu-grey`
+- `bg-[#FBF6E9]` → `bg-cu-cream`
+- `bg-[#FFFEF5]` → `bg-cu-cream-light`
+- `bg-[#FFFBF1]` → `bg-cu-warm-cream`
+- `bg/text-[#DD598B]` → `bg/text-primary`
+- `bg/text/border-[#52AD7E]` → `cu-task-green` tokens
+- `bg/text-[#4DA376]` → `cu-task-green-dark` tokens
+- bed-button.tsx states → `cu-neutral-warm` tokens
+
+**Typography fixes**:
+- `page-header.tsx` `<h1>`: `font-sans` → `font-heading` (Chulalongkorn) — all 14 student pages
+- All headings: `font-heading font-semibold` → `font-heading font-bold`
+
+**Dashboard info card fixes** (`dashboard-info-card.tsx`):
+1. Layout overflow: removed fixed `h-[180px]`, pink card `relative h-[110px]`, action card `-mt-[41px] z-10`
+2. Background visibility: `bg-cu-warm-cream` → `bg-white shadow-card` (warm cream invisible over pink gradient)
+3. Thai font clipping: `leading-tight min-h-[38px]` → `leading-normal pb-0.5`
+
+**Files modified**: `globals.css`, `page-header.tsx`, `dashboard-info-card.tsx`, `dashboard/content.tsx`, 43 student components in `src/components/student/`
+
+**Deferred**: `src/app/[locale]/` page files still have raw hex — sed only ran on `src/components/`
+
+**Commits**: `28c4cc7` (token migration), `8a35227` (dashboard fixes)
+
+**Gotchas**:
+- **Token migration path scope** — sed/grep ran only on `src/components/student/`; pages in `src/app/[locale]/` kept raw hex. Always run token migration on BOTH `src/components/` AND `src/app/` paths.
+- **Tokens exist ≠ tokens used** — `cu-cream` and `cu-cream-light` were defined since globals.css creation but 100% of components used raw hex. Token addition must be followed by an active audit pass.
+- **Chulalongkorn font has no semibold weight** — `font-heading font-semibold` triggers browser synthetic bold which renders differently across browsers. All headings must use `font-heading font-bold` only.
+- **Absolute children with `min-h` escape fixed-height containers** — `h-[180px]` parent does NOT constrain `absolute min-h-[111px]` children. Overflow bleeds into next DOM siblings. Fix: negative-margin layout (`-mt-[Xpx] z-10`) so container height auto-sizes.
+- **`bg-cu-warm-cream` invisible over pink gradient** — `#FFFBF1` is too similar to the pink overlay. Any action card sitting on the gradient card needs `bg-white` for visibility, not the warm cream token.
+- **Thai line-height minimum is `leading-normal` (1.5)** — `leading-tight` (1.25) clips สระบน (above-baseline vowels) and วรรณยุกต์ (tone marks). Never use `leading-tight` or `leading-snug` on Thai body text or titles. Add `pb-0.5` on text blocks that may clip at bottom.
+
+---
+
 ## Recent Changes (2026-04-27)
 
 ### Bed Selection v2.3.0 — DEPLOYED

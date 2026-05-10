@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.0
-> **Last Updated**: 2026-04-27
+> **Version**: 3.1
+> **Last Updated**: 2026-05-06
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -49,7 +49,8 @@ C-Madong Platform
 │   ├── Profile Management
 │   ├── Emergency Contact (draggable bottom sheet, 5 category tabs) ✅
 │   ├── In-App Chat (น้องซีมะโด่ง modal) ✅
-│   └── Live Chat Escalation (talk to human, waiting screen) ✅
+│   ├── Live Chat Escalation (talk to human, waiting screen) ✅
+│   └── Design System Token Layer (semantic tokens, WCAG motion guard) ✅ v2.9.0
 │
 ├── Admin Portal (ported into c-madong-product) ✅
 │   ├── Dashboard (KPI cards, recent tickets, quick actions)
@@ -141,6 +142,18 @@ C-Madong Platform
 - [ ] Quick action buttons: แจ้งซ่อม, ประกาศ, ค่าน้ำค่าไฟ, พัสดุ
 - [ ] Recent activity feed
 - [ ] Pinned announcements
+
+#### US-2.6: Design System Token Compliance ✅ DEPLOYED (2026-05-06)
+> **As a** product designer, **I want** all student UI components to use semantic design tokens, **so that** the brand is consistent and maintainable.
+
+**Acceptance Criteria:**
+- [x] 5 missing tokens added to `globals.css`: `cu-warm-cream`, `cu-task-green`, `cu-task-green-dark`, `cu-neutral-warm`, `cu-neutral-warm-dark`
+- [x] `prefers-reduced-motion` guard added to all CSS animations (WCAG 2.1 AA)
+- [x] 277 raw hex values migrated to semantic tokens across 43 student components
+- [x] `page-header.tsx` `<h1>` font corrected from `font-sans` to `font-heading` (Chulalongkorn) — affects all 14 student pages
+- [x] All headings use `font-heading font-bold` (Chulalongkorn has no semibold weight)
+- [x] Dashboard info card layout overflow, background visibility, and Thai font clipping bugs fixed
+- [ ] Audit `src/app/[locale]/` page files for remaining raw hex values (session deferred)
 
 #### US-2.2: Digital Dorm Card ✅ DEPLOYED (2026-03-24)
 > **As a** student, **I want to** have a digital dorm card, **so that** I don't need to carry a physical card.

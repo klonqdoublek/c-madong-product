@@ -39,6 +39,7 @@ import {
   FolderTree,
   PanelLeftClose,
   PanelLeftOpen,
+  BarChart3,
 } from "lucide-react";
 
 const LEGACY_ROLE_MAP: Record<string, AppRole> = {
@@ -145,6 +146,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     { href: "/admin/billing", label: t("navBilling"), icon: <Banknote className="h-4 w-4" />, permission: Permission.BILLS_VIEW },
     { href: "/admin/parcels", label: t("parcels"), icon: <Package className="h-4 w-4" />, permission: Permission.PARCELS_VIEW },
     { href: "/admin/knowledge-base", label: t("navKnowledgeBase"), icon: <BookOpen className="h-4 w-4" />, permission: Permission.KNOWLEDGE_VIEW },
+    { href: "/admin/reports", label: t("navReports"), icon: <BarChart3 className="h-4 w-4" />, permission: Permission.REPORTS_VIEW },
   ];
 
   // Group-level permission overrides (some groups need canAny check)
