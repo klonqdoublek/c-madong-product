@@ -88,7 +88,7 @@ export const TaskCard = memo(function TaskCard({ item, onAcknowledge, loading }:
           {/* Status pills */}
           <div className="flex flex-wrap gap-1.5">
             {item.isRequired && (
-              <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-[10px] font-bold text-primary">
+              <span className="rounded-full bg-[#ffcbc4] px-2.5 py-0.5 text-[10px] font-bold text-red-600">
                 จำเป็น
               </span>
             )}

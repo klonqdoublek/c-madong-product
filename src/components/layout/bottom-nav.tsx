@@ -52,11 +52,11 @@ export function BottomNav({ visible = true }: { visible?: boolean }) {
 
         {/* Calendar */}
         <Link
-          href="/events"
+          href="/dorm-calendar"
           onClick={() => setMenuModalOpen(false)}
-          className={itemClass(isNavActive(pathname, "/events") && !isMenuModalOpen)}
+          className={itemClass(isNavActive(pathname, "/dorm-calendar") && !isMenuModalOpen)}
         >
-          <Calendar className="size-[18px]" strokeWidth={(isNavActive(pathname, "/events") && !isMenuModalOpen) ? 2.5 : 2} />
+          <Calendar className="size-[18px]" strokeWidth={(isNavActive(pathname, "/dorm-calendar") && !isMenuModalOpen) ? 2.5 : 2} />
           <span className={cn("text-[12px] leading-tight tracking-tight", (isNavActive(pathname, "/events") && !isMenuModalOpen) ? "font-bold" : "font-normal")}>
             {t("calendar")}
           </span>

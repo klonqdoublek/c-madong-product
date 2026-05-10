@@ -10,7 +10,7 @@ import {
 } from "@/hooks/use-dorm-calendar";
 import type { DormCalendarItem, DormCalendarCategory } from "@/hooks/use-dorm-calendar";
 import { TabBar } from "./tab-bar";
-import { TaskCard } from "./task-card";
+import { ListCard } from "./list-card";
 import { TaskCardSkeletonList } from "./task-card-skeleton";
 import { EmptyState } from "./empty-state";
 import { formatSemesterLabel } from "@/lib/utils/semester";
@@ -172,7 +172,7 @@ export function ListView({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, type: "spring", stiffness: 200, damping: 22 }}
               >
-                <TaskCard
+                <ListCard
                   item={item}
                   onAcknowledge={handleAcknowledge}
                   loading={isAcking}

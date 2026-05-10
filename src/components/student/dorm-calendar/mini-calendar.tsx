@@ -14,8 +14,10 @@ const THAI_DAYS_SHORT = ["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"];
 
 export function MiniCalendar({
   onDateSelect,
+  selectedDate,
 }: {
   onDateSelect?: (date: Date) => void;
+  selectedDate?: Date | null;
 }) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -88,6 +90,11 @@ export function MiniCalendar({
           const isWeekend = dow === 0 || dow === 6;
           const isToday = isCurrentMonth && day === todayD;
           const hasItem = eventDays?.has(day);
+          const isSelected =
+            selectedDate != null &&
+            selectedDate.getFullYear() === year &&
+            selectedDate.getMonth() === month &&
+            selectedDate.getDate() === day;
 
           return (
             <button
@@ -97,10 +104,11 @@ export function MiniCalendar({
             >
               <span
                 className={cn(
-                  "flex size-[22px] items-center justify-center rounded-full text-[11px] font-bold",
+                  "flex size-[22px] items-center justify-center rounded-full text-[11px] font-bold transition-all",
                   isToday && "bg-primary text-white",
-                  isWeekend && !isToday && "opacity-40 text-cu-grey",
-                  !isToday && !isWeekend && "text-cu-grey"
+                  isSelected && !isToday && "ring-2 ring-primary ring-offset-1 text-primary",
+                  isWeekend && !isToday && !isSelected && "opacity-40 text-cu-grey",
+                  !isToday && !isSelected && !isWeekend && "text-cu-grey"
                 )}
               >
                 {day}

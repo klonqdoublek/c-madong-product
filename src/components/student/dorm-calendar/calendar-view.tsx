@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, X } from "lucide-react";
 import { useDormCalendar, useAcknowledgeCalendarItem } from "@/hooks/use-dorm-calendar";
 import type { DormCalendarItem, DormCalendarCategory } from "@/hooks/use-dorm-calendar";
 import { MiniCalendar } from "./mini-calendar";
@@ -33,6 +33,7 @@ export function CalendarView({
     soon: false,
     done: true,
   });
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const now = new Date();
 
@@ -54,10 +55,32 @@ export function CalendarView({
   }, [items]);
 
   function handleAcknowledge(item: DormCalendarItem) {
-    acknowledge(
-      { sourceType: item.sourceType, sourceId: item.sourceId },
-    );
+    acknowledge({ sourceType: item.sourceType, sourceId: item.sourceId });
   }
+
+  const handleDateSelect = useCallback((date: Date) => {
+    setSelectedDate((prev) => {
+      if (
+        prev &&
+        prev.getDate() === date.getDate() &&
+        prev.getMonth() === date.getMonth() &&
+        prev.getFullYear() === date.getFullYear()
+      ) return null; // toggle off
+      return date;
+    });
+  }, []);
+
+  const itemsForSelectedDate = useMemo(() => {
+    if (!selectedDate || !items) return [];
+    return items.filter((item) => {
+      const due = new Date(item.dueAt);
+      return (
+        due.getDate() === selectedDate.getDate() &&
+        due.getMonth() === selectedDate.getMonth() &&
+        due.getFullYear() === selectedDate.getFullYear()
+      );
+    });
+  }, [selectedDate, items]);
 
   function toggleSection(s: Section) {
     setCollapsed((prev) => ({ ...prev, [s]: !prev[s] }));
@@ -67,8 +90,59 @@ export function CalendarView({
     <div className="px-4 pb-24">
       {/* Calendar card */}
       <div className="mt-3">
-        <MiniCalendar />
+        <MiniCalendar
+          onDateSelect={handleDateSelect}
+          selectedDate={selectedDate}
+        />
       </div>
+
+      {/* Selected date section */}
+      <AnimatePresence>
+        {selectedDate && (
+          <motion.div
+            key="date-panel"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4">
+              {/* Section header */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-heading text-sm font-bold text-cu-grey">
+                  {formatThaiDate(selectedDate)}
+                </span>
+                <div className="h-px flex-1 bg-black/8" />
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="flex size-[26px] items-center justify-center rounded-full border border-black/15 bg-cu-cream-light"
+                  aria-label="ปิด"
+                >
+                  <X className="size-3.5 text-cu-grey" />
+                </button>
+              </div>
+
+              {itemsForSelectedDate.length === 0 ? (
+                <p className="py-3 text-center text-sm text-cu-grey/50">
+                  ไม่มีกิจกรรมในวันนี้
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {itemsForSelectedDate.map((item) => (
+                    <TaskCard
+                      key={item.id}
+                      item={item}
+                      onAcknowledge={handleAcknowledge}
+                      loading={isAcking}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Upcoming section */}
       <SectionHeader
@@ -251,4 +325,13 @@ function TimelineList({
       ))}
     </>
   );
+}
+
+const THAI_MONTHS_FULL = [
+  "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+  "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม",
+];
+
+function formatThaiDate(date: Date): string {
+  return `${date.getDate()} ${THAI_MONTHS_FULL[date.getMonth()]} ${date.getFullYear() + 543}`;
 }
