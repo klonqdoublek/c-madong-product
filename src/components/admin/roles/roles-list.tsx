@@ -1,16 +1,21 @@
-/**
- * Roles List Component
- *
- * Display list of all assigned roles with user info and actions
- */
-
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRoles, useRevokeRole } from "@/hooks/use-role-management";
 import { RoleBadgeList } from "@/components/rbac/role-badge";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -22,6 +27,7 @@ import {
 import { Trash2, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { th } from "date-fns/locale";
+import { toast } from "sonner";
 import type { UserRoleAssignment } from "@/hooks/use-role-management";
 import type { BuildingScope } from "@/lib/supabase/types";
 
@@ -38,19 +44,20 @@ const BUILDING_SCOPE_LABELS: Record<BuildingScope, string> = {
 
 export function RolesList() {
   const t = useTranslations("admin.rbac");
+  const tCommon = useTranslations("common");
   const { data: roles, isLoading } = useRoles();
   const revokeRole = useRevokeRole();
+  const [pendingRevoke, setPendingRevoke] = useState<{ id: string; name: string } | null>(null);
 
-  const handleRevoke = async (userRoleId: string, userName: string) => {
-    if (!confirm(`ยืนยันถอดถอนตำแหน่งของ ${userName}?`)) {
-      return;
-    }
-
+  const handleRevoke = async () => {
+    if (!pendingRevoke) return;
     try {
-      await revokeRole.mutateAsync(userRoleId);
+      await revokeRole.mutateAsync(pendingRevoke.id);
+      setPendingRevoke(null);
     } catch (error) {
       console.error("Failed to revoke role:", error);
-      alert("ไม่สามารถถอดถอนตำแหน่งได้");
+      toast.error(t("revokeError"));
+      setPendingRevoke(null);
     }
   };
 
@@ -71,6 +78,7 @@ export function RolesList() {
   }
 
   return (
+    <>
     <div className="rounded-lg border">
       <Table>
         <TableHeader>
@@ -130,12 +138,13 @@ export function RolesList() {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    handleRevoke(
-                      roleAssignment.id,
-                      roleAssignment.user.full_name_th ?? ""
-                    )
+                    setPendingRevoke({
+                      id: roleAssignment.id,
+                      name: roleAssignment.user.full_name_th ?? "",
+                    })
                   }
                   disabled={revokeRole.isPending}
+                  aria-label={t("revokeRole")}
                   className="text-destructive hover:text-destructive"
                 >
                   {revokeRole.isPending ? (
@@ -150,5 +159,27 @@ export function RolesList() {
         </TableBody>
       </Table>
     </div>
+
+      <AlertDialog open={pendingRevoke !== null} onOpenChange={(open) => { if (!open) setPendingRevoke(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("revokeRole")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("revokeConfirmDesc", { name: pendingRevoke?.name ?? "" })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevoke}
+              disabled={revokeRole.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {revokeRole.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("revokeRole")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

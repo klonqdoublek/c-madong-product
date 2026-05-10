@@ -16,7 +16,15 @@
     "confirm": "Confirm",
     "close": "Close",
     "viewAll": "View All",
-    "noData": "No data"
+    "noData": "No data",
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "daysAgo": "{count}d ago",
+      "today": "Today",
+      "yesterday": "Yesterday"
+    }
   },
   "nav": {
     "home": "Home",
@@ -143,7 +151,8 @@
     "bed": "Bed",
     "points": "points",
     "announcementsTitle": "Announcements & News",
-    "noAnnouncements": "No announcements right now"
+    "noAnnouncements": "No announcements right now",
+    "noUpcomingEvents": "No upcoming events"
   },
   "maintenance": {
     "title": "Maintenance",
@@ -451,7 +460,11 @@
       "roleTechnician": "Technician",
       "roleTechnicianIt": "IT Technician",
       "roleCommittee": "Student Committee",
-      "roleStudent": "Student"
+      "roleStudent": "Student",
+      "revokeConfirmDesc": "Confirm revoking {name}'s role?",
+      "revokeConfirmGenericDesc": "Are you sure you want to revoke this role?",
+      "revokeError": "Failed to revoke role",
+      "assignError": "Failed to assign role"
     },
     "dashboardPage": {
       "title": "Admin Dashboard",
@@ -1098,6 +1111,7 @@
       "mandatoryCount": "Mandatory",
       "avgAttendance": "Avg Attendance",
       "noEvents": "No events yet",
+      "deleteTitle": "Delete Event",
       "deleteConfirm": "Delete this event?",
       "attendance": "Attendance",
       "eventForm": {
@@ -1358,7 +1372,8 @@
     "waitingForAdmin": "Connecting to staff... Please wait",
     "cancelWaiting": "Cancel",
     "endConversation": "End Conversation",
-    "placeholderAdmin": "Type a message to staff..."
+    "placeholderAdmin": "Type a message to staff...",
+    "teamDefault": "Staff"
   },
   "emergency": {
     "title": "Emergency Contact",

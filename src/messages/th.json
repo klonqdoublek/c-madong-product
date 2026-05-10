@@ -16,7 +16,15 @@
     "confirm": "ยืนยัน",
     "close": "ปิด",
     "viewAll": "ดูทั้งหมด",
-    "noData": "ไม่มีข้อมูล"
+    "noData": "ไม่มีข้อมูล",
+    "time": {
+      "justNow": "เมื่อกี้",
+      "minutesAgo": "{count} นาทีที่แล้ว",
+      "hoursAgo": "{count} ชม.ที่แล้ว",
+      "daysAgo": "{count} วันที่แล้ว",
+      "today": "วันนี้",
+      "yesterday": "เมื่อวาน"
+    }
   },
   "nav": {
     "home": "หน้าหลัก",
@@ -141,7 +149,8 @@
     "bed": "เตียง",
     "points": "คะแนน",
     "announcementsTitle": "ประกาศและข่าวสาร",
-    "noAnnouncements": "ยังไม่มีประกาศตอนนี้"
+    "noAnnouncements": "ยังไม่มีประกาศตอนนี้",
+    "noUpcomingEvents": "ยังไม่มีกิจกรรมที่กำลังจะมาถึง"
   },
   "maintenance": {
     "title": "แจ้งซ่อม",
@@ -449,7 +458,11 @@
       "roleTechnician": "ช่างหอพัก",
       "roleTechnicianIt": "ช่างไอที / ดูแลระบบ",
       "roleCommittee": "กรรมการนิสิตหอพัก",
-      "roleStudent": "นิสิตหอพัก"
+      "roleStudent": "นิสิตหอพัก",
+      "revokeConfirmDesc": "ยืนยันถอดถอนตำแหน่งของ {name}?",
+      "revokeConfirmGenericDesc": "คุณต้องการถอดถอนตำแหน่งนี้ออกจากระบบ?",
+      "revokeError": "ไม่สามารถถอดถอนตำแหน่งได้",
+      "assignError": "ไม่สามารถมอบหมายตำแหน่งได้"
     },
     "dashboardPage": {
       "title": "Admin Dashboard",
@@ -1096,6 +1109,7 @@
       "mandatoryCount": "กิจกรรมบังคับ",
       "avgAttendance": "อัตราเข้าร่วม",
       "noEvents": "ยังไม่มีกิจกรรม",
+      "deleteTitle": "ลบกิจกรรม",
       "deleteConfirm": "ยืนยันลบกิจกรรมนี้?",
       "attendance": "เช็คชื่อ",
       "eventForm": {
@@ -1356,7 +1370,8 @@
     "waitingForAdmin": "กำลังเชื่อมต่อพี่ทีมงาน... รอสักครู่นะ",
     "cancelWaiting": "ยกเลิก",
     "endConversation": "จบการสนทนา",
-    "placeholderAdmin": "พิมพ์ข้อความถึงพี่ทีมงาน..."
+    "placeholderAdmin": "พิมพ์ข้อความถึงพี่ทีมงาน...",
+    "teamDefault": "ทีมงาน"
   },
   "emergency": {
     "title": "ติดต่อฉุกเฉิน",

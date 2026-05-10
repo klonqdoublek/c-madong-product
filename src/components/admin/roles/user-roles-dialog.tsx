@@ -1,9 +1,3 @@
-/**
- * User Roles Dialog
- *
- * Dialog for viewing and managing a user's roles
- */
-
 "use client";
 
 import { useState } from "react";
@@ -14,12 +8,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadgeList } from "@/components/rbac/role-badge";
 import { useUserRoles, useAssignRole, useRevokeRole } from "@/hooks/use-role-management";
 import { RoleSelector, BuildingScopeSelector } from "@/components/rbac/role-badge";
 import { Trash2, Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { AppRole, BuildingScope } from "@/lib/supabase/types";
 import type { UserRoleAssignment } from "@/hooks/use-role-management";
 
@@ -48,6 +53,7 @@ export function UserRolesDialog({
   userName,
 }: UserRolesDialogProps) {
   const t = useTranslations("admin.rbac");
+  const tCommon = useTranslations("common");
   const { data: userRoles, isLoading } = useUserRoles(userId);
   const assignRole = useAssignRole();
   const revokeRole = useRevokeRole();
@@ -55,6 +61,7 @@ export function UserRolesDialog({
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(null);
   const [buildingScope, setBuildingScope] = useState<BuildingScope | null>(null);
+  const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null);
 
   const handleAssign = async () => {
     if (!selectedRole) return;
@@ -71,26 +78,24 @@ export function UserRolesDialog({
         buildingScope: buildingScope ?? undefined,
       });
 
-      // Reset form
       setSelectedRole(null);
       setBuildingScope(null);
       setShowAddForm(false);
     } catch (error) {
       console.error("Failed to assign role:", error);
-      alert("ไม่สามารถมอบหมายตำแหน่งได้");
+      toast.error(t("assignError"));
     }
   };
 
-  const handleRevoke = async (userRoleId: string) => {
-    if (!confirm("ยืนยันถอดถอนตำแหน่งนี้?")) {
-      return;
-    }
-
+  const handleRevoke = async () => {
+    if (!pendingRevokeId) return;
     try {
-      await revokeRole.mutateAsync(userRoleId);
+      await revokeRole.mutateAsync(pendingRevokeId);
+      setPendingRevokeId(null);
     } catch (error) {
       console.error("Failed to revoke role:", error);
-      alert("ไม่สามารถถอดถอนตำแหน่งได้");
+      toast.error(t("revokeError"));
+      setPendingRevokeId(null);
     }
   };
 
@@ -100,6 +105,7 @@ export function UserRolesDialog({
     (selectedRole !== "registrar" || buildingScope);
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -132,8 +138,9 @@ export function UserRolesDialog({
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => handleRevoke(roleAssignment.id)}
+                      onClick={() => setPendingRevokeId(roleAssignment.id)}
                       disabled={revokeRole.isPending}
+                      aria-label={t("revokeRole")}
                       className="h-8 w-8 text-destructive"
                     >
                       {revokeRole.isPending ? (
@@ -210,5 +217,25 @@ export function UserRolesDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    <AlertDialog open={pendingRevokeId !== null} onOpenChange={(open) => { if (!open) setPendingRevokeId(null); }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t("revokeRole")}</AlertDialogTitle>
+          <AlertDialogDescription>{t("revokeConfirmGenericDesc")}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{tCommon("cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleRevoke}
+            disabled={revokeRole.isPending}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {revokeRole.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t("revokeRole")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

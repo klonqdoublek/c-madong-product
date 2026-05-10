@@ -11,6 +11,7 @@ import {
   EVENT_STATUSES,
 } from "@/lib/utils/score-constants";
 import { EventFormDialog } from "./event-form-dialog";
+import { DeleteConfirmDialog } from "@/components/admin/knowledge/delete-confirm-dialog";
 import {
   CalendarDays,
   Plus,
@@ -29,6 +30,7 @@ export function AdminEventsPageContent() {
   const [editEvent, setEditEvent] = useState<any>(null);
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const { data: events, isLoading } = useAdminEvents({
     type: typeFilter !== "all" ? (typeFilter as EventType) : undefined,
@@ -43,9 +45,7 @@ export function AdminEventsPageContent() {
   const mandatoryCount = allEvents.filter((e) => e.is_mandatory).length;
 
   const handleDelete = (id: string) => {
-    if (window.confirm(t("deleteConfirm"))) {
-      deleteEvent.mutate(id);
-    }
+    setPendingDeleteId(id);
   };
 
   return (
@@ -223,6 +223,18 @@ export function AdminEventsPageContent() {
           }}
         />
       )}
+
+      <DeleteConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => { if (!open) setPendingDeleteId(null); }}
+        title={t("deleteTitle")}
+        description={t("deleteConfirm")}
+        onConfirm={() => {
+          if (pendingDeleteId) deleteEvent.mutate(pendingDeleteId);
+          setPendingDeleteId(null);
+        }}
+        isPending={deleteEvent.isPending}
+      />
     </div>
   );
 }

@@ -5,6 +5,39 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-05-10)
+
+### Reports & Analytics — v3.0.0 — DEPLOYED
+
+**What was built**: Phase 8 admin analytics page at `/admin/reports` — single page, 4 tabs (การซ่อมบำรุง, การเงิน, การพักอาศัย, การมีส่วนร่วม), date range picker (30d/90d/6mo/1y), CSV export with UTF-8 BOM.
+
+**New files**:
+- `src/app/[locale]/admin/reports/page.tsx`
+- `src/app/api/admin/reports/{maintenance,billing,occupancy,engagement,export}/route.ts` (5 routes)
+- `src/hooks/use-reports.ts` (4 TanStack Query hooks, `staleTime: 5 * 60 * 1000`)
+- `src/lib/utils/thai-month.ts` (Thai month labels + `formatBaht`)
+- `src/components/admin/reports/` (14 components)
+
+**Modified**: `admin-shell.tsx` (Reports nav entry), `th.json` + `en.json` (`navReports` key)
+
+**Technical decisions**:
+- `recharts` installed — first chart lib in project. All chart files must be `"use client"`.
+- No new DB migrations — all queries use existing tables. JS-side aggregation only.
+- Permissions (`REPORTS_VIEW` etc.) pre-existed in `src/lib/rbac/permissions.ts`.
+- CSV export uses BOM prefix for Thai Excel compatibility.
+
+**Commit**: `836ceef`
+
+**Gotchas**:
+- **`recharts` Tooltip props require `any` cast** — `formatter`/`labelFormatter` typed too narrowly; cast + eslint-disable at call site.
+- **All recharts files must be `"use client"`** — `ResponsiveContainer` reads DOM; server rendering throws.
+- **Supabase JS has no `GROUP BY`** — aggregate in JS after fetching rows; acceptable at dorm scale.
+- **CSV export requires UTF-8 BOM** — prepend `'﻿'` before Blob creation or Thai chars corrupt in Excel.
+- **`announcement_reads.read_at` may be nullish on legacy rows** — typed non-nullable but old records predate the column; null-guard before date ops.
+- **Occupancy timeline empty on narrow date range** — show explicit empty state, not blank chart.
+
+---
+
 ## Recent Changes (2026-05-07)
 
 ### LIFF Zoom Guard — v2.9.1 — DEPLOYED
@@ -919,6 +952,18 @@ Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551).
 **Task 3: Appointment Booking UI**
 - `src/components/maintenance/new-request-form.tsx` — Toggle "ต้องการนัดวันซ่อม?" in details step, Calendar date picker (Popover), time select dropdown (08:00-17:00, 30min slots), shown in review step
 - i18n strings added to `th.json` and `en.json` for both cancel and appointment features
+
+---
+
+### Reports & Analytics — Phase 8 (v3.0.0, 2026-05-10)
+
+- **`recharts` Tooltip `formatter` and `labelFormatter` need `any` cast** — the prop types accept `ValueType | undefined` which is too narrow for custom formatters that return JSX or multi-value strings. Add `// eslint-disable-next-line @typescript-eslint/no-explicit-any` before the cast, not a global disable.
+- **Every recharts file must be `"use client"`** — `ResponsiveContainer` reads `offsetWidth` from the DOM; importing it in a Server Component throws at runtime. Place the directive at the top of every file that imports from `recharts`.
+- **Supabase JS client has no `GROUP BY`** — `PostgREST` does not expose arbitrary SQL aggregation. Fetch raw rows and aggregate in JS. For dorm-scale row counts (< 5 000) this is acceptable and consistent with the existing codebase pattern.
+- **CSV export needs UTF-8 BOM for Thai in Excel** — Windows Excel interprets CSV files as the system code page unless a BOM is present. Prepend `'﻿'` (BOM) to the CSV string before creating the `Blob`: `new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })`. Without it, Thai characters appear as mojibake.
+- **`announcement_reads.read_at` may be nullish on old rows** — the column is typed as non-nullable in the generated `Row` type but records created before the column was added may have a null value in practice. Always null-guard before calling `.toISOString()` or date math.
+- **Occupancy timeline returns no rows on narrow date ranges** — `profiles.move_in_date` is sparse; a 30-day window may have zero move-ins. Render an explicit empty state (not an empty chart area) so admins don't assume the chart failed to load.
+- **`staleTime: 5 * 60 * 1000` is the correct pattern for analytics hooks** — report data does not need live updates. 5-minute stale time prevents re-fetching on every tab switch without blocking initial load. Set on all `useReports*` hooks.
 
 ---
 

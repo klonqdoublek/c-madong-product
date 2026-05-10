@@ -63,7 +63,12 @@ export function BottomNav({ visible = true }: { visible?: boolean }) {
         </Link>
 
         {/* Bell — opens notification modal */}
-        <button type="button" onClick={() => setOpen(true)} className={itemClass(false)}>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className={itemClass(false)}
+          aria-label={unreadCount > 0 ? `${t("notifications")} (${unreadCount})` : t("notifications")}
+        >
           <div className="relative">
             <Bell className="size-[18px]" strokeWidth={2} />
             {unreadCount > 0 && (

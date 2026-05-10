@@ -32,11 +32,11 @@ export function ProfileInfoCard() {
           </AvatarFallback>
         </Avatar>
 
-        <h2 className="mt-3 font-heading text-lg font-bold">
+        <h2 className="mt-3 w-full truncate text-center font-heading text-lg font-bold">
           {profile?.display_name || profile?.full_name_th || "-"}
         </h2>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="w-full truncate text-center text-xs text-muted-foreground">
           {profile?.student_id && `${profile.student_id} · `}
           {profile?.full_name_th}
         </p>

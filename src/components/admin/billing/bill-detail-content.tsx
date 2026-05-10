@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useBill, useUpdateBillStatus, useSendBillReminder, useDeleteBill } from "@/hooks/use-bills";
+import { DeleteConfirmDialog } from "@/components/admin/knowledge/delete-confirm-dialog";
 import { formatCurrency, BILL_STATUS_COLORS, THAI_MONTHS, BILL_CATEGORIES } from "@/lib/utils";
 import type { BillStatus } from "@/lib/supabase/types";
 import {
@@ -35,6 +36,7 @@ export function BillDetailContent({ billId }: { billId: string }) {
   const sendReminder = useSendBillReminder();
   const deleteBill = useDeleteBill();
   const [notes, setNotes] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (isLoading) {
     return (
@@ -76,7 +78,6 @@ export function BillDetailContent({ billId }: { billId: string }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm(t("deleteConfirm"))) return;
     try {
       await deleteBill.mutateAsync(billId);
       toast.success("ลบบิลสำเร็จ");
@@ -273,7 +274,7 @@ export function BillDetailContent({ billId }: { billId: string }) {
               <Button
                 variant="ghost"
                 className="w-full text-destructive hover:text-destructive"
-                onClick={handleDelete}
+                onClick={() => setConfirmDelete(true)}
                 disabled={deleteBill.isPending}
               >
                 <Trash2 className="mr-1.5 h-4 w-4" />
@@ -283,6 +284,15 @@ export function BillDetailContent({ billId }: { billId: string }) {
           </Card>
         </div>
       </div>
+
+      <DeleteConfirmDialog
+        open={confirmDelete}
+        onOpenChange={setConfirmDelete}
+        title={t("deleteBill")}
+        description={t("deleteConfirm")}
+        onConfirm={handleDelete}
+        isPending={deleteBill.isPending}
+      />
     </div>
   );
 }

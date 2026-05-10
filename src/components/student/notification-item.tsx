@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
   Wrench,
@@ -36,19 +36,16 @@ const COLOR_MAP: Record<string, string> = {
   system: "bg-gray-100 text-gray-600",
 };
 
-function formatRelativeTime(dateStr: string): string {
+function getRelativeTimeParts(dateStr: string): { key: "justNow" | "minutesAgo" | "hoursAgo" | "daysAgo" | "absolute"; count?: number; absolute?: string } {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60_000);
-  if (mins < 1) return "เมื่อกี้";
-  if (mins < 60) return `${mins} นาทีที่แล้ว`;
+  if (mins < 1) return { key: "justNow" };
+  if (mins < 60) return { key: "minutesAgo", count: mins };
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} ชม.ที่แล้ว`;
+  if (hours < 24) return { key: "hoursAgo", count: hours };
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} วันที่แล้ว`;
-  return new Date(dateStr).toLocaleDateString("th-TH", {
-    day: "numeric",
-    month: "short",
-  });
+  if (days < 7) return { key: "daysAgo", count: days };
+  return { key: "absolute", absolute: new Date(dateStr).toLocaleDateString(undefined, { day: "numeric", month: "short" }) };
 }
 
 interface NotificationItemProps {
@@ -61,6 +58,7 @@ export function NotificationItem({
   onMarkRead,
 }: NotificationItemProps) {
   const locale = useLocale();
+  const tTime = useTranslations("common.time");
   const Icon = ICON_MAP[notification.type] ?? Info;
   const colorClass = COLOR_MAP[notification.type] ?? "bg-gray-100 text-gray-600";
   const isUnread = !notification.read_at;
@@ -100,7 +98,12 @@ export function NotificationItem({
           </p>
         )}
         <p className="mt-1 text-[11px] text-cu-muted">
-          {formatRelativeTime(notification.created_at)}
+          {(() => {
+            const rt = getRelativeTimeParts(notification.created_at);
+            if (rt.key === "absolute") return rt.absolute;
+            if (rt.key === "justNow") return tTime("justNow");
+            return tTime(rt.key, { count: rt.count ?? 0 });
+          })()}
         </p>
       </div>
     </div>

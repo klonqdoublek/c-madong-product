@@ -22,6 +22,7 @@ export function ChatFAB({ showNav }: { showNav: boolean }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-label="ถามน้องซีมะโด่ง"
         className="flex size-14 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary/5 transition-transform active:scale-90"
       >
         <Image

@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.1
-> **Last Updated**: 2026-05-06
+> **Version**: 3.2
+> **Last Updated**: 2026-05-10
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -1036,11 +1036,45 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 
 ---
 
-### Phase 8: Reports & Analytics
-- Admin dashboard charts
-- Maintenance response time analytics
-- Student activity reports
-- Export capabilities (CSV/PDF)
+### Phase 8: Reports & Analytics ✅ DEPLOYED (2026-05-10)
+
+**Route**: `/admin/reports` — single page with 4 tabs, date range picker (30d/90d/6mo/1y preset), CSV export button per tab.
+
+**4 Report Sections (tabs)**:
+
+1. **การซ่อมบำรุง** (Maintenance) — 4 KPIs (total tickets, completion rate, avg response time hrs, cancellation rate) + category donut PieChart + monthly volume stacked BarChart + response time LineChart + slowest open tickets table
+
+2. **การเงิน** (Billing) — 4 KPIs (revenue collected, collection rate, outstanding amount, overdue rate) + monthly revenue grouped BarChart + status distribution PieChart + category revenue horizontal BarChart + overdue table
+
+3. **การพักอาศัย** (Occupancy) — 4 KPIs (occupancy rate, total/occupied/vacant beds) + per-building horizontal BarChart + move-in timeline BarChart + building detail table with inline progress bars
+
+4. **การมีส่วนร่วม** (Engagement) — 4 KPIs (avg read rate, event attendance rate, calendar completion rate, parcel pickup rate) + weekly reads LineChart + event attendance by type BarChart + chatbot intent distribution PieChart + top announcements table
+
+**New Files**:
+- `src/app/[locale]/admin/reports/page.tsx` — page entry point, `?tab=X` URL sync
+- `src/app/api/admin/reports/maintenance/route.ts`
+- `src/app/api/admin/reports/billing/route.ts`
+- `src/app/api/admin/reports/occupancy/route.ts`
+- `src/app/api/admin/reports/engagement/route.ts`
+- `src/app/api/admin/reports/export/route.ts` — CSV export with UTF-8 BOM for Thai Excel compat
+- `src/hooks/use-reports.ts` — 4 TanStack Query hooks, `staleTime: 5 * 60 * 1000`
+- `src/lib/utils/thai-month.ts` — Thai month labels + `formatBaht()` helper
+- 14 components under `src/components/admin/reports/`
+
+**Modified Files**:
+- `src/components/layout/admin-shell.tsx` — Reports nav entry with BarChart3 icon, `Permission.REPORTS_VIEW`
+- `src/messages/th.json` + `src/messages/en.json` — `navReports` key added
+
+**Technical Decisions**:
+- `recharts` installed (first chart library in project) — all chart components are `"use client"` with `ResponsiveContainer`
+- No new DB migrations — all queries use existing tables; JS-side aggregation (not raw SQL GROUP BY)
+- `REPORTS_VIEW`, `REPORTS_VIEW_ALL`, `REPORTS_EXPORT` permissions were pre-existing in `src/lib/rbac/permissions.ts`
+- CSV export uses native Blob API + BOM prefix (`﻿`) for Thai character Excel compatibility
+- All 4 sections prefetch on page load via parallel TanStack Query calls
+- URL tab sync via `?tab=X` query param
+
+**Commit**: `836ceef` — feat: Phase 8 reports & analytics dashboard
+**Deploy status**: DEPLOYED — https://c-madong-product.vercel.app
 
 ### Phase 9: UX/UI Polish & Consistency
 Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
@@ -1191,27 +1225,21 @@ git checkout -b release/v1.0  # Maintenance branch
 
 ---
 
-#### Phase 8: Reports & Analytics (NOT STARTED)
+#### Phase 8: Reports & Analytics ✅ DEPLOYED (2026-05-10)
 
-**Admin Dashboards**
-- [ ] Maintenance analytics (response time, completion rate, category breakdown)
-- [ ] Occupancy reports (bed utilization, building stats, vacancy trends)
-- [ ] Billing analytics (collection rate, overdue tracking, revenue dashboard)
-- [ ] Student engagement (app usage, feature adoption, notification open rates)
-- [ ] Export functionality (PDF, Excel, CSV)
+See Phase 8 section above for full spec. Summary:
+- [x] Maintenance analytics (completion rate, response time, category breakdown, slowest open tickets)
+- [x] Billing analytics (collection rate, revenue, overdue tracking)
+- [x] Occupancy reports (bed utilization, per-building stats, move-in timeline)
+- [x] Student engagement (read rate, event attendance, chatbot intent distribution, parcel pickup rate)
+- [x] CSV export per tab with Thai BOM prefix for Excel compatibility
+- [x] Date range filter (30d / 90d / 6mo / 1y presets)
+- [x] `recharts` library integrated (PieChart, BarChart, LineChart, ResponsiveContainer)
 
-**Student Insights**
-- [ ] Personal activity summary (maintenance history, event attendance, score progress)
-- [ ] Monthly reports (bills, announcements, upcoming events)
-
-**Technical Requirements**
-- Chart libraries (Recharts or Chart.js)
-- PDF generation (react-pdf or Puppeteer)
-- Excel export (@tanstack/table + xlsx)
-- Date range filters
-- Real-time data aggregation
-
-**Estimated Effort**: 3-4 weeks
+**Deferred to V2 / Phase 9+**:
+- [ ] PDF export (react-pdf / Puppeteer)
+- [ ] Student personal activity summary / monthly reports
+- [ ] Real-time chart streaming (replace polling with Supabase Realtime)
 
 ---
 
@@ -1388,11 +1416,12 @@ git checkout -b release/v1.0  # Maintenance branch
 ---
 
 **Next Steps for V2**:
-1. Complete Phase 8 (Reports) — 3-4 weeks
-2. Complete Phase 9 (Polish) — 2-3 weeks
-3. Technical debt resolution — 1-2 weeks
-4. LIFF Mini App — 2 weeks
-5. Advanced AI (optional stretch goal) — 4-6 weeks
+1. ✅ ~~Complete Phase 8 (Reports)~~ — DEPLOYED 2026-05-10
+2. Complete Phase 7.6 (PIN Security) — full spec in PRD, 0 code, DB migration + 4 API routes + 5 components needed
+3. Complete Phase 9 (UX Polish: WP1, WP4, WP5, WP6, WP7, WP8) — 2-3 weeks
+4. Technical debt resolution (Supabase type regen, RBAC cleanup, legacy role deprecation) — 1-2 weeks
+5. LIFF Mini App — 2 weeks
+6. Advanced AI (optional stretch goal) — 4-6 weeks
 
 **Estimated V2 Timeline**: 8-12 weeks (2-3 months)
 

@@ -3,6 +3,7 @@
 import { useUpcomingEvents } from "@/hooks/use-events";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { CalendarDays } from "lucide-react";
 
 const THAI_MONTHS_SHORT = [
   "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -29,7 +30,16 @@ export function DashboardEventsList() {
   const { data: events } = useUpcomingEvents();
   const items = (events ?? []).slice(0, 5);
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <section className="mt-4 px-4 pb-4">
+        <div className="flex flex-col items-center gap-1.5 py-4 text-center">
+          <CalendarDays className="size-8 text-cu-grey/30" />
+          <p className="text-sm text-cu-grey/50">{t("noUpcomingEvents")}</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mt-4 px-4 pb-4">

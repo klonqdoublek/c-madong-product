@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
-import { useTranslations } from "next-intl"
+import { useTranslations, useLocale } from "next-intl"
 import { useChatStore } from "@/stores/chat-store"
 import { useChat } from "@/hooks/use-chat"
 import { Send, History, Trash2, ArrowLeft, Headset, X, Shield } from "lucide-react"
@@ -23,15 +23,15 @@ function formatTime(timestamp: number) {
   return d.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
 }
 
-function formatDateLabel(timestamp: number) {
+function formatDateLabel(timestamp: number, todayLabel: string, yesterdayLabel: string, locale: string) {
   const d = new Date(timestamp)
   const today = new Date()
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
 
-  if (d.toDateString() === today.toDateString()) return "วันนี้"
-  if (d.toDateString() === yesterday.toDateString()) return "เมื่อวาน"
-  return d.toLocaleDateString("th-TH", {
+  if (d.toDateString() === today.toDateString()) return todayLabel
+  if (d.toDateString() === yesterday.toDateString()) return yesterdayLabel
+  return d.toLocaleDateString(locale === "th" ? "th-TH" : "en-US", {
     day: "numeric",
     month: "short",
     year: d.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
@@ -40,6 +40,8 @@ function formatDateLabel(timestamp: number) {
 
 export function ChatModal() {
   const t = useTranslations("chat")
+  const tTime = useTranslations("common.time")
+  const locale = useLocale()
   const { isOpen, setOpen, view, setView, history, historyLoaded } =
     useChatStore()
   const {
@@ -196,7 +198,7 @@ export function ChatModal() {
   const historyByDate = history.reduce<
     { label: string; messages: typeof history }[]
   >((groups, msg) => {
-    const label = formatDateLabel(msg.timestamp)
+    const label = formatDateLabel(msg.timestamp, tTime("today"), tTime("yesterday"), locale)
     const last = groups[groups.length - 1]
     if (last?.label === label) {
       last.messages.push(msg)
@@ -251,7 +253,7 @@ export function ChatModal() {
         <div className={compact ? "max-w-[80%]" : "max-w-[80%]"}>
           {isAdmin && (
             <p className="mb-0.5 text-[10px] font-medium text-blue-600">
-              {escalation.adminName ?? "ทีมงาน"}
+              {escalation.adminName ?? t("teamDefault")}
             </p>
           )}
           <div
