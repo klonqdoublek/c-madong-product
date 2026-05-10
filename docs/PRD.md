@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.2
-> **Last Updated**: 2026-05-10
+> **Version**: 3.3
+> **Last Updated**: 2026-05-11
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -1076,28 +1076,45 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 **Commit**: `836ceef` — feat: Phase 8 reports & analytics dashboard
 **Deploy status**: DEPLOYED — https://c-madong-product.vercel.app
 
-### Phase 9: UX/UI Polish & Consistency
+### Phase 9: UX/UI Polish & Consistency — v3.1.0 — DEPLOYED (2026-05-11)
 Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
+**Commit**: `6a0c0a4`
 
-**WP1: Code Cleanup & Deduplication** — Consolidate 3 duplicate TAG_COLORS, 5 STATUS_COLORS maps, 4 Thai month arrays into shared constants (`src/lib/constants/colors.ts`, `src/lib/utils/date-format.ts`). Clean console.log in components.
+**WP1: Code Cleanup & Deduplication** — SKIPPED — domain constants already centralized; UI spacing via Tailwind not worth centralizing at current scale.
 
-**WP2: Design Tokens** — Add semantic status tokens (success/warning/error/info bg+text), score bar colors, warm-bg, duration tokens (`--duration-fast/normal/slow`), `prefers-reduced-motion` to `globals.css`.
+**WP2: Design Tokens** ✅ COMPLETE (v2.9.0, 2026-05-06) — Semantic status tokens + `prefers-reduced-motion` guard deployed.
 
-**WP3: Token Compliance** — Replace 18 hardcoded hex colors in components with CSS vars/tokens. Keep intentional one-off Tailwind colors.
+**WP3: Token Compliance** ✅ COMPLETE (v2.9.0, 2026-05-06) — 277 raw hex values → semantic tokens across 43 student components.
 
-**WP4: Component Patterns** — Create `StatusBadge` component (5 variants). Replace 6 `window.confirm/alert` with shadcn `AlertDialog`. Standardize shadows.
+**WP4: Component Patterns** ✅ PARTIALLY COMPLETE (v3.1.0, 2026-05-11):
+- Replaced `window.confirm/alert` with shadcn `AlertDialog` in 4 files: `roles-list.tsx`, `user-roles-dialog.tsx`, `events-page-content.tsx`, `bill-detail-content.tsx`
+- Reused existing `DeleteConfirmDialog` component (no new StatusBadge component created — deferred)
+- Errors now surface via `toast.error()` instead of silent failures
 
-**WP5: i18n Completeness** — Extract 100+ hardcoded Thai strings across 25+ files. Add 80+ keys each to `th.json`/`en.json`. Cover toast messages (13), admin pages, student pages, maintenance forms, time formatting.
+**WP5: i18n Completeness** ✅ PARTIALLY COMPLETE (v3.1.0, 2026-05-11):
+- `notification-item.tsx` — new `getRelativeTimeParts()` function; time strings extracted to `common.time` namespace (justNow, minutesAgo, hoursAgo, daysAgo, today, yesterday)
+- `chat-modal.tsx` — `formatDateLabel()` refactored to accept translated strings; "ทีมงาน" → `t("teamDefault")`
+- `th.json` / `en.json` — added: `common.time`, `admin.rbac` (revokeConfirmDesc, revokeConfirmGenericDesc, revokeError, assignError), `chat.teamDefault`, `admin.eventsPage.deleteTitle`, `dashboard.noUpcomingEvents`
+- Remaining deferred: `menu-modal.tsx`, `lucide-icon-picker.tsx`, `role-badge.tsx`, `dashboard-events-section.tsx`, `dorm-calendar/empty-state.tsx` still have hardcoded Thai
 
-**WP6: Loading/Empty/Error States** — Create shared `EmptyState` component. Add loading skeletons to 3 pages. Add loading buttons with `disabled={isPending}` + spinner to 5 forms.
+**WP6: Loading/Empty/Error States** ✅ PARTIALLY COMPLETE (v3.1.0, 2026-05-11):
+- `dashboard-events-list.tsx` — CalendarDays icon + `dashboard.noUpcomingEvents` i18n key instead of silent `return null`
+- Skeleton loading on 3 additional pages: deferred to Phase 9.5
 
-**WP7: Spacing & Layout** — Normalize bottom padding on profile pages. Add text truncation for long titles.
+**WP7: Spacing & Layout** ✅ COMPLETE (v3.1.0, 2026-05-11):
+- `profile-info-card.tsx` — `truncate` + `text-center` on name and student ID lines
 
-**WP8: Accessibility** — Add `aria-label` to icon buttons (bottom nav, chat, photo uploader). Add `focus-visible` rings to custom interactive elements.
+**WP8: Accessibility** ✅ COMPLETE (v3.1.0, 2026-05-11):
+- `bottom-nav.tsx` — bell button `aria-label` with dynamic unread count
+- `chat-fab.tsx` — `aria-label="ถามน้องซีมะโด่ง"`
+- `roles-list.tsx` — trash button `aria-label={t("revokeRole")}`
+- `user-roles-dialog.tsx` — trash button `aria-label={t("revokeRole")}`
 
-**WP9: Animation** — Replace hardcoded duration classes with token-based values. Add missing `transition-colors` to hover states.
+**WP9: Animation** — SKIPPED (bonus scope, not critical path).
 
 **Not in scope**: Performance/SEO (Phase 9.5), dark mode, Figma pixel audit, mock/prototype pages.
+
+**Deferred to Phase 9.5**: Skeleton loading states on 3 pages; remaining hardcoded Thai strings in 5 files; `StatusBadge` shared component.
 
 ---
 
@@ -1243,9 +1260,9 @@ See Phase 8 section above for full spec. Summary:
 
 ---
 
-#### Phase 9: UX Polish & Accessibility (NOT STARTED)
+#### Phase 9: UX Polish & Accessibility — PARTIALLY DEPLOYED (v3.1.0, 2026-05-11)
 
-**Performance Optimization**
+**Performance Optimization** (deferred to Phase 9.5)
 - [ ] Replace polling with WebSockets (Supabase Realtime)
 - [ ] Image lazy loading + blur placeholders
 - [ ] Code splitting for admin modules
@@ -1257,16 +1274,25 @@ See Phase 8 section above for full spec. Summary:
 - [ ] Keyboard navigation improvements
 - [ ] Focus management in modals
 - [ ] Color contrast fixes
-- [ ] `aria-label` on all icon buttons
-- [ ] `focus-visible` rings
+- [x] `aria-label` on icon buttons (bottom nav bell, chat FAB, RBAC trash buttons) ✅ 2026-05-11
+- [ ] `focus-visible` rings on custom interactive elements
 
 **UX Refinements**
-- [ ] Toast notifications (replace alerts)
-- [ ] Loading skeletons (replace spinners)
-- [ ] Empty states with illustrations
+- [x] AlertDialog replaces `window.confirm/alert` in 4 files ✅ 2026-05-11
+- [x] Toast error notifications for role assign/revoke failures ✅ 2026-05-11
+- [x] Empty state with CalendarDays icon on student dashboard events list ✅ 2026-05-11
+- [x] Text truncation on profile info card name/ID lines ✅ 2026-05-11
+- [ ] Loading skeletons on 3 pages (deferred Phase 9.5)
 - [ ] Error boundaries + retry mechanisms
 - [ ] Animated page transitions
 - [ ] Haptic feedback (mobile)
+
+**i18n Completeness**
+- [x] `common.time` namespace — relative time strings (justNow, minutesAgo, hoursAgo, daysAgo, today, yesterday) ✅ 2026-05-11
+- [x] `admin.rbac` — revoke/assign confirmation and error keys ✅ 2026-05-11
+- [x] `chat.teamDefault` — "ทีมงาน" extracted from chat-modal ✅ 2026-05-11
+- [x] `dashboard.noUpcomingEvents` — student dashboard empty events state ✅ 2026-05-11
+- [ ] Remaining hardcoded Thai in: `menu-modal.tsx`, `lucide-icon-picker.tsx`, `role-badge.tsx`, `dashboard-events-section.tsx`, `dorm-calendar/empty-state.tsx` (Phase 9.5)
 
 **Design System Audit**
 - [ ] Token consistency check (spacing, colors, shadows)

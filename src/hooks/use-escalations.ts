@@ -1,6 +1,8 @@
 "use client"
 
+import { useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useSupabase } from "@/providers/supabase-provider"
 
 export interface EscalationStudent {
   id: string
@@ -40,7 +42,10 @@ export interface EscalationMessage {
 // ─── Queue list ─────────────────────────────────────────────
 
 export function useEscalationQueue(tab: "active" | "history" = "active") {
-  return useQuery({
+  const supabase = useSupabase()
+  const queryClient = useQueryClient()
+
+  const query = useQuery({
     queryKey: ["escalations", tab],
     queryFn: async (): Promise<Escalation[]> => {
       const res = await fetch(`/api/admin/live-chat?tab=${tab}`)
@@ -48,8 +53,28 @@ export function useEscalationQueue(tab: "active" | "history" = "active") {
       const data = await res.json()
       return data.escalations
     },
-    refetchInterval: tab === "active" ? 3000 : false,
   })
+
+  useEffect(() => {
+    if (tab !== "active") return
+
+    const channel = supabase
+      .channel("escalation-queue-realtime")
+      .on(
+        "postgres_changes" as never,
+        { event: "*", schema: "public", table: "chat_escalations" } as never,
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["escalations"] })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [tab, supabase, queryClient])
+
+  return query
 }
 
 // ─── Single escalation messages ─────────────────────────────
@@ -58,7 +83,10 @@ export function useEscalationMessages(
   escalationId: string | null,
   lastTimestamp?: string
 ) {
-  return useQuery({
+  const supabase = useSupabase()
+  const queryClient = useQueryClient()
+
+  const query = useQuery({
     queryKey: ["escalation-messages", escalationId, lastTimestamp],
     queryFn: async () => {
       const url = lastTimestamp
@@ -73,8 +101,30 @@ export function useEscalationMessages(
       }>
     },
     enabled: !!escalationId,
-    refetchInterval: 3000,
   })
+
+  useEffect(() => {
+    if (!escalationId) return
+
+    const channel = supabase
+      .channel(`escalation-messages-${escalationId}`)
+      .on(
+        "postgres_changes" as never,
+        { event: "INSERT", schema: "public", table: "ai_chat_messages" } as never,
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ["escalation-messages", escalationId],
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [escalationId, supabase, queryClient])
+
+  return query
 }
 
 // ─── Mutations ──────────────────────────────────────────────

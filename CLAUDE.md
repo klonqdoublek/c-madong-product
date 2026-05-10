@@ -5,6 +5,39 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-05-11)
+
+### Phase 9 UX/UI Polish — v3.1.0 — DEPLOYED
+
+**What was built**: Accessibility, AlertDialog, i18n extraction, empty state, and text truncation improvements across 10 student/admin components.
+
+**Files modified**:
+- `src/components/layout/bottom-nav.tsx` — bell button `aria-label` with dynamic unread count
+- `src/components/student/chat-fab.tsx` — `aria-label="ถามน้องซีมะโด่ง"`
+- `src/components/student/chat-modal.tsx` — `formatDateLabel()` accepts i18n strings as params; "ทีมงาน" → `t("teamDefault")`
+- `src/components/student/notification-item.tsx` — `getRelativeTimeParts()` + `useTranslations("common.time")`
+- `src/components/student/dashboard/dashboard-events-list.tsx` — CalendarDays + `dashboard.noUpcomingEvents` empty state
+- `src/components/student/profile/profile-info-card.tsx` — `truncate text-center` on name/student ID
+- `src/components/admin/roles/roles-list.tsx` — AlertDialog + `toast.error()` + aria-label on trash
+- `src/components/admin/roles/user-roles-dialog.tsx` — AlertDialog + `toast.error()` + aria-label on trash
+- `src/components/admin/events/events-page-content.tsx` — reused `DeleteConfirmDialog`
+- `src/components/admin/billing/bill-detail-content.tsx` — reused `DeleteConfirmDialog`
+- `src/messages/th.json` / `src/messages/en.json` — new keys: `common.time`, `admin.rbac`, `chat.teamDefault`, `admin.eventsPage.deleteTitle`, `dashboard.noUpcomingEvents`
+
+**Commit**: `6a0c0a4`
+
+**What was skipped**: WP1 (constants deduplication — not worth it at current scale), WP9 (animation — bonus scope)
+
+**Deferred to Phase 9.5**: Skeleton loading on 3 pages; hardcoded Thai in `menu-modal.tsx`, `lucide-icon-picker.tsx`, `role-badge.tsx`, `dashboard-events-section.tsx`, `dorm-calendar/empty-state.tsx`; `StatusBadge` shared component; `focus-visible` rings
+
+**Gotchas**:
+- **`formatDateLabel()` outside component cannot call hooks** — pure functions defined outside the React component boundary cannot use `useTranslations`. Refactor to accept pre-translated strings as parameters; call `useTranslations` in the component and pass results in.
+- **AlertDialog siblings require Fragment wrapper** — when adding `AlertDialog` alongside an existing `Dialog` in the same JSX return, wrap both in `<>...</>` to satisfy JSX single-root requirement.
+- **grep alone cannot verify i18n namespace** — a key like `noUpcomingEvents` may exist in multiple namespaces (e.g., `admin.dashboard` vs `dashboard`). Always trace the full namespace path in `useTranslations()` call + JSON key structure, not just the leaf key name.
+- **`DeleteConfirmDialog` reuse: title ≠ description** — `title` param should be the short action label (matching trigger button text); `description` should be the full confirmation sentence. Conflating them produces awkward UX.
+
+---
+
 ## Recent Changes (2026-05-10)
 
 ### Reports & Analytics — v3.0.0 — DEPLOYED
