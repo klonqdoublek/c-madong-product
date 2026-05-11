@@ -24,6 +24,10 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     const archived = searchParams.get("archived");
     const year = searchParams.get("year");
+    const category = searchParams.get("category");
+    const botOnly = searchParams.get("bot_only") === "true";
+    const includePr = searchParams.get("include_pr") === "true";
+    const isBotSearchable = searchParams.get("is_bot_searchable");
 
     const adminDb = createAdminClient();
 
@@ -47,6 +51,26 @@ export async function GET(request: NextRequest) {
       query = query.not("archived_at", "is", null);
     } else if (archived === "false") {
       query = query.is("archived_at", null);
+    }
+
+    // Bot Library filters
+    if (botOnly) {
+      query = query.eq("is_bot_searchable", true);
+    }
+
+    // PR category filter — exclude by default unless explicitly included
+    if (!includePr) {
+      query = query.neq("category", "pr");
+    }
+
+    // Category filter
+    if (category && category !== "all") {
+      query = query.eq("category", category);
+    }
+
+    // Bot searchable filter
+    if (isBotSearchable !== null) {
+      query = query.eq("is_bot_searchable", isBotSearchable === "true");
     }
 
     // Search filter

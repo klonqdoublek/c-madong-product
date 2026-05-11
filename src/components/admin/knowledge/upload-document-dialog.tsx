@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { Upload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -83,11 +83,22 @@ export function UploadDocumentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={isPending ? undefined : handleOpenChange}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>{t("upload.title")}</DialogTitle>
         </DialogHeader>
+
+        {/* Loading overlay */}
+        {isPending && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-background/90 backdrop-blur-sm">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="text-center">
+              <p className="text-sm font-medium">กำลังอัปโหลดและประมวลผล...</p>
+              <p className="mt-1 text-xs text-muted-foreground">วิเคราะห์เนื้อหา · สร้าง Embedding</p>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 py-2">
           {/* Drop zone */}

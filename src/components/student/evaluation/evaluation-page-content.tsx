@@ -33,7 +33,7 @@ export function EvaluationPageContent({ eventId }: EvaluationPageContentProps) {
   }
 
   // Show completion notice if already submitted
-  if (submission?.status === "completed") {
+  if (submission?.status === "submitted") {
     return (
       <>
         <PageHeader title={form.title_th} backHref={`/events/${eventId}`} />

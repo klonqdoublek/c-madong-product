@@ -5,6 +5,28 @@ Format: `## [vX.Y.Z] — YYYY-MM-DD` with subsections Added / Changed / Fixed / 
 
 ---
 
+## [v3.2.0] — 2026-05-11
+
+### Added
+- `supabase/migrations/20260504_realtime_live_chat.sql` — adds `chat_escalations` and `ai_chat_messages` tables to `supabase_realtime` publication (pushed to DB)
+- `src/app/[locale]/print/report/page.tsx` — print-only report page; no sidebar/admin shell; accepts `?section=X&from=Y&to=Z` query params; consistent with `/print/requisition/[id]` pattern
+- `src/components/admin/reports/report-print-content.tsx` — NEW client component; fetches report data for active section via existing `use-reports.ts` hooks; renders KPI grid + print-optimized tables for all 4 sections (maintenance/billing/occupancy/engagement); auto-triggers `window.print()` after 1.8s delay to allow data render
+
+### Changed
+- `src/hooks/use-escalations.ts` — removed `refetchInterval: 3000` from `useEscalationQueue` and `useEscalationMessages`; added inline Supabase channel subscriptions (same pattern as `use-notifications.ts`): `useEscalationQueue` subscribes to `chat_escalations` `*` events; `useEscalationMessages` subscribes to `ai_chat_messages` `INSERT` (no filter — linked via `line_uid` not `escalation_id`) → both invalidate relevant TanStack Query keys on event
+- `src/components/admin/reports/reports-export-button.tsx` — single CSV button replaced with shadcn DropdownMenu; CSV option uses FileSpreadsheet icon, PDF option uses FileText icon and opens print route in new tab
+- `src/components/admin/dashboard/dashboard-header.tsx` — replaced all `handleComingSoon` toast stubs with real implementations: CSV generates from `useDashboardStats()` cache (UTF-8 BOM, filename `dashboard-snapshot-YYYY-MM-DD.csv`); PDF opens `/[locale]/print/report?section=maintenance&from=...&to=...` in new tab; "สร้างรายงาน" uses `router.push` to `/[locale]/admin/reports`
+
+### Infrastructure
+- Migration `20260504_realtime_live_chat.sql` applied via `supabase db push`
+- No new API routes
+- No new RBAC permissions
+- No type regeneration required
+- Commit: `0ad1fb3` — feat: Phase 8 deferred — PDF export, Realtime live-chat, dashboard export wired
+- Deploy status: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
 ## [v3.1.0] — 2026-05-11
 
 ### Added

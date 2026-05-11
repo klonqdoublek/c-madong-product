@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CalendarDays, Check, X, AlertCircle, ClipboardList } from "lucide-react";
+import { CalendarDays, Check, X, AlertCircle, ClipboardList, Clock } from "lucide-react";
 import type { EventType, AttendanceStatus } from "@/lib/supabase/types";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -252,11 +252,10 @@ function EventCard({
 function AttendanceStatusBadge({ status }: { status: AttendanceStatus }) {
   const t = useTranslations("events.attendance");
   const configs: Record<AttendanceStatus, { icon: typeof Check; color: string }> = {
-    registered: { icon: CalendarDays, color: "bg-blue-50 text-blue-700" },
-    attended: { icon: Check, color: "bg-green-50 text-green-700" },
+    present: { icon: Check, color: "bg-green-50 text-green-700" },
     absent: { icon: X, color: "bg-red-50 text-red-700" },
     excused: { icon: AlertCircle, color: "bg-yellow-50 text-yellow-700" },
-    cancelled: { icon: X, color: "bg-gray-50 text-gray-500" },
+    late: { icon: Clock, color: "bg-orange-50 text-orange-700" },
   };
   const config = configs[status];
   const Icon = config.icon;

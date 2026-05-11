@@ -211,7 +211,7 @@ export function EventDetailContent({ eventId }: { eventId: string }) {
           <Link href={`/events/${eventId}/evaluate`}>
             <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-medium text-white hover:bg-primary/90">
               <ClipboardList className="h-4 w-4" />
-              {evaluationSubmission?.status === "completed"
+              {evaluationSubmission?.status === "submitted"
                 ? tEval("viewResult")
                 : tEval("startEvaluation")}
             </button>

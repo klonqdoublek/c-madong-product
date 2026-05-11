@@ -2,17 +2,16 @@ import type { NotificationType } from "@/lib/supabase/types";
 
 /** Priority weights by notification type */
 const PRIORITY_MAP: Partial<Record<NotificationType, number>> = {
-  bill_overdue: 100,
-  bill_due: 80,
+  alert: 100,
+  repair: 90,
   event_reminder: 85,
-  parcel_arrived: 75,
-  maintenance_update: 70,
-  parcel_reminder: 65,
-  score_added: 60,
-  event_new: 55,
-  chat_escalation: 90,
+  bill: 80,
+  parcel: 75,
+  event: 55,
   announcement: 50,
-  system: 40,
+  score: 60,
+  calendar: 40,
+  general: 30,
 };
 
 /** Calculate priority for a notification */

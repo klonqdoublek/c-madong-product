@@ -59,6 +59,7 @@ export interface KnowledgeDocument {
   parent_document_id: string | null;
   created_at: string;
   updated_at: string;
+  ai_applied_at: string | null;
   tags: { id: string; name: string; color: string }[];
 }
 
@@ -70,7 +71,6 @@ export interface KnowledgeDocumentDetail extends KnowledgeDocument {
     avatar_url: string | null;
   } | null;
   ai_suggestion?: Record<string, unknown> | null;
-  ai_applied_at?: string | null;
 }
 
 // ============================================================================

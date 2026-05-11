@@ -93,6 +93,10 @@ interface AnnouncementFilters {
   search?: string;
   archived?: boolean | null;
   year?: string | null;
+  category?: string;
+  bot_only?: boolean;
+  include_pr?: boolean;
+  is_bot_searchable?: boolean;
 }
 
 // ============================================================================
@@ -436,6 +440,22 @@ export function useOrganizedAnnouncements(filters?: AnnouncementFilters) {
         params.append("year", filters.year);
       }
 
+      if (filters?.category) {
+        params.append("category", filters.category);
+      }
+
+      if (filters?.bot_only) {
+        params.append("bot_only", "true");
+      }
+
+      if (filters?.include_pr) {
+        params.append("include_pr", "true");
+      }
+
+      if (filters?.is_bot_searchable !== undefined) {
+        params.append("is_bot_searchable", String(filters.is_bot_searchable));
+      }
+
       const response = await fetch(`/api/admin/announcements?${params.toString()}`);
 
       if (!response.ok) {
@@ -444,6 +464,103 @@ export function useOrganizedAnnouncements(filters?: AnnouncementFilters) {
 
       const data = await response.json();
       return data.announcements as OrganizedAnnouncement[];
+    },
+  });
+}
+
+// Alias for useOrganizedAnnouncements (same functionality)
+export function useAnnouncements(filters?: AnnouncementFilters) {
+  return useOrganizedAnnouncements(filters);
+}
+
+// ============================================================================
+// Version Management Hooks
+// ============================================================================
+
+export interface AnnouncementVersion {
+  id: string;
+  title_th: string;
+  version_number: number;
+  is_current: boolean;
+  created_at: string;
+  created_by?: string;
+  creator?: {
+    full_name_th?: string;
+    avatar_url?: string;
+  } | null;
+}
+
+export function useAnnouncementVersions(announcementId: string | null) {
+  return useQuery({
+    queryKey: announcementId ? ["announcement-versions", announcementId] : [],
+    queryFn: async () => {
+      if (!announcementId) return null;
+
+      const response = await fetch(
+        `/api/admin/announcements/${announcementId}/versions`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch versions");
+      }
+      const data = await response.json();
+      return data as { rootId: string; versions: AnnouncementVersion[] };
+    },
+    enabled: !!announcementId,
+  });
+}
+
+export function useToggleBotSearchable() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      is_bot_searchable,
+    }: {
+      id: string;
+      is_bot_searchable: boolean;
+    }) => {
+      const response = await fetch(`/api/admin/announcements/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_bot_searchable }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to update announcement");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: KEYS.announcements() });
+    },
+  });
+}
+
+export function useCreateAnnouncementVersion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (announcementId: string) => {
+      const response = await fetch(
+        `/api/admin/announcements/${announcementId}/create-version`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to create version");
+      }
+
+      return response.json() as Promise<{ id: string }>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: KEYS.announcements() });
     },
   });
 }

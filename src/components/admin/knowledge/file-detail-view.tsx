@@ -2,18 +2,22 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, FileText, FileType2, History, MessageCircleQuestion } from "lucide-react";
+import { ArrowLeft, FileText, FileType2, History, MessageCircleQuestion, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useKnowledgeStore } from "@/stores/knowledge-store";
-import { useKnowledgeDocument, useDocumentQuery, useDocumentVersions } from "@/hooks/use-knowledge";
+import { useKnowledgeDocument, useDocumentQuery, useDocumentVersions, type KnowledgeDocumentDetail } from "@/hooks/use-knowledge";
 import { DocumentPreview } from "./document-preview";
 import { cn } from "@/lib/utils/cn";
 
-export function FileDetailView() {
+interface FileDetailViewProps {
+  onEdit?: (doc: KnowledgeDocumentDetail) => void;
+}
+
+export function FileDetailView({ onEdit }: FileDetailViewProps) {
   const t = useTranslations("admin.knowledgeBase");
   const { selectedFileId, goBack } = useKnowledgeStore();
   const { data: doc, isLoading } = useKnowledgeDocument(selectedFileId);
@@ -42,11 +46,24 @@ export function FileDetailView() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      {/* Back button */}
-      <Button variant="ghost" size="sm" className="w-fit gap-2" onClick={goBack}>
-        <ArrowLeft className="h-4 w-4" />
-        {t("detail.back")}
-      </Button>
+      {/* Back + Edit row */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" className="gap-2" onClick={goBack}>
+          <ArrowLeft className="h-4 w-4" />
+          {t("detail.back")}
+        </Button>
+        {onEdit && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => onEdit(doc)}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            แก้ไข
+          </Button>
+        )}
+      </div>
 
       {/* Title + metadata */}
       <div className="flex items-start gap-3">

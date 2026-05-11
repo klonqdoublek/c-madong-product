@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { FileText, FileType2, MoreHorizontal } from "lucide-react";
+import { FileText, FileType2, MoreHorizontal, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -101,8 +101,19 @@ export function FileTable({
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{doc.title}</p>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-medium">{doc.title}</p>
+                      {doc.ai_applied_at && (
+                        <span
+                          title="ข้อมูลได้รับการปรับปรุงโดย AI"
+                          className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-violet-200 bg-violet-50 px-1.5 py-0.5 text-[9px] font-medium text-violet-600"
+                        >
+                          <Sparkles className="h-2.5 w-2.5" />
+                          AI
+                        </span>
+                      )}
+                    </div>
                     {doc.tags.length > 0 && (
                       <div className="mt-0.5 flex gap-1">
                         {doc.tags.map((tag) => (
@@ -123,8 +134,17 @@ export function FileTable({
                   {typeBadge}
                 </Badge>
               </TableCell>
-              <TableCell className="text-xs text-muted-foreground">
-                {doc.version_number}.0
+              <TableCell>
+                <span
+                  title={`เวอร์ชัน ${doc.version_number}`}
+                  className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    doc.version_number > 1
+                      ? "border border-amber-200 bg-amber-50 text-amber-700"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
+                >
+                  v{doc.version_number}
+                </span>
               </TableCell>
               <TableCell>
                 <span

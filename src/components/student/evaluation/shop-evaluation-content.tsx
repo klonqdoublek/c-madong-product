@@ -72,7 +72,7 @@ export function ShopEvaluationContent({
           ? (criteriaValues[criterion.id] as number) ?? null
           : null,
       text_response:
-        criterion.criteria_type === "textarea"
+        criterion.criteria_type === "text"
           ? (criteriaValues[criterion.id] as string) ?? null
           : null,
       skipped:

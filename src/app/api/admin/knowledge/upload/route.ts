@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -8,11 +9,21 @@ import {
 } from "@/lib/knowledge/extract-document-text";
 import { chunkText } from "@/lib/knowledge/chunk-text";
 
+const ADMIN_ROLES = ["admin", "head", "super_admin", "admin_staff"];
+
 // Allow up to 60s for upload + processing
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).single();
+    if (!profile || !ADMIN_ROLES.includes(profile.role ?? "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const folderId = formData.get("folderId") as string | null;

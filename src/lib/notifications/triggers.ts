@@ -11,7 +11,7 @@ export async function notifyScoreAdded(opts: {
   categoryName: string;
   reason?: string;
 }): Promise<void> {
-  const type = "score_added" as const;
+  const type = "score" as const;
   const priority = calculatePriority(type);
   const sign = opts.points >= 0 ? "+" : "";
   const titleTh = `คะแนนหอพัก ${sign}${opts.points}`;
@@ -46,7 +46,7 @@ export async function notifyMaintenanceUpdate(opts: {
   ticketTitle: string;
   newStatus: string;
 }): Promise<void> {
-  const type = "maintenance_update" as const;
+  const type = "repair" as const;
   const priority = calculatePriority(type);
 
   const STATUS_LABELS: Record<string, string> = {
@@ -85,7 +85,7 @@ export async function notifyBillDue(opts: {
   amount: number;
   dueDate: string;
 }): Promise<void> {
-  const type = "bill_due" as const;
+  const type = "bill" as const;
   const priority = calculatePriority(type);
 
   await createNotification({
@@ -116,7 +116,7 @@ export async function notifyParcelArrived(opts: {
   parcelType?: string;
   trackingNumber?: string | null;
 }): Promise<void> {
-  const type = "parcel_arrived" as const;
+  const type = "parcel" as const;
   const priority = calculatePriority(type);
 
   const titleTh = `มีพัสดุมาส่ง!`;
@@ -152,7 +152,7 @@ export async function notifyChatEscalation(opts: {
   issueSummary: string;
   sessionId: string;
 }): Promise<void> {
-  const type = "chat_escalation" as const;
+  const type = "alert" as const;
   const priority = 90; // High priority — needs immediate attention
 
   const adminDb = createAdminClient();
@@ -204,7 +204,7 @@ export async function notifyNewEvent(opts: {
   buildingId?: string | null;
   isMandatory: boolean;
 }): Promise<void> {
-  const type = "event_new" as const;
+  const type = "event" as const;
   const priority = opts.isMandatory ? 85 : calculatePriority(type);
 
   const adminDb = createAdminClient();

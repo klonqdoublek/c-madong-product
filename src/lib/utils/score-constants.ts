@@ -48,34 +48,27 @@ export function formatScoreChange(points: number): { text: string; color: string
 // ============================================================================
 
 export const EVENT_TYPE_CONFIG: Record<EventType, { labelTh: string; labelEn: string; color: string }> = {
-  meeting: { labelTh: "ประชุม", labelEn: "Meeting", color: "bg-blue-100 text-blue-800" },
   evaluation: { labelTh: "ประเมิน", labelEn: "Evaluation", color: "bg-purple-100 text-purple-800" },
-  safety_drill: { labelTh: "ซ้อมอพยพ", labelEn: "Safety Drill", color: "bg-orange-100 text-orange-800" },
-  obligation: { labelTh: "ภาระหน้าที่", labelEn: "Obligation", color: "bg-red-100 text-red-800" },
-  community_service: { labelTh: "จิตอาสา", labelEn: "Community Service", color: "bg-green-100 text-green-800" },
-  social: { labelTh: "สังสรรค์", labelEn: "Social", color: "bg-pink-100 text-pink-800" },
-  workshop: { labelTh: "เวิร์กชอป", labelEn: "Workshop", color: "bg-indigo-100 text-indigo-800" },
-  sports: { labelTh: "กีฬา", labelEn: "Sports", color: "bg-emerald-100 text-emerald-800" },
-  other: { labelTh: "อื่นๆ", labelEn: "Other", color: "bg-gray-100 text-gray-800" },
   activity: { labelTh: "กิจกรรม", labelEn: "Activity", color: "bg-cu-pink/20 text-cu-pink" },
-  announcement: { labelTh: "ประกาศ", labelEn: "Announcement", color: "bg-slate-100 text-slate-700" },
+  deadline: { labelTh: "กำหนดเวลา", labelEn: "Deadline", color: "bg-red-100 text-red-800" },
+  meeting: { labelTh: "ประชุม", labelEn: "Meeting", color: "bg-blue-100 text-blue-800" },
+  workshop: { labelTh: "เวิร์กชอป", labelEn: "Workshop", color: "bg-indigo-100 text-indigo-800" },
+  other: { labelTh: "อื่นๆ", labelEn: "Other", color: "bg-gray-100 text-gray-800" },
 };
 
 export const EVENT_STATUS_CONFIG: Record<EventStatus, { labelTh: string; labelEn: string; color: string }> = {
   draft: { labelTh: "แบบร่าง", labelEn: "Draft", color: "bg-gray-100 text-gray-700" },
-  published: { labelTh: "เผยแพร่", labelEn: "Published", color: "bg-blue-100 text-blue-700" },
-  upcoming: { labelTh: "กำลังจะมาถึง", labelEn: "Upcoming", color: "bg-yellow-100 text-yellow-700" },
-  ongoing: { labelTh: "กำลังดำเนินการ", labelEn: "Ongoing", color: "bg-green-100 text-green-700" },
+  scheduled: { labelTh: "กำหนดการแล้ว", labelEn: "Scheduled", color: "bg-blue-100 text-blue-700" },
+  active: { labelTh: "กำลังดำเนินการ", labelEn: "Active", color: "bg-green-100 text-green-700" },
   completed: { labelTh: "เสร็จสิ้น", labelEn: "Completed", color: "bg-gray-100 text-gray-600" },
   cancelled: { labelTh: "ยกเลิก", labelEn: "Cancelled", color: "bg-red-100 text-red-700" },
 };
 
 export const ATTENDANCE_STATUS_CONFIG: Record<AttendanceStatus, { labelTh: string; labelEn: string; color: string }> = {
-  registered: { labelTh: "ลงทะเบียน", labelEn: "Registered", color: "bg-blue-100 text-blue-700" },
-  attended: { labelTh: "เข้าร่วม", labelEn: "Attended", color: "bg-green-100 text-green-700" },
+  present: { labelTh: "เข้าร่วม", labelEn: "Present", color: "bg-green-100 text-green-700" },
   absent: { labelTh: "ขาด", labelEn: "Absent", color: "bg-red-100 text-red-700" },
   excused: { labelTh: "ลา", labelEn: "Excused", color: "bg-yellow-100 text-yellow-700" },
-  cancelled: { labelTh: "ยกเลิก", labelEn: "Cancelled", color: "bg-red-100 text-red-700" },
+  late: { labelTh: "มาสาย", labelEn: "Late", color: "bg-orange-100 text-orange-700" },
 };
 
 export const IMPACT_LEVEL_CONFIG: Record<ImpactLevel, { labelTh: string; labelEn: string }> = {
@@ -86,10 +79,9 @@ export const IMPACT_LEVEL_CONFIG: Record<ImpactLevel, { labelTh: string; labelEn
 };
 
 export const EVENT_TYPES: EventType[] = [
-  "meeting", "evaluation", "safety_drill", "obligation",
-  "community_service", "social", "workshop", "sports", "other",
+  "evaluation", "activity", "deadline", "meeting", "workshop", "other",
 ];
 
 export const EVENT_STATUSES: EventStatus[] = [
-  "draft", "published", "ongoing", "completed", "cancelled",
+  "draft", "scheduled", "active", "completed", "cancelled",
 ];

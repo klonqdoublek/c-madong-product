@@ -1,6 +1,6 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.3
+> **Version**: 3.4
 > **Last Updated**: 2026-05-11
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
@@ -1036,7 +1036,30 @@ Detailed plan: [`docs/phase7.5-line-onboarding.md`](phase7.5-line-onboarding.md)
 
 ---
 
-### Phase 8: Reports & Analytics ✅ DEPLOYED (2026-05-10)
+### Phase 8: Reports & Analytics — v3.2.0 — DEPLOYED (2026-05-11)
+
+**Route**: `/admin/reports` — single page with 4 tabs, date range picker (30d/90d/6mo/1y preset), CSV + PDF export, admin dashboard export fully wired.
+
+**Phase 8 Deferred — Now Complete (v3.2.0, 2026-05-11)**:
+
+**PDF Export for Reports**:
+- `src/app/[locale]/print/report/page.tsx` — print route (`?section=X&from=Y&to=Z`), no sidebar, consistent with `/print/requisition/[id]` pattern
+- `src/components/admin/reports/report-print-content.tsx` — fetches active section data via existing hooks, renders KPI grid + print-optimized tables for all 4 sections, auto-triggers `window.print()` after 1.8s delay
+- `src/components/admin/reports/reports-export-button.tsx` — CSV single button upgraded to DropdownMenu with CSV (FileSpreadsheet) + PDF (FileText) options
+
+**Supabase Realtime for Live Chat (replaces 3s polling)**:
+- `supabase/migrations/20260504_realtime_live_chat.sql` — adds `chat_escalations` + `ai_chat_messages` to `supabase_realtime` publication
+- `src/hooks/use-escalations.ts` — removed `refetchInterval: 3000` from `useEscalationQueue` and `useEscalationMessages`; added Supabase channel subscriptions matching `use-notifications.ts` pattern
+
+**Admin Dashboard Export Wired**:
+- `src/components/admin/dashboard/dashboard-header.tsx` — replaced `handleComingSoon` toast stubs: CSV uses `useDashboardStats()` data (UTF-8 BOM, `dashboard-snapshot-YYYY-MM-DD.csv`); PDF opens `/[locale]/print/report?section=maintenance&from=...&to=...`; "สร้างรายงาน" → `router.push` to `/admin/reports`
+
+**Commit**: `0ad1fb3`
+**Deploy status**: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
+### Phase 8 (Original): Reports & Analytics ✅ DEPLOYED (2026-05-10)
 
 **Route**: `/admin/reports` — single page with 4 tabs, date range picker (30d/90d/6mo/1y preset), CSV export button per tab.
 
@@ -1253,10 +1276,14 @@ See Phase 8 section above for full spec. Summary:
 - [x] Date range filter (30d / 90d / 6mo / 1y presets)
 - [x] `recharts` library integrated (PieChart, BarChart, LineChart, ResponsiveContainer)
 
-**Deferred to V2 / Phase 9+**:
-- [ ] PDF export (react-pdf / Puppeteer)
+**Completed in v3.2.0 (2026-05-11)**:
+- [x] PDF export — `/print/report` print route + `report-print-content.tsx` client component, `window.print()` after 1.8s delay
+- [x] Live Chat Realtime — `chat_escalations` + `ai_chat_messages` added to Supabase Realtime publication; polling removed from `use-escalations.ts`
+- [x] Admin dashboard CSV/PDF export — `dashboard-header.tsx` stubs replaced with real implementations
+
+**Still deferred to V2 / Phase 9+**:
 - [ ] Student personal activity summary / monthly reports
-- [ ] Real-time chart streaming (replace polling with Supabase Realtime)
+- [ ] Real-time chart streaming on reports page itself (KPI cards updating live as new tickets arrive; Realtime was done for live-chat only)
 
 ---
 
@@ -1443,8 +1470,10 @@ See Phase 8 section above for full spec. Summary:
 
 **Next Steps for V2**:
 1. ✅ ~~Complete Phase 8 (Reports)~~ — DEPLOYED 2026-05-10
-2. Complete Phase 7.6 (PIN Security) — full spec in PRD, 0 code, DB migration + 4 API routes + 5 components needed
-3. Complete Phase 9 (UX Polish: WP1, WP4, WP5, WP6, WP7, WP8) — 2-3 weeks
+2. ✅ ~~Phase 8 Deferred (PDF export + Live Chat Realtime + Dashboard export)~~ — DEPLOYED 2026-05-11 (v3.2.0, commit `0ad1fb3`)
+3. Complete Phase 7.6 (PIN Security) — full spec in PRD, 0 code, DB migration + 4 API routes + 5 components needed
+4. Complete Phase 9.5 (skeleton loading, remaining hardcoded Thai, StatusBadge, focus-visible) — 1 week
+5. Student personal activity summary / monthly report — backlog
 4. Technical debt resolution (Supabase type regen, RBAC cleanup, legacy role deprecation) — 1-2 weeks
 5. LIFF Mini App — 2 weeks
 6. Advanced AI (optional stretch goal) — 4-6 weeks

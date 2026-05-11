@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const ADMIN_ROLES = ["admin", "head", "super_admin", "admin_staff"];
 
 const SYSTEM_PROMPT = `คุณคือผู้ช่วยตอบคำถามของเจ้าหน้าที่หอพักนิสิตจุฬาลงกรณ์มหาวิทยาลัย
 
@@ -12,6 +15,14 @@ const SYSTEM_PROMPT = `คุณคือผู้ช่วยตอบคำถ
 
 export async function POST(request: Request) {
   try {
+    const supabaseAuth = await createClient();
+    const { data: { user } } = await supabaseAuth.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { data: profile } = await supabaseAuth.from("profiles").select("role").eq("id", user.id).single();
+    if (!profile || !ADMIN_ROLES.includes(profile.role ?? "")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const { question, documentId } = await request.json();
     if (!question) {
       return NextResponse.json({ error: "Question required" }, { status: 400 });

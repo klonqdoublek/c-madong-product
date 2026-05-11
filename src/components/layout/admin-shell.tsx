@@ -40,6 +40,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   BarChart3,
+  Bot,
 } from "lucide-react";
 
 const LEGACY_ROLE_MAP: Record<string, AppRole> = {
@@ -78,7 +79,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   // Track which collapsible groups are open
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const groups: Record<string, boolean> = {};
-    if (pathname.includes("/announcements") || pathname.includes("/templates") || pathname.includes("/broadcast") || pathname.includes("/organize")) {
+    if (pathname.includes("/announcements") || pathname.includes("/templates") || pathname.includes("/broadcast") || pathname.includes("/organize") || pathname.includes("/bot-library")) {
       groups.announcements = true;
     }
     if (pathname.includes("/maintenance")) {
@@ -111,6 +112,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/admin/announcements", label: t("navAllAnnouncements") },
         { href: "/admin/announcements/new", label: t("navNewAnnouncement"), permission: Permission.ANNOUNCEMENTS_CREATE },
         { href: "/admin/announcements/organize", label: t("breadcrumb.organize"), icon: <FolderTree className="h-3.5 w-3.5" />, permission: Permission.ANNOUNCEMENTS_VIEW },
+        { href: "/admin/announcements/bot-library", label: t("navBotLibrary"), icon: <Bot className="h-3.5 w-3.5" />, permission: Permission.ANNOUNCEMENTS_VIEW },
         { href: "/admin/templates", label: t("navTemplates"), permission: Permission.TEMPLATES_VIEW },
       ],
     },

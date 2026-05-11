@@ -474,6 +474,7 @@ export type Database = {
           ai_provider: string | null
           archived_at: string | null
           author_id: string | null
+          carousel_images: string[] | null
           category: string
           content: string | null
           content_en: string
@@ -482,24 +483,25 @@ export type Database = {
           created_at: string
           created_by: string | null
           embedding: string | null
+          event_all_day: boolean | null
           event_date: string | null
           event_end_date: string | null
-          event_all_day: boolean | null
-          event_start_time: string | null
           event_end_time: string | null
+          event_start_time: string | null
           expire_at: string | null
           extraction_mode: string | null
           flex_json: Json | null
           folder_id: string | null
           has_dorm_score: boolean
           id: string
-          carousel_images: string[] | null
           is_bot_searchable: boolean | null
           is_calendar_pinned: boolean | null
+          is_current: boolean
           is_pinned: boolean
           location: string | null
           message_type: string | null
           ocr_text: string | null
+          parent_announcement_id: string | null
           published_at: string | null
           scheduled_at: string | null
           score_points: number | null
@@ -511,6 +513,7 @@ export type Database = {
           title_en: string
           title_th: string
           updated_at: string
+          version_number: number
         }
         Insert: {
           ai_confidence?: number | null
@@ -518,6 +521,7 @@ export type Database = {
           ai_provider?: string | null
           archived_at?: string | null
           author_id?: string | null
+          carousel_images?: string[] | null
           category?: string
           content?: string | null
           content_en?: string
@@ -526,24 +530,25 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           embedding?: string | null
+          event_all_day?: boolean | null
           event_date?: string | null
           event_end_date?: string | null
-          event_all_day?: boolean | null
-          event_start_time?: string | null
           event_end_time?: string | null
+          event_start_time?: string | null
           expire_at?: string | null
           extraction_mode?: string | null
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean
-          carousel_images?: string[] | null
           id?: string
           is_bot_searchable?: boolean | null
           is_calendar_pinned?: boolean | null
+          is_current?: boolean
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
           ocr_text?: string | null
+          parent_announcement_id?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           score_points?: number | null
@@ -555,6 +560,7 @@ export type Database = {
           title_en?: string
           title_th?: string
           updated_at?: string
+          version_number?: number
         }
         Update: {
           ai_confidence?: number | null
@@ -562,6 +568,7 @@ export type Database = {
           ai_provider?: string | null
           archived_at?: string | null
           author_id?: string | null
+          carousel_images?: string[] | null
           category?: string
           content?: string | null
           content_en?: string
@@ -570,24 +577,25 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           embedding?: string | null
+          event_all_day?: boolean | null
           event_date?: string | null
           event_end_date?: string | null
-          event_all_day?: boolean | null
-          event_start_time?: string | null
           event_end_time?: string | null
+          event_start_time?: string | null
           expire_at?: string | null
           extraction_mode?: string | null
-          carousel_images?: string[] | null
           flex_json?: Json | null
           folder_id?: string | null
           has_dorm_score?: boolean
           id?: string
           is_bot_searchable?: boolean | null
           is_calendar_pinned?: boolean | null
+          is_current?: boolean
           is_pinned?: boolean
           location?: string | null
           message_type?: string | null
           ocr_text?: string | null
+          parent_announcement_id?: string | null
           published_at?: string | null
           scheduled_at?: string | null
           score_points?: number | null
@@ -599,6 +607,7 @@ export type Database = {
           title_en?: string
           title_th?: string
           updated_at?: string
+          version_number?: number
         }
         Relationships: [
           {
@@ -606,6 +615,13 @@ export type Database = {
             columns: ["folder_id"]
             isOneToOne: false
             referencedRelation: "announcement_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_parent_announcement_id_fkey"
+            columns: ["parent_announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
             referencedColumns: ["id"]
           },
         ]
@@ -2883,33 +2899,94 @@ export const Constants = {
   },
 } as const
 
-// ─── Custom type aliases (re-add after every supabase gen types) ─────────────
-export type MaintenanceStatus = "under_review" | "acknowledged" | "in_progress" | "completed" | "cancelled"
-export type TechnicianSpecialty = "electrical" | "plumbing" | "air_conditioning" | "general" | "furniture" | "internet" | "door_lock"
-export type AppRole = "super_admin" | "head" | "registrar" | "finance" | "parcel" | "admin_staff" | "service" | "activity" | "technician_head" | "technician" | "technician_it" | "committee" | "student"
-export type BuildingScope = "chumpee" | "chumpa" | "pudson" | "pudtan" | "chuanchom" | "male" | "female" | "all"
-export type UserRole = "super_admin" | "head" | "admin" | "technician_head" | "technician" | "student"
-export type BillStatus = "pending" | "paid" | "overdue" | "cancelled"
-export type BillCategory = "room" | "electricity" | "water" | "deposit" | "fine" | "other"
-export type ParcelStatus = "pending" | "notified" | "picked_up" | "returned" | "cancelled"
-export type ParcelType = "box" | "envelope" | "bag" | "oversized" | "other"
-export type NotificationType = "maintenance" | "bill" | "parcel" | "announcement" | "score" | "event" | "event_reminder" | "event_new" | "chat_escalation" | "bill_overdue" | "bill_due" | "score_added" | "maintenance_update" | "parcel_arrived" | "parcel_reminder" | "system"
-export type EventType = "activity" | "evaluation" | "announcement" | "other" | "meeting" | "safety_drill" | "obligation" | "community_service" | "social" | "workshop" | "sports"
-export type EventStatus = "upcoming" | "ongoing" | "completed" | "cancelled" | "draft" | "published"
-export type AttendanceStatus = "registered" | "attended" | "absent" | "cancelled" | "excused"
-export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload"
-export type EvaluationStatus = "draft" | "submitted" | "approved" | "rejected" | "completed"
-export type CriteriaType = "rating" | "text" | "multiple_choice" | "yes_no" | "textarea"
-export type ImpactLevel = "low" | "medium" | "high" | "critical"
+// ============================================================================
+// Custom Type Aliases (re-added after gen types)
+// ============================================================================
+
+export type MaintenanceStatus =
+  | "under_review"
+  | "acknowledged"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
+export type TechnicianSpecialty =
+  | "electrical"
+  | "plumbing"
+  | "air_conditioning"
+  | "general"
+  | "furniture"
+  | "internet"
+  | "door_lock";
+
+export type AppRole = "super_admin" | "head" | "registrar" | "finance" | "parcel" | "admin_staff" | "service" | "activity" | "technician_head" | "technician" | "technician_it" | "committee" | "student";
+
+export type BuildingScope = "chumpee" | "chumpa" | "pudson" | "pudtan" | "chuanchom" | "male" | "female" | "all";
+
+export type UserRole =
+  | "super_admin"
+  | "admin"
+  | "admin_staff"
+  | "technician"
+  | "technician_head"
+  | "head"
+  | "staff"
+  | "student"
+  | "guest";
+
+export type BillStatus = "pending" | "sent" | "viewed" | "paid" | "overdue" | "cancelled" | "adjusted";
+
+export type BillCategory =
+  | "room"
+  | "electricity"
+  | "water"
+  | "deposit"
+  | "fine"
+  | "other";
+
+export type ParcelStatus = "pending" | "notified" | "picked_up" | "returned" | "cancelled";
+
+export type ParcelType = "box" | "envelope" | "bag" | "oversized" | "other";
+
+export type NotificationType =
+  | "general"
+  | "announcement"
+  | "event"
+  | "event_reminder"
+  | "alert"
+  | "bill"
+  | "parcel"
+  | "repair"
+  | "score"
+  | "calendar";
+
+export type EventType =
+  | "evaluation"
+  | "activity"
+  | "deadline"
+  | "meeting"
+  | "workshop"
+  | "other";
+
+export type EventStatus = "draft" | "scheduled" | "active" | "completed" | "cancelled";
+
+export type AttendanceStatus = "absent" | "present" | "excused" | "late";
+
+export type EvaluationFormType = "shop_evaluation" | "dorm_reapplication" | "document_upload";
+
+export type EvaluationStatus = "draft" | "in_progress" | "submitted" | "reviewed" | "archived";
+
+export type CriteriaType = "rating" | "checkbox" | "text" | "multiple_choice";
+
+export type ImpactLevel = "low" | "medium" | "high" | "critical";
+
 export interface MaterialItem {
-  id?: string
-  name: string
-  quantity: number
-  unit: string
-  category?: string
-  estimated_cost?: number
-  specific_item?: string
-  source?: "ai" | "manual"
-  ai_confidence?: number
-  added_at?: string
+  id?: string;
+  name: string;
+  quantity: number;
+  unit: string;
+  notes?: string;
+  specific_item?: string;
+  source?: "ai" | "manual";
+  added_at?: string;
 }

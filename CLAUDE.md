@@ -7,6 +7,31 @@
 
 ## Recent Changes (2026-05-11)
 
+### Phase 8 Deferred — v3.2.0 — DEPLOYED
+
+**What was built**: PDF export for reports, Supabase Realtime replacing 3s polling in live-chat escalations, and admin dashboard export fully wired.
+
+**New files**:
+- `supabase/migrations/20260504_realtime_live_chat.sql` — adds `chat_escalations` + `ai_chat_messages` to `supabase_realtime` publication
+- `src/app/[locale]/print/report/page.tsx` — print route (`?section=X&from=Y&to=Z`), no sidebar, consistent with `/print/requisition/[id]` pattern
+- `src/components/admin/reports/report-print-content.tsx` — client component; fetches active section via existing hooks; KPI grid + print tables for all 4 sections; `window.print()` after 1.8s delay
+
+**Modified files**:
+- `src/hooks/use-escalations.ts` — removed `refetchInterval: 3000`; added inline Supabase channel subscriptions for `chat_escalations` (`*` events) and `ai_chat_messages` (`INSERT`)
+- `src/components/admin/reports/reports-export-button.tsx` — single CSV button → shadcn DropdownMenu with CSV (FileSpreadsheet) + PDF (FileText) options
+- `src/components/admin/dashboard/dashboard-header.tsx` — `handleComingSoon` stubs replaced: CSV from `useDashboardStats()` cache (BOM + `dashboard-snapshot-YYYY-MM-DD.csv`); PDF opens print route in new tab; "สร้างรายงาน" → `router.push` to `/admin/reports`
+
+**Commit**: `0ad1fb3`
+
+**Gotchas**:
+- **`ai_chat_messages` has no `escalation_id` column** — messages link to escalations via `chatbot_sessions.session_id` → `profiles.line_uid`. Realtime filter `escalation_id=eq.X` silently matches nothing. Use no filter + key-scoped `invalidateQueries` instead.
+- **Print route `window.print()` needs 1.8s delay** — shorter delays open the print dialog before data hydrates, producing blank tables. Set delay in `useEffect` after all fetch hooks have returned data.
+- **Prefer inline `useEffect` Realtime pattern over `useRealtime` hook when combining with TanStack Query** — `src/hooks/use-realtime.ts` exists but its `onPayload` callback becomes unstable across re-renders. Follow `use-notifications.ts` pattern instead: inline `useEffect` + channel cleanup + `queryClient.invalidateQueries`.
+
+---
+
+## Recent Changes (2026-05-11)
+
 ### Phase 9 UX/UI Polish — v3.1.0 — DEPLOYED
 
 **What was built**: Accessibility, AlertDialog, i18n extraction, empty state, and text truncation improvements across 10 student/admin components.

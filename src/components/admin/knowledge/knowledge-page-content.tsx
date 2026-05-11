@@ -29,6 +29,7 @@ import { MoveDocumentsDialog } from "./move-documents-dialog";
 import { TagManagementDialog } from "./tag-management-dialog";
 import { DeleteConfirmDialog } from "./delete-confirm-dialog";
 import { AISuggestionDialog } from "./ai-suggestion-dialog";
+import { EditDocumentDialog } from "./edit-document-dialog";
 
 export function KnowledgePageContent() {
   const t = useTranslations("admin.knowledgeBase");
@@ -92,6 +93,7 @@ export function KnowledgePageContent() {
 
   // Single file move/edit state
   const [moveDocIds, setMoveDocIds] = useState<string[]>([]);
+  const [editDoc, setEditDoc] = useState<KnowledgeDocument | null>(null);
 
   // Playground state
   const queryKnowledge = useKnowledgeQuery();
@@ -188,11 +190,10 @@ export function KnowledgePageContent() {
   );
 
   const handleEditFile = useCallback(
-    (_doc: KnowledgeDocument) => {
-      // For now, open in detail view
-      store.openFile(_doc.id);
+    (doc: KnowledgeDocument) => {
+      setEditDoc(doc);
     },
-    [store]
+    []
   );
 
   const handleMoveFile = useCallback(
@@ -345,7 +346,11 @@ export function KnowledgePageContent() {
             />
           )}
 
-          {store.view === "file-detail" && <FileDetailView />}
+          {store.view === "file-detail" && (
+            <FileDetailView
+              onEdit={(doc) => setEditDoc(doc)}
+            />
+          )}
 
           {store.view === "playground" && (
             <div className="space-y-4 p-4">
@@ -467,6 +472,14 @@ export function KnowledgePageContent() {
         onOpenChange={(open) => {
           if (!open) setAIDialogDocId(null);
         }}
+      />
+
+      <EditDocumentDialog
+        open={!!editDoc}
+        onOpenChange={(open) => { if (!open) setEditDoc(null); }}
+        document={editDoc}
+        folders={flatFolders}
+        tags={tags ?? []}
       />
     </div>
   );
