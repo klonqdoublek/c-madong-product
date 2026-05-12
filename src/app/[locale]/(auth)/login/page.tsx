@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -17,17 +17,23 @@ export default function LoginPage() {
 function LoginContent() {
   const t = useTranslations("auth");
   const locale = useLocale();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const error = searchParams.get("error");
+  const skipSplash = searchParams.get("skip_splash") === "1";
   const [isLoading, setIsLoading] = useState(false);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(!skipSplash);
 
   useEffect(() => {
+    if (!skipSplash) {
+      router.replace(`/${locale}/intro`);
+      return;
+    }
     const timer = setTimeout(() => {
       setShowSplash(false);
     }, 1500);
     return () => clearTimeout(timer);
-  }, []);
+  }, [locale, router, skipSplash]);
 
   const errorMessages: Record<string, string> = {
     line_denied: t("errorLineDenied"),

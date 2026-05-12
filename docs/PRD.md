@@ -1,6 +1,6 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.4
+> **Version**: 3.5
 > **Last Updated**: 2026-05-11
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
@@ -148,6 +148,7 @@ C-Madong Platform
 
 **Acceptance Criteria:**
 - [x] 5 missing tokens added to `globals.css`: `cu-warm-cream`, `cu-task-green`, `cu-task-green-dark`, `cu-neutral-warm`, `cu-neutral-warm-dark`
+- [x] `cu-score-green: #4A7060` token added to `globals.css` for score page hero card (v3.3.0)
 - [x] `prefers-reduced-motion` guard added to all CSS animations (WCAG 2.1 AA)
 - [x] 277 raw hex values migrated to semantic tokens across 43 student components
 - [x] `page-header.tsx` `<h1>` font corrected from `font-sans` to `font-heading` (Chulalongkorn) — affects all 14 student pages
@@ -724,7 +725,7 @@ VisionAgent (photo analysis)
 
 **Student pages (US-5.1, US-5.2):**
 - Dashboard: Score card (composite score + 4 category mini bars + tier color) + Upcoming events section (3 events with mandatory badges)
-- `/score` page: Composite score card with tier indicator, 2x2 category breakdown grid, score history timeline with load more
+- `/score` page (redesigned v3.3.0, Figma node 1380-15996): Green hero card (`cu-score-green` #4A7060) with composite score in `text-7xl`, stacked progress bar with 3-color legend, pass/fail threshold badge ("ผ่านเกณฑ์!" when score >= 60), dismissable promo banner (bell icon + mascot), horizontal-scroll category breakdown cards (3 cards with per-category icons: Sunrise/Flag/ShieldCheck), redesigned history list with green circle score badges, info button (ⓘ) in page header
 - `/events` page: Tabs (upcoming/past), event type filter, register/unregister buttons, attendance status badges
 - `/events/[id]` detail: Full event info, capacity progress bar, register/unregister, attendance status
 

@@ -7,6 +7,43 @@
 
 ## Recent Changes (2026-05-11)
 
+### Score Page Redesign — v3.3.0 — DEPLOYED
+
+**What was built**: Full Figma redesign of the student dorm score page (node 1380-15996). Replaced the previous tier-indicator / 2×2 grid layout with a green hero card, stacked progress bar, dismissable promo banner, horizontal-scroll category cards, and green circle history badges.
+
+**Design token added**:
+- `--color-cu-score-green: #4A7060` in `globals.css` — dark forest green used exclusively for the score hero card; distinct from `cu-task-green` (#52AD7E) which is used for task completion states
+
+**New i18n keys** (8 keys in `score` namespace, both `th.json` and `en.json`):
+- `passThreshold` — "ผ่านเกณฑ์!" (shown when score >= 60)
+- `failThreshold` — "ไม่ผ่านเกณฑ์"
+- `disclaimer` — footnote about 60% threshold for dorm renewal
+- `promoBannerTitle` — "ให้น้องซีช่วยแนะนำกิจกรรมเลย!"
+- `promoBannerSubtitle` — "กิจกรรมจาก CUDSON"
+- `viewAll` — "ดูทั้งหมด"
+- `enteredAt` — "เข้าระบบเมื่อ"
+- `unit` — "คะแนน"
+
+**Modified files**:
+- `src/components/student/score/score-page-content.tsx` — complete rewrite; hero card with `bg-cu-score-green`, composite score in `font-heading text-7xl font-bold`, stacked progress bar computed from `categories.reduce`, pass/fail badge derived inline (`score >= 60`), dismissable promo banner (`promoBannerDismissed` useState), horizontal-scroll category breakdown cards (3 cards, `getCategoryIcon()` maps name → Lucide icon: Sunrise/Flag/ShieldCheck/Star), history list with green circle score badges, info button (ⓘ) in `PageHeader` `right` prop slot
+- `src/app/globals.css` — added `--color-cu-score-green` token
+- `src/messages/th.json` — 8 new `score` namespace keys
+- `src/messages/en.json` — 8 new `score` namespace keys
+
+**Commit**: `7079963`
+
+**Gotchas**:
+- **`cu-score-green` is not a general-purpose green token** — it is scoped to the score page hero card only. Task/status green surfaces use `cu-task-green` (#52AD7E). Document token purpose at addition time to prevent accidental cross-use.
+- **Stacked progress bar denominator must be `categories.reduce((s, c) => s + c.max_score, 0)`, not 100** — hard-coding 100 as the denominator causes bars to overflow or underflow when `max_score` values are non-standard. Always derive the ceiling from actual data.
+- **Pass/fail threshold is hardcoded at 60 in the component** — `passedThreshold = score >= 60` is computed client-side, not returned by the API. If the threshold changes it must be updated in `score-page-content.tsx` separately from any API or DB changes.
+- **Promo banner dismiss state (`useState`) is not persisted** — the banner reappears on every page load. Intentional for MVP. To persist, add a `localStorage` flag or a `profiles` preference column.
+- **History list is sliced client-side, not paginated** — `useMyScoreHistory()` fetches all records; `showAllHistory` toggles `slice(0, 10)` off. No second API call needed for "view all".
+- **`PageHeader` `right` prop accepts any ReactNode** — use this slot for icon buttons (info, share, filter) that belong in the header but are not the back button. Do not add extra buttons inside the page body to simulate header placement.
+
+---
+
+## Recent Changes (2026-05-11)
+
 ### Phase 8 Deferred — v3.2.0 — DEPLOYED
 
 **What was built**: PDF export for reports, Supabase Realtime replacing 3s polling in live-chat escalations, and admin dashboard export fully wired.

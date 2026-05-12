@@ -5,6 +5,26 @@ Format: `## [vX.Y.Z] — YYYY-MM-DD` with subsections Added / Changed / Fixed / 
 
 ---
 
+## [v3.3.0] — 2026-05-11
+
+### Added
+- `globals.css` — `--color-cu-score-green: #4A7060` design token (dark forest green for score page hero card only; distinct from `cu-task-green` #52AD7E used for task completion states)
+- `src/messages/th.json` — 8 new `score` namespace keys: `passThreshold`, `failThreshold`, `disclaimer`, `promoBannerTitle`, `promoBannerSubtitle`, `viewAll`, `enteredAt`, `unit`
+- `src/messages/en.json` — same 8 keys mirrored in English
+
+### Changed
+- `src/components/student/score/score-page-content.tsx` — complete Figma redesign (node 1380-15996): green hero card with `bg-cu-score-green`, composite score `text-7xl`, stacked progress bar (3-color with `BAR_COLORS` legend), pass/fail threshold badge ("ผ่านเกณฑ์!" when score >= 60), dismissable promo banner (bell icon + mascot watermark), horizontal-scroll category breakdown cards (3 cards; icons derived from category name: Sunrise/Flag/ShieldCheck/Star), history list with green circle score badges replacing trend icons, `ⓘ` info button wired into `PageHeader` `right` prop slot
+
+### Infrastructure
+- No DB migrations
+- No new API routes
+- No new env vars
+- No type regeneration required
+- Commit: `7079963` — style: redesign score page with Figma green hero card layout
+- Deploy status: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
 ## [v3.2.0] — 2026-05-11
 
 ### Added
