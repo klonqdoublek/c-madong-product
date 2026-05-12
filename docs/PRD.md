@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.5
-> **Last Updated**: 2026-05-11
+> **Version**: 3.6
+> **Last Updated**: 2026-05-12
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -41,6 +41,7 @@ A unified digital platform for Chulalongkorn University dormitory management —
 ```
 C-Madong Platform
 ├── Student App (c-madong-product)       — Next.js 16, mobile-first
+│   ├── Intro Onboarding Flow (5-slide visual intro, SSG, swipe gesture) ✅ v3.4.0
 │   ├── LINE Login & Onboarding
 │   ├── Digital Dorm Card
 │   ├── Maintenance Requests
@@ -128,6 +129,54 @@ C-Madong Platform
 - [ ] Login ด้วย email + password
 - [ ] Role-based access (admin, head, committee)
 - [ ] Redirect ไป admin dashboard
+
+#### US-1.5: Intro Onboarding Flow ✅ DEPLOYED (2026-05-12)
+> **As a** first-time visitor, **I want to** see a visual intro before the login screen, **so that** I understand what C-Madong offers.
+
+**Feature Spec (v3.4.0):**
+- 5-slide swipeable intro flow at `/[locale]/intro` (SSG, public route — no auth required)
+- Shows every time user visits `/login` when `skip_splash` query param is absent
+- After completing slide 5 or tapping Skip → navigates to `/login?skip_splash=1` (bypasses 1.5s splash)
+- Swipe gesture: `motion.div` drag="x", dragElastic=0, ±60px threshold left/right
+- Per-slide overlay icons fade+scale via AnimatePresence on card top edge
+- Persistent pill indicator (active = 24px wide pink, inactive = 8px light pink) outside AnimatePresence so it animates smoothly without unmounting
+
+**5 Slides:**
+1. **Slide 0** — "น้องซีมะโด่งมาแล้ว!" — pink gradient bg, น้องซี character overlay (`overlay-char.png`, w-36, extraUp: 48px)
+2. **Slide 1** — "แจ้งซ่อมง่ายๆ แค่ปลายนิ้ว!" — green card bg, wrench+hand overlay (`overlay-repair.png`)
+3. **Slide 2** — "ถามอะไร น้องซีตอบได้!" — pink card bg, AI character circle overlay (`overlay-ai.png`)
+4. **Slide 3** — "ไม่พลาดทุกข่าวสารสำคัญ" — cream bg, megaphone circle overlay (`overlay-noti.png`)
+5. **Slide 4** — "ประสบการณ์ใหม่ที่ไร้รอยต่อ" — light green bg, stars+icon overlay (`overlay-line.png`)
+
+**Navigation Logic:**
+- Slide 0: Skip (top-right) + "ต่อไป →" (right only)
+- Slides 1–3: Skip + "← ย้อนกลับ" (green border) + "ต่อไป →" (pink)
+- Slide 4: "เริ่มใช้งานกันเลย!" (centered, no skip)
+
+**Acceptance Criteria:**
+- [x] Route `/[locale]/intro` exists, public (added to `PUBLIC_ROUTES` in `middleware.ts`)
+- [x] Authenticated users may also access /intro (same exception as /guide and /legal)
+- [x] `src/app/[locale]/(auth)/login/page.tsx` redirects to `/intro` when `skip_splash` absent
+- [x] All 5 slides render with correct background images and overlay icons
+- [x] Swipe gesture navigates forward/back ±60px threshold
+- [x] Pill indicator animates between active/inactive sizes via spring motion
+- [x] Background image only slides (AnimatePresence); card content remains fixed
+- [x] "เริ่มใช้งานกันเลย!" on final slide navigates to `/login?skip_splash=1`
+- [x] Deploy status: DEPLOYED — commit `27d3224`
+
+**Files Created:**
+- `src/app/[locale]/intro/page.tsx`
+- `src/components/student/intro/intro-content.tsx`
+- `public/images/intro/slide-{0-4}.png` (5 background images)
+- `public/images/intro/overlay-{char,repair,ai,noti,line}.png` (5 overlay icons)
+
+**Files Modified:**
+- `src/middleware.ts` — `/intro` added to `PUBLIC_ROUTES`
+- `src/app/[locale]/(auth)/login/page.tsx` — added `useRouter`; `useEffect` redirects to `/intro` when `skip_splash` absent; `showSplash` initialized from `!skipSplash`
+
+**Deferred:**
+- No localStorage skip gate — intro shows on every login visit (intentional for MVP; add gate after real usage data)
+- Intro skip tracking / analytics
 
 ---
 

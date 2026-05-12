@@ -119,11 +119,35 @@ function LoginContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative flex w-full flex-1 flex-col items-center"
+            className="relative flex w-full flex-1 flex-col lg:flex-row"
           >
-            {/* ── Background section (Design 2) ── */}
-            <div className="absolute inset-0 z-0">
-              <div className="absolute inset-0 bg-cu-pink" />
+            {/* ── Left panel: photo background (desktop only) ── */}
+            <div className="
+              hidden lg:flex lg:flex-1
+              relative overflow-hidden
+            ">
+              <div className="absolute inset-0 bg-primary" />
+              <Image
+                src="/images/dorm-bg.png"
+                alt=""
+                fill
+                className="object-cover opacity-30"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/60 via-primary/40 to-transparent" />
+
+              {/* C-MADONG watermark top-left */}
+              <div className="absolute left-10 top-10 z-10 flex items-center gap-2">
+                <BellIcon className="size-7" isWhite />
+                <span className="font-heading text-sm font-bold tracking-widest text-white">
+                  C-MADONG
+                </span>
+              </div>
+            </div>
+
+            {/* ── Mobile background (hidden on desktop) ── */}
+            <div className="absolute inset-0 z-0 lg:hidden">
+              <div className="absolute inset-0 bg-primary" />
               <Image
                 src="/images/dorm-bg.png"
                 alt=""
@@ -131,213 +155,252 @@ function LoginContent() {
                 className="object-cover opacity-20"
                 priority
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cu-pink/50 to-cu-pink" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-primary" />
             </div>
 
-            {/* Top branding (Design 2) */}
-            <div className="relative z-10 pt-32 text-center">
-              <div className="flex flex-col items-center">
-                <LogoSmall />
-                <p className="font-body text-xs text-white">
-                  {t("poweredBy")}
-                </p>
+            {/* ── Right panel: login form ── */}
+            {/* Desktop: fixed-width right panel, centered content */}
+            {/* Tablet: wider card */}
+            {/* Mobile: card slides up from bottom */}
+            <div className="
+              relative z-10
+              flex flex-1 flex-col items-center
+              w-full
+              lg:flex-none lg:w-[50%] lg:min-w-[480px] lg:max-w-[640px]
+              lg:min-h-dvh lg:justify-center
+              lg:bg-cu-cream-light
+              lg:border-l lg:border-[#e2e2e2]
+              lg:shadow-[-8px_0_40px_rgba(185,100,130,0.08)]
+              lg:rounded-none
+            ">
+              {/* Mobile: top branding */}
+              <div className="relative z-10 pt-32 text-center lg:hidden">
+                <div className="flex flex-col items-center">
+                  <LogoSmall />
+                  <p className="font-body text-xs text-white">
+                    {t("poweredBy")}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* ── Login card (Design 2) ── */}
-            <div className="relative z-20 mt-auto w-full max-w-[393px]">
-              <div className="relative mt-20 rounded-t-[24px] border border-[#e2e2e2] bg-cu-cream-light px-6 pb-8 pt-12 shadow-[0px_6px_14px_0px_rgba(185,100,130,0.08),0px_25px_25px_0px_rgba(185,100,130,0.07)]">
-                {/* Mascot circle overlap */}
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                  <div className="flex size-[80px] items-center justify-center rounded-full border border-[#e2e2e2] bg-cu-cream-light shadow-md">
-                    <Image
-                      src="/images/mascot.svg"
-                      alt="Mascot"
-                      width={60}
-                      height={60}
-                      className="object-contain"
-                    />
+              {/* Form card — different shape per breakpoint */}
+              <div className="
+                relative z-20
+                mt-auto lg:mt-0
+                w-full max-w-[393px]
+                md:max-w-[480px]
+                lg:max-w-none
+              ">
+                <div className="
+                  relative
+                  rounded-t-[24px] md:rounded-[24px] lg:rounded-none
+                  border border-[#e2e2e2] lg:border-0
+                  bg-cu-cream-light
+                  px-6 pb-8 pt-12
+                  lg:px-12 lg:py-0 lg:bg-transparent lg:shadow-none
+                  shadow-[0px_6px_14px_0px_rgba(185,100,130,0.08),0px_25px_25px_0px_rgba(185,100,130,0.07)]
+                  lg:[box-shadow:none]
+                ">
+                  {/* Desktop logo (inside right panel) */}
+                  <div className="hidden lg:flex lg:flex-col lg:items-center lg:gap-2 lg:mb-8">
+                    <LogoBig />
+                    <p className="font-body text-xs text-cu-grey">
+                      {t("poweredBy")}
+                    </p>
                   </div>
-                </div>
 
-                {/* Header text */}
-                <div className="text-center">
-                  <h1 className="font-heading text-2xl font-bold text-primary">
-                    {t("welcomeTitle")}
-                  </h1>
-                  <p className="mt-1 text-sm text-cu-grey leading-relaxed">
-                    {t("welcomeDescription")}
-                  </p>
-                </div>
-
-                {/* Error message */}
-                {error && (
-                  <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                    {errorMessages[error] || t("errorGeneric")}
+                  {/* Mobile mascot circle overlap */}
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 lg:hidden">
+                    <div className="flex size-[80px] items-center justify-center rounded-full border border-[#e2e2e2] bg-cu-cream-light shadow-md">
+                      <Image
+                        src="/images/mascot.svg"
+                        alt="Mascot"
+                        width={60}
+                        height={60}
+                        className="object-contain"
+                      />
+                    </div>
                   </div>
-                )}
 
-                {/* LINE login button */}
-                <div className="mt-6">
-                  <button
-                    type="button"
-                    disabled={isLoading}
-                    onClick={() => {
-                      setIsLoading(true);
-                      window.location.href = "/api/auth/line";
-                    }}
-                    className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#07C755] text-base font-bold text-white transition-all hover:bg-[#06b34d] hover:shadow-lg active:scale-[0.98]"
-                  >
-                    {isLoading ? (
-                      <LoadingSpinner />
-                    ) : (
-                      <>
-                        <Image
-                          src="/images/line-icon.svg"
-                          alt="LINE"
-                          width={24}
-                          height={24}
-                        />
-                        <span>{t("loginWithLine")}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
+                  {/* Header text */}
+                  <div className="text-center">
+                    <h1 className="font-heading text-2xl font-bold text-primary lg:text-[32px]">
+                      {t("welcomeTitle")}
+                    </h1>
+                    <p className="mt-1 text-sm text-cu-grey leading-relaxed lg:text-base">
+                      {t("welcomeDescription")}
+                    </p>
+                  </div>
 
-                {/* Divider */}
-                <div className="mt-6 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-[#d9d9d9]/50" />
-                  <span className="text-sm text-[#d9d9d9] font-body">{t("orDivider")}</span>
-                  <div className="h-px flex-1 bg-[#d9d9d9]/50" />
-                </div>
-
-                {/* Freshman section */}
-                <div className="mt-4 text-center">
-                  <p className="text-sm font-bold text-cu-grey">
-                    {t("freshmanQuestion")}
-                  </p>
-                  <a
-                    href="https://c-madong-product.vercel.app/th/guide/getting-started"
-                    className="mt-1 inline-block text-primary underline decoration-solid text-sm font-bold"
-                  >
-                    {t("viewGuide")}
-                  </a>
-                </div>
-
-                {/* Staff login section */}
-                <div className="mt-8">
-                  <button
-                    type="button"
-                    onClick={() => setDevExpanded(!devExpanded)}
-                    className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#888] bg-[#fffbf1] text-[#888] transition-colors hover:border-cu-grey hover:text-cu-grey"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <circle cx="12" cy="8" r="5" />
-                      <path d="M20 21a8 8 0 0 0-16 0" />
-                    </svg>
-                    <span className="text-base font-bold">{t("forStaff")}</span>
-                  </button>
-
-                  {/* Dev login form (expandable) */}
-                  {showDevLogin && devExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      className="mt-3 overflow-hidden rounded-xl border border-dashed border-muted-foreground/30 bg-muted/10 p-4"
-                    >
-                      {/* Quick login buttons */}
-                      <div className="mb-3 grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDevEmail("dev@c-madong.app");
-                            setDevPassword("devadmin123");
-                          }}
-                          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                            devEmail === "dev@c-madong.app"
-                              ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
-                              : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
-                          }`}
-                        >
-                          Admin
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDevEmail("student@c-madong.app");
-                            setDevPassword("devstudent123");
-                          }}
-                          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
-                            devEmail === "student@c-madong.app"
-                              ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
-                              : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
-                          }`}
-                        >
-                          Student
-                        </button>
-                      </div>
-
-                      <form onSubmit={handleDevLogin} className="space-y-3 text-left">
-                        {devError && (
-                          <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
-                            {devError}
-                          </div>
-                        )}
-                        <div>
-                          <label
-                            htmlFor="dev-email"
-                            className="text-xs font-medium text-muted-foreground"
-                          >
-                            {t("email")}
-                          </label>
-                          <input
-                            id="dev-email"
-                            type="email"
-                            value={devEmail}
-                            onChange={(e) => setDevEmail(e.target.value)}
-                            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label
-                            htmlFor="dev-password"
-                            className="text-xs font-medium text-muted-foreground"
-                          >
-                            {t("password")}
-                          </label>
-                          <input
-                            id="dev-password"
-                            type="password"
-                            value={devPassword}
-                            onChange={(e) => setDevPassword(e.target.value)}
-                            className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                          />
-                        </div>
-                        <button
-                          type="submit"
-                          disabled={devLoading}
-                          className="w-full rounded-md bg-primary text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 disabled:opacity-50"
-                        >
-                          {devLoading ? t("loggingIn") : t("loginWithEmail")}
-                        </button>
-                      </form>
-                    </motion.div>
+                  {/* Error message */}
+                  {error && (
+                    <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                      {errorMessages[error] || t("errorGeneric")}
+                    </div>
                   )}
-                </div>
 
-                {/* Version */}
-                <p className="mt-8 text-center text-[10px] text-cu-grey opacity-50">
-                  C-MADONG Version 1.0
-                </p>
+                  {/* LINE login button */}
+                  <div className="mt-6 lg:mt-6">
+                    <button
+                      type="button"
+                      disabled={isLoading}
+                      onClick={() => {
+                        setIsLoading(true);
+                        window.location.href = "/api/auth/line";
+                      }}
+                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#07C755] text-base font-bold text-white transition-all hover:bg-[#06b34d] hover:shadow-lg active:scale-[0.98]"
+                    >
+                      {isLoading ? (
+                        <LoadingSpinner />
+                      ) : (
+                        <>
+                          <Image
+                            src="/images/line-icon.svg"
+                            alt="LINE"
+                            width={24}
+                            height={24}
+                          />
+                          <span>{t("loginWithLine")}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="mt-6 flex items-center gap-3">
+                    <div className="h-px flex-1 bg-[#d9d9d9]/50" />
+                    <span className="text-sm text-[#d9d9d9] font-body">{t("orDivider")}</span>
+                    <div className="h-px flex-1 bg-[#d9d9d9]/50" />
+                  </div>
+
+                  {/* Freshman section */}
+                  <div className="mt-4 text-center">
+                    <p className="text-sm font-bold text-cu-grey">
+                      {t("freshmanQuestion")}
+                    </p>
+                    <a
+                      href="https://c-madong-product.vercel.app/th/guide/getting-started"
+                      className="mt-1 inline-block text-primary underline decoration-solid text-sm font-bold"
+                    >
+                      {t("viewGuide")}
+                    </a>
+                  </div>
+
+                  {/* Staff login section */}
+                  <div className="mt-8">
+                    <button
+                      type="button"
+                      onClick={() => setDevExpanded(!devExpanded)}
+                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#888] bg-[#fffbf1] text-[#888] transition-colors hover:border-cu-grey hover:text-cu-grey"
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="8" r="5" />
+                        <path d="M20 21a8 8 0 0 0-16 0" />
+                      </svg>
+                      <span className="text-base font-bold">{t("forStaff")}</span>
+                    </button>
+
+                    {/* Dev login form (expandable) */}
+                    {showDevLogin && devExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="mt-3 overflow-hidden rounded-xl border border-dashed border-muted-foreground/30 bg-muted/10 p-4"
+                      >
+                        {/* Quick login buttons */}
+                        <div className="mb-3 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDevEmail("dev@c-madong.app");
+                              setDevPassword("devadmin123");
+                            }}
+                            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                              devEmail === "dev@c-madong.app"
+                                ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
+                                : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
+                            }`}
+                          >
+                            Admin
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDevEmail("student@c-madong.app");
+                              setDevPassword("devstudent123");
+                            }}
+                            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                              devEmail === "student@c-madong.app"
+                                ? "border-cu-pink bg-cu-pink/10 text-cu-pink"
+                                : "border-muted-foreground/20 text-muted-foreground hover:border-muted-foreground/40"
+                            }`}
+                          >
+                            Student
+                          </button>
+                        </div>
+
+                        <form onSubmit={handleDevLogin} className="space-y-3 text-left">
+                          {devError && (
+                            <div className="rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+                              {devError}
+                            </div>
+                          )}
+                          <div>
+                            <label
+                              htmlFor="dev-email"
+                              className="text-xs font-medium text-muted-foreground"
+                            >
+                              {t("email")}
+                            </label>
+                            <input
+                              id="dev-email"
+                              type="email"
+                              value={devEmail}
+                              onChange={(e) => setDevEmail(e.target.value)}
+                              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="dev-password"
+                              className="text-xs font-medium text-muted-foreground"
+                            >
+                              {t("password")}
+                            </label>
+                            <input
+                              id="dev-password"
+                              type="password"
+                              value={devPassword}
+                              onChange={(e) => setDevPassword(e.target.value)}
+                              className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                            />
+                          </div>
+                          <button
+                            type="submit"
+                            disabled={devLoading}
+                            className="w-full rounded-md bg-primary text-white px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/90 disabled:opacity-50"
+                          >
+                            {devLoading ? t("loggingIn") : t("loginWithEmail")}
+                          </button>
+                        </form>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Version */}
+                  <p className="mt-8 text-center text-[10px] text-cu-grey opacity-50">
+                    C-MADONG Version 1.0
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>

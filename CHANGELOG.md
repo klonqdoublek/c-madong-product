@@ -5,6 +5,36 @@ Format: `## [vX.Y.Z] — YYYY-MM-DD` with subsections Added / Changed / Fixed / 
 
 ---
 
+## [v3.4.0] — 2026-05-12
+
+### Added
+- `src/app/[locale]/intro/page.tsx` — SSG public route for the 5-slide intro onboarding flow
+- `src/components/student/intro/intro-content.tsx` — client component: Framer Motion swipe gesture (`drag="x"`, dragElastic=0, ±60px threshold), AnimatePresence background-image layer, fixed card+text layer, spring pill indicator outside AnimatePresence, per-slide overlay icons with fade+scale, `extraUp` pixel offset config per slide
+- `public/images/intro/slide-0.png` — Slide 0 background (น้องซีมะโด่งมาแล้ว!, pink gradient)
+- `public/images/intro/slide-1.png` — Slide 1 background (แจ้งซ่อมง่ายๆ แค่ปลายนิ้ว!, green card)
+- `public/images/intro/slide-2.png` — Slide 2 background (ถามอะไร น้องซีตอบได้!, pink card)
+- `public/images/intro/slide-3.png` — Slide 3 background (ไม่พลาดทุกข่าวสารสำคัญ, cream)
+- `public/images/intro/slide-4.png` — Slide 4 background (ประสบการณ์ใหม่ที่ไร้รอยต่อ, light green)
+- `public/images/intro/overlay-char.png` — น้องซี character overlay (slide 0, w-36, extraUp: 48px)
+- `public/images/intro/overlay-repair.png` — wrench+hand circle overlay (slide 1)
+- `public/images/intro/overlay-ai.png` — AI character circle overlay (slide 2)
+- `public/images/intro/overlay-noti.png` — megaphone circle overlay (slide 3)
+- `public/images/intro/overlay-line.png` — stars+app icon circle overlay (slide 4)
+
+### Changed
+- `src/middleware.ts` — `/intro` added to `PUBLIC_ROUTES`; authenticated users allowed to access /intro (same exception pattern as /guide and /legal)
+- `src/app/[locale]/(auth)/login/page.tsx` — added `useRouter`; `useEffect` redirects to `/[locale]/intro` when `skip_splash` query param absent; `showSplash` state initialized from `!skipSplash` boolean
+
+### Infrastructure
+- No DB migrations
+- No new API routes
+- No new env vars
+- No type regeneration required
+- Commit: `27d3224` — feat: 5-screen intro onboarding flow with Framer Motion swipe and spring indicators
+- Deploy status: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
 ## [v3.3.0] — 2026-05-11
 
 ### Added

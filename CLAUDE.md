@@ -5,6 +5,36 @@
 - **Role**: UX/UI and Product Designer
 - **Goal**: Building a digital product
 
+## Recent Changes (2026-05-12)
+
+### Intro Onboarding Flow — v3.4.0 — DEPLOYED
+
+**What was built**: 5-screen swipeable intro flow shown before the login screen. SSG public route at `/[locale]/intro`. Uses Framer Motion for background slide transitions, spring pill indicator, and per-slide overlay icons.
+
+**New route**: `/[locale]/intro` — SSG, public (added to `PUBLIC_ROUTES`). Navigates to `/login?skip_splash=1` on complete or skip.
+
+**5 slides**: น้องซีมะโด่งมาแล้ว! (pink) → แจ้งซ่อมง่ายๆ (green) → ถามอะไร น้องซีตอบได้! (pink) → ไม่พลาดทุกข่าวสาร (cream) → ประสบการณ์ใหม่ไร้รอยต่อ (light green)
+
+**New files**:
+- `src/app/[locale]/intro/page.tsx` — SSG page wrapper
+- `src/components/student/intro/intro-content.tsx` — client component; Framer Motion swipe (drag="x", dragElastic=0, ±60px), AnimatePresence on bg image only, fixed card+text, spring pill indicator outside AnimatePresence, overlay icons with `absolute top-0 -translate-y-1/2`, `extraUpPx` per-slide config
+- `public/images/intro/slide-{0-4}.png` — 5 background images
+- `public/images/intro/overlay-{char,repair,ai,noti,line}.png` — 5 overlay icons
+
+**Modified files**:
+- `src/middleware.ts` — `/intro` added to `PUBLIC_ROUTES`; authenticated users allowed (same pattern as /guide, /legal)
+- `src/app/[locale]/(auth)/login/page.tsx` — `useEffect` redirects to `/intro` when `skip_splash` absent; `showSplash` state initialized from `!skipSplash`
+
+**Commit**: `27d3224`
+
+**Gotchas**:
+- **AnimatePresence destroys+recreates every child on each key change** — elements inside AnimatePresence (e.g. pill indicators, persistent controls) get fully unmounted and lose animation state. Any element that must animate WITHOUT remounting must live OUTSIDE AnimatePresence as a sibling.
+- **Only put the moving layer inside AnimatePresence** — wrapping the entire slide (card + image + text) causes unnecessary re-mounts of all content. Isolate only the background image inside AnimatePresence; card, text, and navigation stay fixed outside.
+- **Overlay icon anchored to card with `absolute top-0 -translate-y-1/2`** — positions the icon at the card's top edge regardless of card height. More robust than calculating a bottom-from-viewport offset, which breaks on different screen sizes.
+- **`extraUpPx` per-slide config** — add an optional pixel offset to the overlay config for per-slide vertical tuning. Apply as inline style (`marginTop: -extraUpPx`). Avoids branching in component logic for cosmetic variation.
+
+---
+
 ## Recent Changes (2026-05-11)
 
 ### Score Page Redesign — v3.3.0 — DEPLOYED
