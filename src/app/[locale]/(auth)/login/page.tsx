@@ -119,7 +119,7 @@ function LoginContent() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="relative flex w-full flex-1 flex-col lg:flex-row"
+            className="relative flex min-h-dvh w-full flex-1 flex-col lg:flex-row"
           >
             {/* ── Left panel: photo background (desktop only) ── */}
             <div className="
@@ -164,17 +164,17 @@ function LoginContent() {
             {/* Mobile: card slides up from bottom */}
             <div className="
               relative z-10
-              flex flex-1 flex-col items-center
+              flex min-h-dvh flex-1 flex-col items-center justify-end
               w-full
-              lg:flex-none lg:w-[50%] lg:min-w-[480px] lg:max-w-[640px]
               lg:min-h-dvh lg:justify-center
+              lg:flex-none lg:w-[50%] lg:min-w-[480px] lg:max-w-[640px]
               lg:bg-cu-cream-light
               lg:border-l lg:border-[#e2e2e2]
               lg:shadow-[-8px_0_40px_rgba(185,100,130,0.08)]
               lg:rounded-none
             ">
               {/* Mobile: top branding */}
-              <div className="relative z-10 pt-32 text-center lg:hidden">
+              <div className="absolute inset-x-0 top-0 z-10 pt-24 text-center min-[390px]:pt-28 lg:hidden">
                 <div className="flex flex-col items-center">
                   <LogoSmall />
                   <p className="font-body text-xs text-white">
@@ -186,7 +186,7 @@ function LoginContent() {
               {/* Form card — different shape per breakpoint */}
               <div className="
                 relative z-20
-                mt-auto lg:mt-0
+                lg:mt-0
                 w-full max-w-[393px]
                 md:max-w-[480px]
                 lg:max-w-none
