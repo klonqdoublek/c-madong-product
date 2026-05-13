@@ -5,6 +5,36 @@ Format: `## [vX.Y.Z] — YYYY-MM-DD` with subsections Added / Changed / Fixed / 
 
 ---
 
+## [v3.6.0] — 2026-05-13
+
+### Added
+- `src/lib/chatbot/handlers/billing.ts` — NEW: `handleBilling(lineUid)` fetches student's pending bills, returns `buildBillReminderFlex()` for most-urgent bill or "ไม่พบบิลค้างชำระ" text when none
+- `src/lib/chatbot/webhook-handler.ts` — `BILLING_KEYWORDS` array + `isBillingRelated()` fast-path keyword check before AI classifier; `case "billing":` in intent switch; import of `handleBilling`
+
+### Changed
+- `src/components/student/parcels-page-content.tsx` — redesigned student parcel page from Figma node `1925:3827`: CU cream/pink mobile layout, featured parcel hero, pickup-location dashed card, search bar, unclaimed/claimed tabs, grouped parcel history, and status pills
+- `src/components/student/billing/billing-page-content.tsx` — redesigned student dorm-bill page from Figma node `1374:13187`: amount summary gradient card, bill breakdown chips, invoice/receipt download actions, due-date reminder card, auto-debit method row, and searchable transaction history
+- Both redesigned pages keep existing routes and data hooks (`useMyParcels`, `useMyBills`) and use existing Tailwind v4 CU tokens/fonts instead of adding new dependencies or copying Figma's generated Tailwind verbatim
+
+### Fixed
+- `src/lib/chatbot/types.ts` — added `"billing"` to `ChatIntent` union type (root cause: AI could return billing intent but validator rejected it → fell to chitchat every time)
+- `src/lib/chatbot/intent-router.ts` — added `"billing"` to `validIntents` array (same root cause as above)
+- `src/lib/chatbot/suggestions.ts` — added `billing` entry to `Record<ChatIntent, QuickReply[]>` map (was throwing type error without it)
+- `src/lib/chatbot/handlers/index.ts` — exported `handleBilling`
+- `src/lib/chatbot/handlers/postback.ts` — `handleRemindBill()` replaced stub: fetches bill + profile, validates ownership, deletes `notification_dispatch_log` entries for day-windows 0/1/3 to unlock cron re-push, replies with next push time + due date + CTA to `/th/billing`
+- `src/lib/chatbot/handlers/postback.ts` — `handleConfirmPayment()` replaced stub: fetches bill + profile, validates ownership, appends `[LINE] นิสิตแจ้งชำระเงินผ่าน LINE เมื่อ {datetime}` to `bills.admin_notes`, replies confirming recorded + admin will verify within 1–2 business days + CTA
+- `src/lib/chatbot/flex-builders/events-carousel.ts` — footer button changed from `type: "postback"` to `type: "uri"` pointing to `${WEB_BASE}/th/events/${event.id}` (was silently replying bot text instead of opening webapp)
+
+### Infrastructure
+- No DB migrations (uses `notification_dispatch_log` from migration `20260514_proactive_notifications.sql` applied in prior session)
+- No new API routes
+- No new env vars
+- No type regeneration required
+- Commits: `777c001` (billing intent + events carousel fix), `5d2fa42` (remind_bill real impl), `7d70ac6` (confirm_payment real impl)
+- Deploy status: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
 ## [v3.4.0] — 2026-05-12
 
 ### Added

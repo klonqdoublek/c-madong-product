@@ -536,7 +536,22 @@
       "mandatoryEvents": "Mandatory Events",
       "externalEvents": "External Events",
       "internalEvents": "Internal Events",
-      "askNongC": "Ask Nong C"
+      "askNongC": "Ask Nong C",
+      "totalStudentsSub": "+1% from last week",
+      "activeTicketsSub": "{count} awaiting action",
+      "liveChatLabel": "Live Chat",
+      "liveChatSub": "Chats awaiting response",
+      "sentThisMonthSub": "{pending} scheduled to send",
+      "lineClaimsTitle": "LINE Payment Claims",
+      "lineClaimsSub": "{count} items — students reported payment via LINE, pending review",
+      "lineClaimsViewBtn": "View Claims →",
+      "calendarSection": "Dorm Calendar & Events",
+      "upcomingLabel": "Upcoming Events",
+      "maintenanceTrendLabel": "Maintenance Activity (14 days)",
+      "attendanceRateLabel": "Attendance Rate",
+      "attendanceRateEmpty": "No data yet",
+      "attendanceAttended": "Attended",
+      "attendanceAbsent": "Absent"
     },
     "serviceDesk": {
       "title": "Service Desk",

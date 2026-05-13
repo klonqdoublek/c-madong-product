@@ -10,50 +10,52 @@ import { DashboardSummaryCard } from "./dashboard-summary-card";
 import { DashboardQuickMenu } from "./dashboard-quick-menu";
 import { DashboardUpcomingEvents } from "./dashboard-upcoming-events";
 import { DashboardAttendanceChart } from "./dashboard-attendance-chart";
-import { DashboardRecentSection } from "./dashboard-recent-section";
+import { RecentTicketsCard, RecentAnnouncementsCard } from "./dashboard-recent-section";
 import { DashboardMascotWidget } from "./dashboard-mascot-widget";
 import { DashboardAIFeedbackCard } from "./dashboard-ai-feedback-card";
+import { DashboardLineClaimsAlert } from "./dashboard-line-claims-alert";
 
 export function DashboardPageContent() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
-  const { data: recentTickets, isLoading: ticketsLoading } =
-    useRecentTickets(5);
-  const { data: recentAnnouncements, isLoading: announcementsLoading } =
-    useRecentAnnouncements(5);
+  const { data: recentTickets, isLoading: ticketsLoading } = useRecentTickets(5);
+  const { data: recentAnnouncements, isLoading: announcementsLoading } = useRecentAnnouncements(5);
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* Row 0: Header */}
+      {/* Row 0: Header — greeting + export buttons */}
       <DashboardHeader />
 
-      {/* Row 1: Summary + Quick Menu */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <DashboardSummaryCard stats={stats} isLoading={statsLoading} />
-        </div>
-        <div className="lg:col-span-2">
-          <DashboardQuickMenu />
-        </div>
+      {/* Row 1: 4 Hero KPI cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <DashboardSummaryCard stats={stats} isLoading={statsLoading} />
       </div>
 
-      {/* Row 2: Upcoming Events + Attendance Chart */}
+      {/* Row 1.5: LINE Claims alert — only when claims exist */}
+      <DashboardLineClaimsAlert />
+
+      {/* Row 2: Calendar + Events | Quick Menu + Trend Chart */}
       <div className="grid gap-6 lg:grid-cols-2">
         <DashboardUpcomingEvents />
+        <DashboardQuickMenu />
+      </div>
+
+      {/* Row 3: Recent Tickets | Recent Announcements | Attendance Donut */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <RecentTicketsCard
+          recentTickets={recentTickets}
+          ticketsLoading={ticketsLoading}
+        />
+        <RecentAnnouncementsCard
+          recentAnnouncements={recentAnnouncements}
+          announcementsLoading={announcementsLoading}
+        />
         <DashboardAttendanceChart />
       </div>
 
-      {/* Row 2.5: AI Knowledge Feedback */}
+      {/* Row 4: AI Knowledge Feedback */}
       <DashboardAIFeedbackCard />
 
-      {/* Row 3: Recent Tickets + Announcements */}
-      <DashboardRecentSection
-        recentTickets={recentTickets}
-        ticketsLoading={ticketsLoading}
-        recentAnnouncements={recentAnnouncements}
-        announcementsLoading={announcementsLoading}
-      />
-
-      {/* Mascot Widget */}
+      {/* Floating mascot chat widget */}
       <DashboardMascotWidget />
     </div>
   );

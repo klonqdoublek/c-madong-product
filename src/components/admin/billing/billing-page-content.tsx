@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
-import { useBills, useBatchSendReminder } from "@/hooks/use-bills";
+import { useBills, useBatchSendReminder, useUpdateBillStatus } from "@/hooks/use-bills";
 import { formatCurrency, BILL_STATUS_COLORS, THAI_MONTHS } from "@/lib/utils";
 import type { BillStatus } from "@/lib/supabase/types";
 import {
@@ -32,6 +33,7 @@ import {
   TrendingUp,
   Send,
   Loader2,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminBreadcrumb } from "@/components/layout/admin-breadcrumb";
@@ -41,11 +43,17 @@ const currentYear = new Date().getFullYear();
 export function BillingPageContent() {
   const t = useTranslations("admin.billingPage");
   const tStatus = useTranslations("billing.status");
+  const searchParams = useSearchParams();
+  const isClaimsMode = searchParams.get("claims") === "1";
 
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState(isClaimsMode ? "claims" : "all");
   const [monthFilter, setMonthFilter] = useState<number | undefined>();
   const [yearFilter, setYearFilter] = useState<number | undefined>();
   const [selectedBills, setSelectedBills] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isClaimsMode) setStatusFilter("claims");
+  }, [isClaimsMode]);
 
   const { data: bills, isLoading } = useBills({
     status: statusFilter,
@@ -54,6 +62,7 @@ export function BillingPageContent() {
   });
 
   const batchSend = useBatchSendReminder();
+  const updateStatus = useUpdateBillStatus();
 
   // Compute stats
   const totalRevenue = bills
@@ -133,21 +142,49 @@ export function BillingPageContent() {
     }
   };
 
+  async function handleMarkPaid(billId: string) {
+    try {
+      await updateStatus.mutateAsync({ id: billId, status: "paid" });
+      toast.success("อัปเดตสถานะเป็น 'ชำระแล้ว' เรียบร้อย");
+    } catch {
+      toast.error("อัปเดตสถานะไม่สำเร็จ");
+    }
+  }
+
   return (
     <div className="animate-fade-in space-y-6">
       <AdminBreadcrumb />
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+          {isClaimsMode ? (
+            <>
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-amber-500" />
+                <h1 className="font-heading text-2xl font-bold">รายการแจ้งชำระเงิน LINE</h1>
+              </div>
+              <p className="text-sm text-muted-foreground">นิสิตแจ้งชำระเงินผ่าน LINE รอการตรวจสอบ</p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-heading text-2xl font-bold">{t("title")}</h1>
+              <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+            </>
+          )}
         </div>
-        <Link href="/admin/billing/create">
-          <Button className="gradient-primary text-white shadow-sm hover:opacity-90">
-            <Plus className="mr-1.5 h-4 w-4" />
-            {t("createBill")}
-          </Button>
-        </Link>
+        {!isClaimsMode && (
+          <Link href="/admin/billing/create">
+            <Button className="gradient-primary text-white shadow-sm hover:opacity-90">
+              <Plus className="mr-1.5 h-4 w-4" />
+              {t("createBill")}
+            </Button>
+          </Link>
+        )}
+        {isClaimsMode && (
+          <Link href="/admin/billing">
+            <Button variant="outline" size="sm">← ดูบิลทั้งหมด</Button>
+          </Link>
+        )}
       </div>
 
       {/* Stat Cards */}
@@ -187,6 +224,7 @@ export function BillingPageContent() {
             <SelectItem value="paid">{tStatus("paid")}</SelectItem>
             <SelectItem value="overdue">{tStatus("overdue")}</SelectItem>
             <SelectItem value="cancelled">{tStatus("cancelled")}</SelectItem>
+            <SelectItem value="claims">💬 แจ้งชำระ LINE</SelectItem>
           </SelectContent>
         </Select>
 
@@ -321,6 +359,22 @@ export function BillingPageContent() {
                       {tStatus(bill.status)}
                     </Badge>
                   </Link>
+                  {isClaimsMode && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="ml-2 shrink-0 border-green-300 text-green-700 hover:bg-green-50"
+                      disabled={updateStatus.isPending}
+                      onClick={() => handleMarkPaid(bill.id)}
+                    >
+                      {updateStatus.isPending ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="mr-1 h-3 w-3" />
+                      )}
+                      ชำระแล้ว
+                    </Button>
+                  )}
                 </div>
               ))
             ) : (

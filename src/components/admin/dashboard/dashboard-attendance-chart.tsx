@@ -2,74 +2,98 @@
 
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const MOCK_DATA = {
-  mandatory: 128,
-  external: 45,
-  internal: 82,
-};
-
-const SEGMENTS = [
-  { key: "mandatoryEvents" as const, field: "mandatory" as const, color: "#DD598B" },
-  { key: "externalEvents" as const, field: "external" as const, color: "#FBBF24" },
-  { key: "internalEvents" as const, field: "internal" as const, color: "#60A5FA" },
-];
+import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
+import { useAttendanceRate } from "@/hooks/use-dashboard-stats";
 
 export function DashboardAttendanceChart() {
   const t = useTranslations("admin.dashboardPage");
+  const { data, isLoading } = useAttendanceRate();
 
-  const total = MOCK_DATA.mandatory + MOCK_DATA.external + MOCK_DATA.internal;
+  const rate = data?.rate ?? 0;
+  const attended = data?.attended ?? 0;
+  const total = data?.total ?? 0;
+  const absent = total - attended;
+  const hasData = total > 0;
 
-  // Build conic gradient
-  let cumulative = 0;
-  const stops = SEGMENTS.map(({ field, color }) => {
-    const start = cumulative;
-    const pct = (MOCK_DATA[field] / total) * 100;
-    cumulative += pct;
-    return `${color} ${start}% ${cumulative}%`;
-  }).join(", ");
+  // Conic gradient: attended (pink) then absent (gray)
+  const attendedPct = hasData ? (attended / total) * 100 : 0;
+  const stops = hasData
+    ? `#DD598B 0% ${attendedPct}%, #E5E7EB ${attendedPct}% 100%`
+    : "#E5E7EB 0% 100%";
+
+  function handleExport() {
+    const rows = [
+      ["อัตราการเข้าร่วมกิจกรรม"],
+      ["เข้าร่วม", attended],
+      ["ขาด", absent],
+      ["ทั้งหมด", total],
+      ["อัตรา (%)", rate],
+    ];
+    const csv =
+      "﻿" +
+      rows.map((r) => r.map(String).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `attendance-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <Card className="shadow-card">
       <CardHeader className="pb-3">
-        <CardTitle className="font-heading text-base">
-          {t("attendanceChart")}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-heading text-base">{t("attendanceRateLabel")}</CardTitle>
+          <Button variant="outline" size="sm" onClick={handleExport} className="h-7 gap-1 text-xs">
+            <Download className="h-3 w-3" />
+            Export
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-6">
-          {/* Donut */}
-          <div className="relative flex h-32 w-32 shrink-0 items-center justify-center">
-            <div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background: `conic-gradient(${stops})`,
-              }}
-            />
-            <div className="relative flex h-20 w-20 flex-col items-center justify-center rounded-full bg-white">
-              <span className="font-heading text-lg font-bold">{total}</span>
-              <span className="text-[10px] leading-tight text-muted-foreground">
-                {t("totalParticipants")}
-              </span>
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="h-32 w-32 animate-pulse rounded-full bg-muted" />
           </div>
-
-          {/* Legend */}
-          <div className="flex flex-col gap-3">
-            {SEGMENTS.map(({ key, field, color }) => (
-              <div key={field} className="flex items-center gap-2">
-                <span
-                  className="h-3 w-3 shrink-0 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-xs text-muted-foreground">{t(key)}</span>
-                <span className="ml-auto font-heading text-sm font-bold">
-                  {MOCK_DATA[field]}
+        ) : !hasData ? (
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <div className="h-24 w-24 rounded-full border-4 border-muted" />
+            <p className="mt-3 text-sm">{t("attendanceRateEmpty")}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4">
+            {/* Donut */}
+            <div className="relative flex h-36 w-36 items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{ background: `conic-gradient(${stops})` }}
+              />
+              <div className="relative flex h-24 w-24 flex-col items-center justify-center rounded-full bg-white">
+                <span className="font-heading text-2xl font-bold text-foreground">{rate}%</span>
+                <span className="text-[10px] leading-tight text-muted-foreground">
+                  {t("attendanceChart")}
                 </span>
               </div>
-            ))}
+            </div>
+
+            {/* Legend */}
+            <div className="flex w-full justify-around text-center text-xs">
+              <div>
+                <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+                <p className="mt-1 text-muted-foreground">{t("attendanceAttended")}</p>
+                <p className="font-heading font-bold">{attended}</p>
+              </div>
+              <div>
+                <span className="inline-block h-2 w-2 rounded-full bg-muted-foreground/30" />
+                <p className="mt-1 text-muted-foreground">{t("attendanceAbsent")}</p>
+                <p className="font-heading font-bold">{absent}</p>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

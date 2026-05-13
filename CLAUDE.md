@@ -1102,6 +1102,67 @@ Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551).
 - **Two RPC functions**: `match_documents` (global, 8 results, threshold 0.2) vs `match_document_sections` (per-doc, 8 results, threshold 0.15). Admin per-doc Q&A uses the latter
 - **Debug RAG issues locally**: Use `scripts/` test scripts with `createClient(url, serviceRoleKey)` to query `document_sections` and test RPC directly
 
+---
+
+## Recent Changes (2026-05-13)
+
+### Figma Student Parcels + Billing UI Redesign — v3.6.0 — DEPLOYED
+
+**What was built**: Implemented two Figma mobile designs into the existing student routes without changing routes, DB schema, or data hooks.
+
+**Figma sources**:
+- Parcels: `https://www.figma.com/design/Yt0ysSuJ3CrRD7a3YKyXfj/-UI--DESIGN-FILE?node-id=1925-3827&m=dev`
+- Dorm bill: `https://www.figma.com/design/Yt0ysSuJ3CrRD7a3YKyXfj/-UI--DESIGN-FILE?node-id=1374-13187&m=dev`
+
+**Files modified**:
+- `src/components/student/parcels-page-content.tsx` — redesigned `/parcels` with CU cream background, sticky compact header, featured parcel hero card, pickup-location dashed card, search, unclaimed/claimed tabs, grouped list cards, and pending/received/failed status pills.
+- `src/components/student/billing/billing-page-content.tsx` — redesigned `/billing` with pending bill header, pink gradient total card, category breakdown chips, invoice/receipt download buttons, due reminder card, due-date details, auto-debit bank row, and searchable transaction history.
+
+**Implementation notes**:
+- Reused existing hooks: `useMyParcels()` and `useMyBills()`.
+- Kept route URLs unchanged: `/th/parcels`, `/th/billing`, `/th/billing/[id]`.
+- Used existing Tailwind v4 CU tokens and local fonts (`font-heading`, `font-body`, `text-cu-pink`, `bg-cu-cream`, etc.).
+- Used `lucide-react` icons already available in the project instead of introducing icon/image dependencies.
+- Did not copy Figma status bar/home indicator into production UI because the app runs inside real mobile/browser chrome; only the screen content was implemented.
+- Figma asset URLs from MCP are short-lived and were intentionally not embedded.
+
+**Verification**:
+- `npx eslint src/components/student/parcels-page-content.tsx src/components/student/billing/billing-page-content.tsx` passed.
+- `npm run build` passed after allowing network access for `next/font` Google Fonts (`Geist`, `Geist Mono`).
+- Local HEAD already included this work in commit `777c001`; latest `main` was already pushed to `origin/main`.
+
+**Gotchas**:
+- Auth middleware redirects direct `/th/parcels` and `/th/billing` requests to login unless a valid session exists. For unauthenticated local route smoke checks, LIFF bypass query (`?liff.state=test`) returns 200.
+- Whole-repo `npm run lint` currently reports many unrelated pre-existing issues in `.claude/worktrees`, scripts, and older app files. Use targeted ESLint for touched files unless doing a dedicated lint-cleanup pass.
+- `npm run build` can fail in sandboxed/offline mode because `next/font/google` must fetch Geist fonts. Rerun with network access before concluding build is broken.
+
+---
+
+### Chatbot Billing Intent + Postback Bug Fixes — v3.6.0 — DEPLOYED
+
+**What was built**: Three chatbot correctness fixes. The billing intent was silently dropped on every AI call. The `remind_bill` and `confirm_payment` postbacks were stubs.
+
+**Files modified**:
+- `src/lib/chatbot/types.ts` — `"billing"` added to `ChatIntent` union
+- `src/lib/chatbot/intent-router.ts` — `"billing"` added to `validIntents`
+- `src/lib/chatbot/handlers/billing.ts` — NEW handler
+- `src/lib/chatbot/handlers/index.ts` — export added
+- `src/lib/chatbot/suggestions.ts` — `billing` key added to `Record<ChatIntent, ...>`
+- `src/lib/chatbot/webhook-handler.ts` — `BILLING_KEYWORDS`, `isBillingRelated()`, `case "billing":`, import
+- `src/lib/chatbot/handlers/postback.ts` — `handleRemindBill()` real impl (dispatch log delete + reply); `handleConfirmPayment()` real impl (`bills.admin_notes` write + reply)
+- `src/lib/chatbot/flex-builders/events-carousel.ts` — footer button `postback` → `uri`
+
+**Commits**: `777c001`, `5d2fa42`, `7d70ac6`
+
+**Gotchas**:
+- **Adding a new chatbot intent requires 4 changes, not 1** — `ChatIntent` type union, `validIntents` array in `intent-router.ts`, the `Record<ChatIntent, ...>` map in `suggestions.ts`, and the `case "X":` branch in `webhook-handler.ts`. The billing intent was missing from all four: AI returned the right classification but `parseIntentJson` rejected it and fell through to chitchat silently. Checklist: (1) type, (2) validIntents, (3) suggestions map, (4) webhook switch.
+- **`notification_dispatch_log` dedup key pattern: `bill_due:{billId}:{daysUntilDue}`** — three day-window rows (0, 1, 3) are written per bill per cron cycle. To re-arm a reminder via `remind_bill` postback, delete all three rows. The cron re-pushes on next 09:00 ICT run. Do NOT modify the `bills` table from the postback handler — only the dispatch log controls re-sending.
+- **`confirm_payment` uses `bills.admin_notes` as a log field, not a dedicated column** — there is no `student_payment_claimed_at` column. Claim is a freeform append `[LINE] นิสิตแจ้งชำระเงินผ่าน LINE เมื่อ {datetime}`. Admin reads it manually; no webhook fires on this write. A dedicated admin UI to surface these claims is still deferred.
+- **LINE Flex footer button `type: "postback"` silently fires chatbot webhook instead of opening webapp** — any button whose purpose is "open a URL" must use `type: "uri"`. A postback-typed button with a URL as the `data` field just triggers the webhook and replies text — the app never opens. Always use `type: "uri"` + `uri: "${WEB_BASE}/..."` for navigation buttons in Flex messages.
+- **`isBillingRelated()` fast-path belongs before the AI classifier call** — keyword matching runs in <1ms and handles predictable high-frequency billing queries (ค่าน้ำ, ค่าไฟ, บิล, ชำระ) without a GPT round-trip. This pattern is already used for repair (`isRepairTriggerOnly`) and should be applied to any intent with obvious keyword signals.
+
+---
+
 ## Token Optimization & Anti-Over-Engineering Guidelines
 
 ### Session Efficiency Rules

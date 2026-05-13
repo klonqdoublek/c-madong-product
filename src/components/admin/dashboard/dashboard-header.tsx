@@ -77,10 +77,10 @@ export function DashboardHeader() {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h1 className="font-heading text-2xl font-bold text-foreground">
+        <h1 className="font-heading text-2xl font-bold text-primary lg:text-3xl">
           {t("greeting", { name })}
         </h1>
-        <p className="text-sm text-muted-foreground">{t("systemSubtitle")}</p>
+        <p className="mt-0.5 text-base text-muted-foreground">{t("systemSubtitle")}</p>
       </div>
       <div className="flex items-center gap-2">
         <DropdownMenu>

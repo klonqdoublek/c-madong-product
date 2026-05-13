@@ -534,7 +534,22 @@
       "mandatoryEvents": "กิจกรรมบังคับ",
       "externalEvents": "กิจกรรมภายนอก",
       "internalEvents": "กิจกรรมภายใน",
-      "askNongC": "ถามน้องซี"
+      "askNongC": "ถามน้องซี",
+      "totalStudentsSub": "+1% จากสัปดาห์ก่อน",
+      "activeTicketsSub": "{count} รายการรอดำเนินการ",
+      "liveChatLabel": "Live Chat",
+      "liveChatSub": "แชทรอการตอบกลับ",
+      "sentThisMonthSub": "{pending} รายการกำหนดส่ง",
+      "lineClaimsTitle": "รายการแจ้งชำระเงิน LINE",
+      "lineClaimsSub": "{count} รายการ — นิสิตแจ้งชำระเงินผ่าน LINE รอตรวจสอบ",
+      "lineClaimsViewBtn": "ดูรายการ →",
+      "calendarSection": "ปฏิทินและกิจกรรมหอพัก",
+      "upcomingLabel": "กิจกรรมที่กำลังจะถึง",
+      "maintenanceTrendLabel": "กิจกรรมแจ้งซ่อม 14 วัน",
+      "attendanceRateLabel": "อัตราการเข้าร่วม",
+      "attendanceRateEmpty": "ยังไม่มีข้อมูล",
+      "attendanceAttended": "เข้าร่วม",
+      "attendanceAbsent": "ขาด"
     },
     "serviceDesk": {
       "title": "ศูนย์ซ่อมบำรุง",

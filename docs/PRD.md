@@ -1,7 +1,7 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.6
-> **Last Updated**: 2026-05-12
+> **Version**: 3.7
+> **Last Updated**: 2026-05-13
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
 
@@ -71,7 +71,8 @@ C-Madong Platform
 │   ├── LINE Login (OAuth) ✅
 │   ├── Flex Message Broadcasting ✅
 │   ├── Webhook (events & messaging) ✅
-│   └── Chatbot น้องซีมะโด่ง (intent router, RAG, vision AI, chitchat) ✅
+│   ├── Chatbot น้องซีมะโด่ง (intent router, RAG, vision AI, chitchat, billing) ✅
+│   └── Proactive Notification Stack (push-gate, context-fetcher, 3 cron routes) ✅ v3.5.0
 │
 ├── AI Layer ✅
 │   ├── RepairOrchestrator (multi-agent coordination)
@@ -1188,6 +1189,75 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 **Not in scope**: Performance/SEO (Phase 9.5), dark mode, Figma pixel audit, mock/prototype pages.
 
 **Deferred to Phase 9.5**: Skeleton loading states on 3 pages; remaining hardcoded Thai strings in 5 files; `StatusBadge` shared component.
+
+---
+
+### Phase 10: Proactive Notification Stack — v3.5.0 — DEPLOYED (2026-05-12, prior session)
+
+**What was built**: Server-side adaptive UX layer that proactively pushes LINE messages to students based on context (unpaid bills, stale parcels, low score). Replaces the previous passive-only notification model.
+
+**New files**:
+- `src/lib/notifications/push-gate.ts` — quiet hours check + per-student daily rate limit (prevents spam) + `notification_dispatch_log` dedup by `payload_hash`
+- `src/lib/notifications/context-fetcher.ts` — parallel fetches (500ms timeout) for bills, tickets, parcels, events; graceful fallback to static suggestions
+- `src/lib/chatbot/flex-builders/context-prepend.ts` — proactive context bubble prepended to chatbot replies
+- `src/app/api/cron/bill-due-reminders/route.ts` — daily 09:00 ICT cron; fetches bills due within 3/1/0 days; pushes `buildBillReminderFlex` to student LINE
+- `src/app/api/cron/parcel-stale-reminders/route.ts` — daily cron; flags parcels uncollected > X days; pushes Flex reminder
+- `src/app/api/cron/score-threshold-warning/route.ts` — daily cron; warns students approaching score fail threshold
+
+**New DB** (migration `20260514_proactive_notifications.sql`):
+- `profiles.push_enabled` (boolean) — student opt-in toggle; default true
+- `profiles.last_seen_at` (timestamptz) — updated on chatbot interaction; used for quiet-hours calc
+- `notification_dispatch_log` table — `(profile_id, payload_hash, sent_at)` for dedup; `payload_hash` pattern: `bill_due:{billId}:{daysUntilDue}`
+
+**Modified**:
+- `src/app/api/student/profile/route.ts` (PATCH) — wired to `push_enabled` toggle
+- `src/lib/chatbot/webhook-handler.ts` — `unlinkUserMenu()` called on unfollow event (was missing → bug fix)
+
+**Acceptance Criteria**:
+- [x] Bill-due reminder pushed 3 days, 1 day, and same-day before due date (deduped per window)
+- [x] Parcel stale reminder triggered after configured staleness threshold
+- [x] Score threshold warning triggered when student score approaches fail threshold
+- [x] Student can opt out via `push_enabled` toggle
+- [x] Rate limit and quiet hours enforced via `push-gate.ts`
+- [x] Unfollow event correctly unlinks rich menu
+
+---
+
+### Phase 10.1: Chatbot Billing & Postback Bug Fixes — v3.6.0 — DEPLOYED (2026-05-13)
+
+**What was built**: Three chatbot correctness fixes. The billing intent had never worked (missing from `ChatIntent` type). The `remind_bill` and `confirm_payment` postbacks were stubs that did nothing.
+
+**Bug 1 — Billing intent never reached handler**:
+- `src/lib/chatbot/types.ts` — added `"billing"` to `ChatIntent` union type
+- `src/lib/chatbot/intent-router.ts` — added `"billing"` to `validIntents` array
+- `src/lib/chatbot/handlers/billing.ts` — NEW: `handleBilling(lineUid)` fetches student's pending bills from `bills` table, returns `buildBillReminderFlex()` for most-urgent bill, or "ไม่พบบิลค้างชำระ" text if none
+- `src/lib/chatbot/handlers/index.ts` — exported `handleBilling`
+- `src/lib/chatbot/suggestions.ts` — added `billing` quick reply menu to the `Record<ChatIntent, ...>` map
+- `src/lib/chatbot/webhook-handler.ts` — added `BILLING_KEYWORDS`, `isBillingRelated()` fast-path before AI classifier, `case "billing":` in intent switch, imported `handleBilling`
+- **Root cause**: AI could return `intent: "billing"` but `parseIntentJson()` rejected it as not in `validIntents` → fell to chitchat every time
+
+**Bug 2 — `remind_bill` postback was a stub**:
+- `src/lib/chatbot/handlers/postback.ts` — replaced stub `handleRemindBill()` with real implementation: fetches bill + profile, validates ownership, returns "บิลชำระแล้ว" if paid, deletes `notification_dispatch_log` rows for day-windows 0/1/3 of that bill (unlocks cron re-push), replies with exact next-push time and due date + CTA to `/th/billing`
+
+**Bug 3 — `confirm_payment` postback was a stub**:
+- `src/lib/chatbot/handlers/postback.ts` — replaced stub `handleConfirmPayment()` with real implementation: fetches bill + profile, validates ownership, returns "บิลชำระแล้ว" if paid, appends `admin_notes` timestamped claim (`[LINE] นิสิตแจ้งชำระเงินผ่าน LINE เมื่อ {datetime}`), replies that payment is recorded and admin will verify within 1–2 business days + CTA to `/th/billing`
+
+**Events carousel bug**:
+- `src/lib/chatbot/flex-builders/events-carousel.ts` — footer button changed from `type: "postback"` to `type: "uri"` pointing to `${WEB_BASE}/th/events/${event.id}` — was silently replying text instead of opening the webapp
+
+**Commits**: `777c001`, `5d2fa42`, `7d70ac6`
+**Deploy status**: DEPLOYED — https://c-madong-product.vercel.app
+
+**Acceptance Criteria**:
+- [x] User message containing bill-related keywords (ค่าน้ำ, ค่าไฟ, ค่าหอ, บิล, ชำระ) triggers `handleBilling`
+- [x] `handleBilling` returns correct Flex for pending bills or "no bills" text when clean
+- [x] `remind_bill` postback deletes dispatch log rows and replies with next push time
+- [x] `confirm_payment` postback writes timestamped claim to `bills.admin_notes`
+- [x] Events carousel "ลงทะเบียน" button opens webapp (not chatbot text reply)
+- [x] `billing` intent is retained through `parseIntentJson` validation without falling to chitchat
+
+**Deferred**:
+- Admin-side payment confirmation flow (admin sees the `admin_notes` claim and manually marks bill paid — no dedicated admin UI yet)
 
 ---
 

@@ -34,7 +34,9 @@ export async function GET(request: NextRequest) {
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (status && status !== "all") {
+    if (status === "claims") {
+      query = query.ilike("admin_notes", "%[LINE]%").eq("status", "pending");
+    } else if (status && status !== "all") {
       query = query.eq("status", status as "pending" | "paid" | "overdue" | "cancelled");
     }
     if (buildingId) {

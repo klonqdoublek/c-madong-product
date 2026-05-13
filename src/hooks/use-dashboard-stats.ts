@@ -13,6 +13,7 @@ export interface DashboardStats {
   pendingScheduled: number;
   pendingBills: number;
   overdueBills: number;
+  liveChatCount: number;
 }
 
 export function useDashboardStats() {
@@ -24,42 +25,20 @@ export function useDashboardStats() {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      const [studentsRes, openRes, inProgressRes, completedRes, sentRes, scheduledRes, pendingBillsRes, overdueBillsRes] =
-        await Promise.all([
-          supabase
-            .from("profiles")
-            .select("id", { count: "exact", head: true })
-            .eq("role", "student"),
-          supabase
-            .from("maintenance_requests")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "pending"),
-          supabase
-            .from("maintenance_requests")
-            .select("id", { count: "exact", head: true })
-            .in("status", ["acknowledged", "in_progress"]),
-          supabase
-            .from("maintenance_requests")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "completed"),
-          supabase
-            .from("announcements")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "sent")
-            .gte("sent_at", startOfMonth),
-          supabase
-            .from("announcements")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "scheduled"),
-          supabase
-            .from("bills")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "pending"),
-          supabase
-            .from("bills")
-            .select("id", { count: "exact", head: true })
-            .eq("status", "overdue"),
-        ]);
+      const [
+        studentsRes, openRes, inProgressRes, completedRes,
+        sentRes, scheduledRes, pendingBillsRes, overdueBillsRes, liveChatRes,
+      ] = await Promise.all([
+        supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
+        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }).in("status", ["acknowledged", "in_progress"]),
+        supabase.from("maintenance_requests").select("id", { count: "exact", head: true }).eq("status", "completed"),
+        supabase.from("announcements").select("id", { count: "exact", head: true }).eq("status", "sent").gte("sent_at", startOfMonth),
+        supabase.from("announcements").select("id", { count: "exact", head: true }).eq("status", "scheduled"),
+        supabase.from("bills").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("bills").select("id", { count: "exact", head: true }).eq("status", "overdue"),
+        supabase.from("chat_escalations").select("id", { count: "exact", head: true }).in("status", ["waiting", "active"]),
+      ]);
 
       return {
         totalStudents: studentsRes.count ?? 0,
@@ -70,8 +49,104 @@ export function useDashboardStats() {
         pendingScheduled: scheduledRes.count ?? 0,
         pendingBills: pendingBillsRes.count ?? 0,
         overdueBills: overdueBillsRes.count ?? 0,
+        liveChatCount: liveChatRes.count ?? 0,
       };
     },
+  });
+}
+
+export interface LineClaim {
+  id: string;
+  total_amount: number;
+  billing_month: number;
+  billing_year: number;
+  billing_round: number;
+  admin_notes: string;
+  student_id: string;
+}
+
+export function useLineClaims() {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["line-claims"],
+    queryFn: async (): Promise<LineClaim[]> => {
+      const { data, error } = await supabase
+        .from("bills")
+        .select("id, total_amount, billing_month, billing_year, billing_round, admin_notes, student_id")
+        .ilike("admin_notes", "%[LINE]%")
+        .eq("status", "pending")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []) as any[];
+    },
+    staleTime: 60 * 1000,
+  });
+}
+
+export interface TrendPoint {
+  date: string;
+  count: number;
+}
+
+export function useMaintenanceTrend() {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["maintenance-trend"],
+    queryFn: async (): Promise<TrendPoint[]> => {
+      const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("maintenance_requests")
+        .select("created_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+
+      // Group by date
+      const counts: Record<string, number> = {};
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+        const key = d.toISOString().slice(0, 10);
+        counts[key] = 0;
+      }
+      for (const row of data ?? []) {
+        const key = row.created_at.slice(0, 10);
+        if (key in counts) counts[key]++;
+      }
+      return Object.entries(counts).map(([date, count]) => ({ date, count }));
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export interface AttendanceRate {
+  rate: number;
+  attended: number;
+  total: number;
+}
+
+export function useAttendanceRate() {
+  const supabase = useSupabase();
+
+  return useQuery({
+    queryKey: ["attendance-rate"],
+    queryFn: async (): Promise<AttendanceRate> => {
+      const { data, error } = await supabase
+        .from("event_attendance")
+        .select("status");
+      if (error) throw error;
+      const rows = data ?? [];
+      const attended = rows.filter((r) => r.status === "present" || r.status === "attended").length;
+      const total = rows.length;
+      return {
+        rate: total > 0 ? Math.round((attended / total) * 100) : 0,
+        attended,
+        total,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -92,9 +167,7 @@ export function useRecentTickets(limit = 5) {
     queryFn: async (): Promise<RecentTicket[]> => {
       const { data, error } = await supabase
         .from("maintenance_requests_with_requester" as "maintenance_requests")
-        .select(
-          "id, title, status, category, created_at, requester_name_th, requester_name_en"
-        )
+        .select("id, title, status, category, created_at, requester_name_th, requester_name_en")
         .order("created_at", { ascending: false })
         .limit(limit);
       if (error) throw error;
