@@ -53,6 +53,7 @@ interface NavItem {
   label: string;
   icon?: React.ReactNode;
   permission?: string;
+  activeMatch?: (pathname: string) => boolean;
 }
 
 interface NavGroup {
@@ -91,8 +92,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return groups;
   });
 
-  const toggleGroup = (key: string) => {
-    setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+  const matchAdminSection = (href: string, reservedChildren: string[] = []) => {
+    return (currentPathname: string) => {
+      if (currentPathname === href) return true;
+      if (!currentPathname.startsWith(`${href}/`)) return false;
+
+      const nextSegment = currentPathname.slice(href.length + 1).split("/")[0];
+      return !reservedChildren.includes(nextSegment);
+    };
   };
 
   // Top-level nav item
@@ -109,7 +116,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       icon: <Megaphone className="h-4 w-4" />,
       permission: Permission.ANNOUNCEMENTS_VIEW,
       items: [
-        { href: "/admin/announcements", label: t("navAllAnnouncements") },
+        {
+          href: "/admin/announcements",
+          label: t("navAllAnnouncements"),
+          activeMatch: matchAdminSection("/admin/announcements", ["new", "organize", "bot-library", "prototype"]),
+        },
         { href: "/admin/announcements/new", label: t("navNewAnnouncement"), permission: Permission.ANNOUNCEMENTS_CREATE },
         { href: "/admin/announcements/organize", label: t("breadcrumb.organize"), icon: <FolderTree className="h-3.5 w-3.5" />, permission: Permission.ANNOUNCEMENTS_VIEW },
         { href: "/admin/announcements/bot-library", label: t("navBotLibrary"), icon: <Bot className="h-3.5 w-3.5" />, permission: Permission.ANNOUNCEMENTS_VIEW },
@@ -121,7 +132,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       label: t("navMaintenance"),
       icon: <Wrench className="h-4 w-4" />,
       items: [
-        { href: "/admin/maintenance", label: t("navKanbanBoard") },
+        {
+          href: "/admin/maintenance",
+          label: t("navKanbanBoard"),
+          activeMatch: matchAdminSection("/admin/maintenance", ["technicians", "requisitions", "all"]),
+        },
         { href: "/admin/maintenance/all", label: t("navAllTickets") },
       ],
     },
@@ -178,24 +193,37 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  const isGroupActive = (group: NavGroup) => {
-    return group.items.some((item) => isActive(item.href));
+  const isItemActive = (item: NavItem) => {
+    if (item.activeMatch) return item.activeMatch(pathname);
+    return isActive(item.href);
   };
 
-  const linkClasses = (href: string) =>
+  const isGroupActive = (group: NavGroup) => {
+    return group.items.some((item) => isItemActive(item));
+  };
+
+  const linkClasses = (active: boolean) =>
     cn(
-      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all duration-200",
-      isActive(href)
-        ? "bg-white text-primary font-medium shadow-lg"
-        : "text-white/80 hover:bg-white/20 hover:text-white"
+      "flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+      active
+        ? "bg-white/[0.18] text-white font-medium shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+        : "text-white/70 hover:bg-white/10 hover:text-white"
     );
 
-  const subLinkClasses = (href: string) =>
+  const groupTriggerClasses = (active: boolean) =>
     cn(
-      "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-all duration-200",
-      isActive(href)
-        ? "bg-white/20 text-white font-medium"
-        : "text-white/60 hover:bg-white/10 hover:text-white/90"
+      "flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm transition-all duration-200",
+      active
+        ? "bg-white/[0.12] text-white"
+        : "text-white/80 hover:bg-white/10 hover:text-white"
+    );
+
+  const subLinkClasses = (active: boolean) =>
+    cn(
+      "flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-all duration-200",
+      active
+        ? "bg-white/[0.16] text-white font-medium"
+        : "text-white/60 hover:bg-white/[0.08] hover:text-white/90"
     );
 
   // ── Collapsed sidebar (icon-only) ──────────────────────────────
@@ -226,15 +254,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {/* Overview */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link
-                href={overviewItem.href}
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
-                  isActive(overviewItem.href)
-                    ? "bg-white text-primary shadow-lg"
-                    : "text-white/80 hover:bg-white/20 hover:text-white"
-                )}
-              >
+                <Link
+                  href={overviewItem.href}
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
+                    isActive(overviewItem.href)
+                      ? "bg-white/[0.18] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
+                      : "text-white/80 hover:bg-white/20 hover:text-white"
+                  )}
+                >
                 <LayoutDashboard className="h-4 w-4" />
               </Link>
             </TooltipTrigger>
@@ -250,7 +278,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
                     isGroupActive(group)
-                      ? "bg-white text-primary shadow-lg"
+                      ? "bg-white/[0.18] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
                       : "text-white/80 hover:bg-white/20 hover:text-white"
                   )}
                 >
@@ -270,7 +298,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                   className={cn(
                     "flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200",
                     isActive(item.href)
-                      ? "bg-white text-primary shadow-lg"
+                      ? "bg-white/[0.18] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]"
                       : "text-white/80 hover:bg-white/20 hover:text-white"
                   )}
                 >
@@ -354,7 +382,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {/* Overview */}
         <Link
           href={overviewItem.href}
-          className={linkClasses(overviewItem.href)}
+          className={linkClasses(isActive(overviewItem.href))}
           onClick={() => setSidebarOpen(false)}
         >
           <LayoutDashboard className="h-4 w-4" />
@@ -366,9 +394,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Collapsible
             key={group.key}
             open={openGroups[group.key] ?? isGroupActive(group)}
-            onOpenChange={() => toggleGroup(group.key)}
+            onOpenChange={(open) => setOpenGroups((prev) => ({ ...prev, [group.key]: open }))}
           >
-            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-white/80 transition-all duration-200 hover:bg-white/20 hover:text-white">
+            <CollapsibleTrigger className={groupTriggerClasses(isGroupActive(group))}>
               <span className="flex items-center gap-2">
                 {group.icon}
                 {group.label}
@@ -380,12 +408,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 )}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-1 space-y-0.5 pl-4">
+            <CollapsibleContent className="mt-1 space-y-1 pl-4">
               {group.items.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={subLinkClasses(item.href)}
+                  className={subLinkClasses(isItemActive(item))}
                   onClick={() => setSidebarOpen(false)}
                 >
                   {item.icon}
@@ -401,7 +429,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Link
             key={item.href}
             href={item.href}
-            className={linkClasses(item.href)}
+            className={linkClasses(isActive(item.href))}
             onClick={() => setSidebarOpen(false)}
           >
             {item.icon}
