@@ -219,6 +219,8 @@ export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectio
               disabled={creatingRequisition || updateMaterials.isPending}
               onClick={async () => {
                 setCreatingRequisition(true);
+                // Open window synchronously (before await) so browser doesn't block it as a popup
+                const printWindow = window.open("", "_blank");
                 try {
                   const res = await fetch(
                     `/api/admin/maintenance/${ticketId}/requisitions`,
@@ -226,8 +228,14 @@ export function MaterialsSection({ ticketId, initialMaterials }: MaterialsSectio
                   );
                   if (res.ok) {
                     const { id } = await res.json();
-                    window.open(`/${locale}/print/requisition/${id}`, "_blank");
+                    if (printWindow) {
+                      printWindow.location.href = `/${locale}/print/requisition/${id}`;
+                    }
+                  } else {
+                    printWindow?.close();
                   }
+                } catch {
+                  printWindow?.close();
                 } finally {
                   setCreatingRequisition(false);
                 }
