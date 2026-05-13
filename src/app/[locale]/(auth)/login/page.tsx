@@ -211,7 +211,7 @@ function LoginContent() {
 
                   {/* Mobile mascot circle overlap */}
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 lg:hidden">
-                    <div className="flex size-[80px] items-center justify-center rounded-full border border-[#e2e2e2] bg-cu-cream-light shadow-md">
+                    <div className="flex size-[80px] items-center justify-center rounded-full border border-[#e2e2e2] bg-cu-cream shadow-md">
                       <Image
                         src="/images/mascot.svg"
                         alt="Mascot"
@@ -430,9 +430,21 @@ function LogoSmall() {
     <div className="flex flex-col items-center gap-3">
       <div className="relative size-[80px]">
         <BellIcon className="size-full" isWhite />
+        {/* sparkle star top-right */}
+        <svg
+          className="absolute -right-2 -top-2 size-6"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 2L13.5 9.5L21 11L13.5 12.5L12 20L10.5 12.5L3 11L10.5 9.5L12 2Z"
+            fill="white"
+          />
+        </svg>
       </div>
       <h2 className="font-heading text-3xl font-bold tracking-tight text-white">
-        C-MADONG
+        C - MADONG
       </h2>
     </div>
   );
