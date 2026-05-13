@@ -34,11 +34,7 @@ export async function handlePostback(
       break
 
     case "remind_bill":
-      await replyMessage(replyToken, {
-        type: "text",
-        text: "ได้เลยจ้า! ซีมะโด่งจะเตือนอีกครั้งนะ 🔔",
-        quickReply: { items: getQuickReplyForPostback("remind_bill") },
-      })
+      await handleRemindBill(replyToken, params, lineUid)
       break
 
     case "confirm_payment":
@@ -620,6 +616,112 @@ async function handleConfirmParcelReceived(
       type: "text",
       text: "อุ๊ปส์! อัปเดตไม่ได้น้า 😅 ลองอีกทีนะ",
       quickReply: { items: getQuickReplyForPostback("confirm_parcel_received") },
+    })
+  }
+}
+
+async function handleRemindBill(
+  replyToken: string,
+  params: URLSearchParams,
+  lineUid: string
+): Promise<void> {
+  const billId = params.get("bill_id")
+  const WEB_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://c-madong-product.vercel.app"
+
+  if (!billId) {
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "ไม่พบข้อมูลบิลจ้า ลองเช็คบิลใหม่อีกครั้งนะ",
+      quickReply: { items: getQuickReplyForPostback("remind_bill") },
+    })
+    return
+  }
+
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const adminDb = createAdminClient()
+
+    // Fetch bill + owner profile in parallel
+    const [billRes, profileRes] = await Promise.all([
+      adminDb
+        .from("bills")
+        .select("id, total_amount, due_date, status, student_id")
+        .eq("id", billId)
+        .single(),
+      adminDb
+        .from("profiles")
+        .select("id, line_uid, push_enabled")
+        .eq("line_uid", lineUid)
+        .single(),
+    ])
+
+    const bill = billRes.data
+    const profile = profileRes.data
+
+    if (!bill || !profile || bill.student_id !== profile.id) {
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ไม่พบข้อมูลบิลจ้า ลองเช็คบิลใหม่อีกครั้งนะ",
+        quickReply: { items: getQuickReplyForPostback("remind_bill") },
+      })
+      return
+    }
+
+    // Bill already paid → no reminder needed
+    if (bill.status === "paid") {
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "บิลนี้ชำระแล้วจ้า ✅ ไม่ต้องเตือนแล้วนะ",
+        quickReply: { items: getQuickReplyForPostback("remind_bill") },
+      })
+      return
+    }
+
+    // Clear dedup entries for this bill so cron can push again
+    // Matches payload_hash patterns for all day-windows of this bill
+    const { hashPayload } = await import("@/lib/notifications/push-gate")
+    const hashes = [0, 1, 3].map((d) => hashPayload(`bill_due:${billId}:${d}`))
+    await adminDb
+      .from("notification_dispatch_log")
+      .delete()
+      .eq("user_id", profile.id)
+      .eq("notification_type", "bill")
+      .in("payload_hash", hashes)
+
+    // Compute due date info for the reply message
+    const now = new Date()
+    const dueMs = new Date(bill.due_date).getTime()
+    const daysUntilDue = Math.ceil((dueMs - now.getTime()) / (1000 * 60 * 60 * 24))
+
+    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+    const d = new Date(bill.due_date)
+    const dueDateTh = `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`
+
+    let reminderDetail: string
+    if (daysUntilDue <= 0) {
+      reminderDetail = "บิลนี้ครบกำหนดแล้วจ้า — น้องซีจะส่งการแจ้งเตือนพรุ่งนี้เช้า (09:00 น.) 🔔"
+    } else if (daysUntilDue === 1) {
+      reminderDetail = "น้องซีจะเตือนอีกครั้งพรุ่งนี้เช้า (09:00 น.) ก่อนครบกำหนดนะ 🔔"
+    } else {
+      reminderDetail = `น้องซีจะเตือนอีกครั้งพรุ่งนี้เช้า (09:00 น.) และวันที่ ${dueDateTh} จ้า 🔔`
+    }
+
+    await replyMessage(replyToken, {
+      type: "text",
+      text: `ตั้งการแจ้งเตือนแล้วจ้า! ✅\n\n${reminderDetail}\n\n💰 ยอด ฿${bill.total_amount.toLocaleString()} — ครบกำหนด ${dueDateTh}\n\nชำระล่วงหน้าได้เลยที่ปุ่มด้านล่างนะ 👇`,
+      quickReply: {
+        items: [
+          { type: "action", action: { type: "uri", label: "💳 ไปชำระเงิน", uri: `${WEB_BASE}/th/billing` } },
+          { type: "action", action: { type: "message", label: "🏠 เมนูหลัก", text: "เมนู" } },
+        ],
+      },
+    })
+  } catch (err) {
+    console.error("[Postback] RemindBill error:", err)
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! เกิดข้อผิดพลาดน้า 😅 ลองอีกทีนะ",
+      quickReply: { items: getQuickReplyForPostback("remind_bill") },
     })
   }
 }
