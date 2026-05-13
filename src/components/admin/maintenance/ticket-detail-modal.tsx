@@ -40,6 +40,24 @@ import { MaterialsSection } from "./materials-section";
 import { formatTicketCode } from "@/lib/utils/ticket-code";
 import type { MaterialItem } from "@/lib/supabase/types";
 
+function isMaterialItem(value: unknown): value is MaterialItem {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const item = value as Record<string, unknown>;
+
+  return (
+    typeof item.name === "string" &&
+    typeof item.quantity === "number" &&
+    typeof item.unit === "string"
+  );
+}
+
+function normalizeMaterials(value: unknown): MaterialItem[] {
+  return Array.isArray(value) ? value.filter(isMaterialItem) : [];
+}
+
 interface TicketDetailModalProps {
   ticketId: string | null;
   open: boolean;
@@ -366,7 +384,7 @@ export function TicketDetailModal({
               <div>
                 <MaterialsSection
                   ticketId={ticket.id}
-                  initialMaterials={(ticket.materials ?? []) as MaterialItem[]}
+                  initialMaterials={normalizeMaterials(ticket.materials)}
                 />
               </div>
 

@@ -1,6 +1,6 @@
 # C-Madong Product Requirements Document (PRD)
 
-> **Version**: 3.7
+> **Version**: 3.8
 > **Last Updated**: 2026-05-13
 > **Author**: Khaoklong (Product Designer)
 > **Status**: In Development
@@ -346,18 +346,21 @@ C-Madong Platform
 
 ### 2.7 Admin Dashboard & Analytics
 
-#### US-7.1: Dashboard Overview
+#### US-7.1: Dashboard Overview ✅ REDESIGNED v3.7.0 (2026-05-13)
 > **As an** admin, **I want to** see key metrics, **so that** I can monitor dorm operations.
 
 **Features:**
-- [ ] Total students count
-- [ ] Open maintenance tickets
-- [ ] Pending bills
-- [ ] Parcel count
-- [ ] Recent announcements feed
-- [ ] Recent maintenance tickets
-- [ ] Real-time updates via Supabase subscriptions
-- [ ] Charts & analytics (Phase 5+)
+- [x] Total students count — KPI hero card
+- [x] Open maintenance tickets — KPI hero card
+- [x] Live chat count — KPI hero card (new field v3.7.0)
+- [x] Announcements sent this month — KPI hero card
+- [x] LINE payment claims alert — amber card linking to `/admin/billing?claims=1`
+- [x] Mini calendar grid with prev/next nav + upcoming events list
+- [x] 14-day maintenance trend AreaChart (recharts)
+- [x] Event attendance donut chart (real data)
+- [x] Recent tickets card + recent announcements card (3-col layout)
+- [x] Charts & analytics (recharts, v3.0.0 Phase 8)
+- [ ] Real-time KPI streaming (still 5-min staleTime; deferred)
 
 **AI Feedback Analytics Card ✅ DEPLOYED (2026-04-24):**
 แสดงบน admin dashboard — สรุปความพอใจของ admin ต่อคำแนะนำจาก AI upload ช่วง 30 วันย้อนหลัง
@@ -1220,6 +1223,81 @@ Detailed plan: [`docs/phase9-plan.md`](phase9-plan.md)
 - [x] Student can opt out via `push_enabled` toggle
 - [x] Rate limit and quiet hours enforced via `push-gate.ts`
 - [x] Unfollow event correctly unlinks rich menu
+
+---
+
+### Phase 10.2: Admin Dashboard Overhaul + LINE Claims UI — v3.7.0 — DEPLOYED (2026-05-13)
+
+**Route**: `/admin/dashboard` — full visual redesign matching Figma mockup. LINE payment claims review workflow wired into `/admin/billing?claims=1`.
+
+**Commit**: `7b84abf`
+**Deploy status**: DEPLOYED — https://c-madong-product.vercel.app
+
+#### Admin Dashboard Redesign
+
+**KPI Cards (Row 1)** — 4 hero stat cards in `grid grid-cols-2 lg:grid-cols-4`:
+1. **Students** — total student count from `profiles`
+2. **Active Tickets** — open maintenance tickets from `maintenance_requests`
+3. **Live Chat** — active `chat_escalations` count (new field `liveChatCount` on `DashboardStats`)
+4. **Announcements Sent** — sent this month from `announcements`
+
+**LINE Claims Alert (Row 2)** — amber alert card (`dashboard-line-claims-alert.tsx`) shown conditionally when pending bills with `[LINE]` claim tag exist. Links to `/admin/billing?claims=1`. Uses `useLineClaims()` hook (queries `bills` client-side, admin RLS session).
+
+**Calendar + Quick Menu (Row 3)** — 2-col split:
+- Left: Mini 7-col calendar grid with prev/next navigation, today=pink circle, event dots + upcoming events list (first event highlighted pink) — `dashboard-upcoming-events.tsx`
+- Right: 6 quick-action buttons (3×2 grid, trimmed from 8) + recharts AreaChart below showing 14-day maintenance trend (real `maintenance_requests` data, pink gradient) — `dashboard-quick-menu.tsx`
+
+**Recent Data (Row 4)** — 3-col split:
+- Col 1-2: `RecentTicketsCard` — recent open maintenance tickets
+- Col 3: `RecentAnnouncementsCard` — latest sent announcements
+- (Both exported from `dashboard-recent-section.tsx`; legacy `DashboardRecentSection` retained for backward compat)
+
+**Attendance Chart (Row 4, Col 3 shifted to row 4)** — `dashboard-attendance-chart.tsx`: donut chart with real `event_attendance` data, rate% in center, attended/absent legend, Export CSV button. No longer mock data.
+
+**Dashboard Header** — greeting text now `text-2xl lg:text-3xl` in `text-primary` pink — `dashboard-header.tsx`.
+
+#### LINE Claims Review Workflow
+
+**Trigger**: When a student taps "แจ้งชำระเงิน" postback in LINE, `confirm_payment` handler appends `[LINE] นิสิตแจ้งชำระเงินผ่าน LINE เมื่อ {datetime}` to `bills.admin_notes`. This marks the bill for manual admin review.
+
+**Claims Mode** (`/admin/billing?claims=1`):
+- Claims header with count + "← ดูบิลทั้งหมด" back link
+- Inline "✓ ชำระแล้ว" confirm button per row
+- Status dropdown filter includes "💬 แจ้งชำระ LINE" option
+- `status=claims` in API (special branch before `.eq("status", ...)` — NOT a `BillStatus` enum value)
+
+**New Files:**
+- `src/components/admin/dashboard/dashboard-line-claims-alert.tsx` — amber alert card
+
+**Modified Files:**
+- `src/hooks/use-dashboard-stats.ts` — `liveChatCount` on `DashboardStats`; new `useLineClaims()`, `useMaintenanceTrend()`, `useAttendanceRate()` hooks
+- `src/components/admin/dashboard/dashboard-page-content.tsx` — full layout restructure (4 rows described above)
+- `src/components/admin/dashboard/dashboard-summary-card.tsx` — 4 hero KPI fragment cards replacing old 8-stat grid
+- `src/components/admin/dashboard/dashboard-header.tsx` — greeting style updated
+- `src/components/admin/dashboard/dashboard-upcoming-events.tsx` — internal 2-col calendar+events layout
+- `src/components/admin/dashboard/dashboard-quick-menu.tsx` — 6 actions + 14-day maintenance trend AreaChart
+- `src/components/admin/dashboard/dashboard-attendance-chart.tsx` — real data, donut center rate%, export CSV
+- `src/components/admin/dashboard/dashboard-recent-section.tsx` — split into 2 named exports + legacy default
+- `src/app/api/admin/bills/route.ts` — `status=claims` special filter branch (ILIKE `%[LINE]%` AND `status='pending'`)
+- `src/components/admin/billing/billing-page-content.tsx` — `?claims=1` mode: claims header, inline confirm button, back link, "💬 แจ้งชำระ LINE" filter option
+- `src/app/[locale]/admin/billing/page.tsx` — wrapped in `<Suspense>` (required for `useSearchParams` in App Router)
+- `src/messages/th.json` + `src/messages/en.json` — ~20 new keys in `admin.dashboardPage` namespace
+
+**Acceptance Criteria:**
+- [x] 4 KPI cards display real data from Supabase (students, tickets, live chat, announcements sent)
+- [x] LINE claims alert appears when pending bills have `[LINE]` in admin_notes
+- [x] Claims alert links to `/admin/billing?claims=1`
+- [x] Calendar grid shows correct month with prev/next navigation and event dots
+- [x] Maintenance trend AreaChart renders 14-day data from `maintenance_requests`
+- [x] Attendance donut chart uses real `event_attendance` data
+- [x] Billing claims mode accessible via `?claims=1` URL param
+- [x] `dashboard-summary-card.tsx` renders 4 fragments (not one wrapper Card)
+- [x] `billing/page.tsx` wrapped in `<Suspense>` to support `useSearchParams`
+
+**Deferred:**
+- Attendance chart date filter (currently shows all-time; 30-day window filter deferred)
+- Quick menu "แก้ไข" reorder/customize admin link (mockup feature, not implemented)
+- LINE claims notification badge on billing sidebar nav item
 
 ---
 

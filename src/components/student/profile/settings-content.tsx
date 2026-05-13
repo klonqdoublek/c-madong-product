@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/page-header";
 import { SettingsMenuItem } from "./settings-menu-item";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 import { useUser } from "@/hooks/use-user";
 import {
   User,
@@ -19,6 +20,7 @@ import {
 
 export function SettingsContent() {
   const t = useTranslations("profile");
+  const locale = useLocale();
   const { profile } = useUser();
   const queryClient = useQueryClient();
 
@@ -73,10 +75,15 @@ export function SettingsContent() {
               icon={Shield}
               label={t("settingsSecurity")}
             />
-            <SettingsMenuItem
-              icon={Languages}
-              label={t("settingsLanguage")}
-            />
+            <div className="flex w-full items-center justify-between rounded-xl bg-white px-4 py-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-cu-light-pink">
+                  <Languages className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-medium text-cu-grey">{t("settingsLanguage")}</span>
+              </div>
+              <LocaleSwitcher />
+            </div>
           </div>
         </section>
 

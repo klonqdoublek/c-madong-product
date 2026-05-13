@@ -1163,6 +1163,41 @@ Complete dashboard redesign from Figma (nodes 1361:12010, 1397:18551).
 
 ---
 
+## Recent Changes (2026-05-13)
+
+### Admin Dashboard Overhaul + LINE Claims UI — v3.7.0 — DEPLOYED
+
+**What was built**: Full visual redesign of the admin home dashboard matching Figma mockup. 4-row layout with KPI hero cards, LINE payment claims alert, mini calendar + 14-day trend chart, attendance donut chart, and 3-col recent data grid. LINE payment claims review workflow wired into `/admin/billing?claims=1`.
+
+**New files**:
+- `src/components/admin/dashboard/dashboard-line-claims-alert.tsx` — amber alert card shown when pending bills have `[LINE]` claim tag; links to `/admin/billing?claims=1`
+
+**Modified files**:
+- `src/hooks/use-dashboard-stats.ts` — `liveChatCount` on `DashboardStats`; `useLineClaims()`, `useMaintenanceTrend()`, `useAttendanceRate()` hooks added
+- `src/components/admin/dashboard/dashboard-page-content.tsx` — full 4-row layout restructure (KPIs → claims alert → calendar|quickmenu → tickets|announcements|attendance)
+- `src/components/admin/dashboard/dashboard-summary-card.tsx` — 4 hero KPI fragments replacing old 8-stat grid; renders `<>4 Cards</>` (NOT a single Card wrapper)
+- `src/components/admin/dashboard/dashboard-header.tsx` — greeting `text-2xl lg:text-3xl text-primary`
+- `src/components/admin/dashboard/dashboard-upcoming-events.tsx` — 2-col calendar grid + upcoming events list
+- `src/components/admin/dashboard/dashboard-quick-menu.tsx` — 6 actions (3×2) + recharts AreaChart (14-day maintenance trend)
+- `src/components/admin/dashboard/dashboard-attendance-chart.tsx` — real `event_attendance` data, donut center rate%, Export CSV
+- `src/components/admin/dashboard/dashboard-recent-section.tsx` — split into `RecentTicketsCard` + `RecentAnnouncementsCard` named exports + legacy default kept
+- `src/app/api/admin/bills/route.ts` — `status=claims` branch: `ILIKE '%[LINE]%' AND status='pending'`
+- `src/components/admin/billing/billing-page-content.tsx` — `?claims=1` mode with claims header, inline confirm button, "← ดูบิลทั้งหมด" back link
+- `src/app/[locale]/admin/billing/page.tsx` — wrapped in `<Suspense>` for `useSearchParams`
+- `src/messages/th.json` + `src/messages/en.json` — ~20 new keys in `admin.dashboardPage`
+
+**Commit**: `7b84abf`
+
+**Gotchas**:
+- **`dashboard-summary-card.tsx` returns a fragment, not a Card** — it renders `<>4 Cards</>`. The parent `grid grid-cols-2 lg:grid-cols-4` in `dashboard-page-content.tsx` provides the layout. Do NOT wrap in a Card — it will collapse the 4-col grid into a single column.
+- **`event_attendance` table name is singular** — the Supabase table is `event_attendance` (singular), NOT `event_attendances`. A wrong name silently returns 0 rows (no error thrown by Supabase JS).
+- **`useLineClaims()` queries `bills` directly from the client** — works because admin users have RLS SELECT on `bills`. If RLS policies are tightened to require `service_role`, move this to a dedicated API route.
+- **`status=claims` is NOT a `BillStatus` enum value** — it is a special API-only filter string handled before the `.eq("status", ...)` call. Do not add "claims" to the `BillStatus` TypeScript type or the DB CHECK constraint.
+- **Recharts AreaChart in `dashboard-quick-menu.tsx` requires `"use client"`** — the directive is already on the file. Any new recharts-importing component added to the dashboard must also have `"use client"`.
+- **`useSearchParams` in billing page requires `<Suspense>` wrapper** — Next.js App Router throws at build time if a component using `useSearchParams` is not wrapped in `<Suspense>` at the page level. Added to `src/app/[locale]/admin/billing/page.tsx`.
+
+---
+
 ## Token Optimization & Anti-Over-Engineering Guidelines
 
 ### Session Efficiency Rules

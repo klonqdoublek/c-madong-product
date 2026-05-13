@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 
 type SlideOverlay = {
   src: string;
@@ -138,6 +139,11 @@ export default function IntroContent() {
 
         </motion.div>
       </AnimatePresence>
+
+      {/* ── Language switcher — top-left ── */}
+      <div className="absolute left-6 z-20" style={{ top: "78px" }}>
+        <LocaleSwitcher />
+      </div>
 
       {/* ── Skip — static, just re-renders when slide changes ── */}
       {!isLast && (

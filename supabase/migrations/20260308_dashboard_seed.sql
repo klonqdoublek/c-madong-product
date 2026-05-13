@@ -191,26 +191,32 @@ BEGIN
   VALUES
     (s1, 'electrical', 'ไฟในห้องน้ำกระพริบ', 'ไฟในห้องน้ำกระพริบตลอดเวลา ใช้งานลำบากมากเลย ขอช่างมาดูหน่อยนะ', 'pending', now() - interval '2 hours'),
     (s3, 'plumbing', 'ก๊อกน้ำรั่ว', 'ก๊อกน้ำอ่างล้างหน้ารั่วซึมตลอด ปิดไม่สนิท', 'pending', now() - interval '1 day'),
-    (s5, 'internet', 'WiFi ห้องสัญญาณอ่อนมาก', 'WiFi ใช้งานไม่ได้เลย สัญญาณอ่อนมาก โหลดอะไรไม่ขึ้น', 'pending', now() - interval '3 hours')
+    (s5, 'internet', 'WiFi ห้องสัญญาณอ่อนมาก', 'WiFi ใช้งานไม่ได้เลย สัญญาณอ่อนมาก โหลดอะไรไม่ขึ้น', 'pending', now() - interval '3 hours'),
+    (s4, 'electrical', 'ไฟทางเดินชั้น 3 ดับเป็นบางช่วง', 'ช่วงกลางคืนไฟทางเดินหน้าห้องดับๆ ติดๆ ทำให้เดินลำบาก', 'pending', now() - interval '6 hours'),
+    (s7, 'plumbing', 'แรงดันน้ำอ่างล้างจานเบามาก', 'น้ำไหลเบากว่าปกติมาก ล้างของไม่ค่อยสะดวก', 'pending', now() - interval '18 hours')
   ON CONFLICT DO NOTHING;
 
   INSERT INTO maintenance_requests (requester_id, category, title, description, status, created_at)
   VALUES
     (s2, 'air_conditioning', 'แอร์ไม่เย็น', 'เปิดแอร์ทั้งคืนแต่ไม่เย็นเลย อากาศร้อนมาก', 'acknowledged', now() - interval '2 days'),
-    (s6, 'door_lock', 'กุญแจห้องเปิดยาก', 'ต้องขยับไปมาหลายรอบกว่าจะเปิดได้ กลัวล็อคตัวเองนอกห้อง', 'acknowledged', now() - interval '1 day')
+    (s6, 'door_lock', 'กุญแจห้องเปิดยาก', 'ต้องขยับไปมาหลายรอบกว่าจะเปิดได้ กลัวล็อคตัวเองนอกห้อง', 'acknowledged', now() - interval '1 day'),
+    (s1, 'air_conditioning', 'แอร์มีน้ำหยดลงเตียง', 'ตอนเปิดแอร์มีหยดน้ำตกลงมาจากเครื่องเป็นระยะ', 'acknowledged', now() - interval '20 hours')
   ON CONFLICT DO NOTHING;
 
   INSERT INTO maintenance_requests (requester_id, category, title, description, status, technician_id, created_at)
   VALUES
     (s4, 'furniture', 'โต๊ะเรียนขาหัก', 'ขาโต๊ะเรียนหักข้างนึง ใช้งานไม่ได้', 'in_progress', t3, now() - interval '3 days'),
     (s7, 'electrical', 'ปลั๊กไฟไม่ทำงาน 2 จุด', 'ปลั๊กไฟหัวเตียงกับข้างโต๊ะเสียทั้งคู่เลย', 'in_progress', t1, now() - interval '4 days'),
-    (s8, 'plumbing', 'ฝักบัวน้ำไม่ออก', 'เปิดฝักบัวแล้วน้ำไม่ออกเลย มีแต่น้ำหยดๆ', 'in_progress', t2, now() - interval '2 days')
+    (s8, 'plumbing', 'ฝักบัวน้ำไม่ออก', 'เปิดฝักบัวแล้วน้ำไม่ออกเลย มีแต่น้ำหยดๆ', 'in_progress', t2, now() - interval '2 days'),
+    (s3, 'furniture', 'ประตูตู้เสื้อผ้าปิดไม่สนิท', 'บานประตูตู้ฝืดและปิดไม่สุด ต้องดันแรงมาก', 'in_progress', t3, now() - interval '5 days')
   ON CONFLICT DO NOTHING;
 
   INSERT INTO maintenance_requests (requester_id, category, title, description, status, technician_id, resolved_at, created_at)
   VALUES
     (s1, 'cleaning', 'ห้องน้ำรวมสกปรก', 'ห้องน้ำรวมชั้น 1 สกปรกมาก ขอแม่บ้านมาทำความสะอาดหน่อย', 'completed', t3, now() - interval '1 day', now() - interval '5 days'),
-    (s2, 'air_conditioning', 'แอร์มีเสียงดัง', 'แอร์ส่งเสียงดังผิดปกติตอนทำงาน', 'completed', t1, now() - interval '12 hours', now() - interval '3 days')
+    (s2, 'air_conditioning', 'แอร์มีเสียงดัง', 'แอร์ส่งเสียงดังผิดปกติตอนทำงาน', 'completed', t1, now() - interval '12 hours', now() - interval '3 days'),
+    (s5, 'electrical', 'ไฟหัวเตียงซ่อมแล้ว', 'ก่อนหน้านี้ไฟหัวเตียงติดๆ ดับๆ ตอนนี้ช่างแก้เรียบร้อยแล้ว', 'completed', t1, now() - interval '4 hours', now() - interval '4 days'),
+    (s6, 'other', 'แจ้งผิด ห้องไม่มีปัญหา', 'ลองเช็คแล้วพบว่าอุปกรณ์ยังใช้งานได้ปกติ ขอปิดเคส', 'cancelled', NULL, NULL, now() - interval '8 hours')
   ON CONFLICT DO NOTHING;
 
   -- ======================================

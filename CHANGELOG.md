@@ -5,6 +5,62 @@ Format: `## [vX.Y.Z] — YYYY-MM-DD` with subsections Added / Changed / Fixed / 
 
 ---
 
+## [v3.7.2] — 2026-05-13
+
+### Changed
+- `src/components/admin/maintenance/ticket-detail-modal.tsx` — redesigned maintenance ticket detail modal header for better visibility: ticket code/category chips grouped on the left, status badge returned to the top-right, and the close button moved outside the card to the modal's outer top-right corner
+
+### Fixed
+- `src/components/admin/maintenance/ticket-detail-modal.tsx` — resolved overlap between the dialog close button and status/category badges in the admin maintenance ticket card
+
+### Infrastructure
+- Commit: `c497892` — Refine maintenance ticket modal header layout
+
+---
+
+## [v3.7.1] — 2026-05-13
+
+### Fixed
+- `src/components/layout/admin-shell.tsx` — corrected admin sidebar active-state matching so nested announcement and maintenance routes no longer highlight the wrong sibling item
+
+### Changed
+- `src/components/layout/admin-shell.tsx` — refined selected-state styling for full and collapsed admin sidebar menus to better match the current pink gradient navigation UI
+
+### Infrastructure
+- Commit: `b49909f` — fix: correct admin sidebar active states
+
+---
+
+## [v3.7.0] — 2026-05-13
+
+### Added
+- `src/components/admin/dashboard/dashboard-line-claims-alert.tsx` — NEW: amber alert card shown when pending bills with `[LINE]` claim tag exist; links to `/admin/billing?claims=1`
+
+### Changed
+- `src/hooks/use-dashboard-stats.ts` — added `liveChatCount` field to `DashboardStats` (queries `chat_escalations`); added `useLineClaims()` hook (client-side `bills` query for `[LINE]` in admin_notes + status=pending), `useMaintenanceTrend()` hook (14-day JS-aggregated `maintenance_requests`), `useAttendanceRate()` hook (real `event_attendance` data)
+- `src/components/admin/dashboard/dashboard-page-content.tsx` — full 4-row layout restructure: Row 1 = 4 KPI cards, Row 2 = claims alert, Row 3 = 2-col calendar|quickmenu, Row 4 = 3-col tickets|announcements|attendance
+- `src/components/admin/dashboard/dashboard-summary-card.tsx` — complete rewrite: 4 hero KPI fragments (Students, Active Tickets, Live Chat, Announcements Sent) replacing old 8-stat grid; renders as `<>4 Cards</>` fragment (parent grid provides layout)
+- `src/components/admin/dashboard/dashboard-header.tsx` — greeting text changed to `text-2xl lg:text-3xl text-primary` pink
+- `src/components/admin/dashboard/dashboard-upcoming-events.tsx` — internal 2-col layout: mini 7-col calendar grid (prev/next nav, today=pink circle, event dots) + upcoming events list (first event highlighted pink)
+- `src/components/admin/dashboard/dashboard-quick-menu.tsx` — trimmed from 8 to 6 actions (3×2 grid); recharts AreaChart added below showing 14-day maintenance trend (real data, pink gradient fill)
+- `src/components/admin/dashboard/dashboard-attendance-chart.tsx` — replaced mock data with real `event_attendance` table queries; rate% displayed in donut center; attended/absent legend; Export CSV button
+- `src/components/admin/dashboard/dashboard-recent-section.tsx` — split into named exports `RecentTicketsCard` + `RecentAnnouncementsCard` for 3-col grid layout; legacy default export `DashboardRecentSection` retained for backward compat
+- `src/app/api/admin/bills/route.ts` — added `status=claims` special filter branch: `ILIKE '%[LINE]%' AND status='pending'` (NOT a BillStatus enum value; handled before the `.eq("status", ...)` call)
+- `src/components/admin/billing/billing-page-content.tsx` — claims mode via `?claims=1` URL param: claims count header, inline "✓ ชำระแล้ว" confirm button per row, "← ดูบิลทั้งหมด" back link; "💬 แจ้งชำระ LINE" added to status filter dropdown
+- `src/app/[locale]/admin/billing/page.tsx` — wrapped in `<Suspense>` (required for `useSearchParams` in Next.js App Router)
+- `src/messages/th.json` — ~20 new keys in `admin.dashboardPage` namespace: `totalStudentsSub`, `activeTickets`, `activeTicketsSub`, `liveChatLabel`, `liveChatSub`, `sentThisMonthSub`, `lineClaimsTitle`, `lineClaimsSub`, `lineClaimsViewBtn`, `calendarSection`, `upcomingLabel`, `maintenanceTrendLabel`, `attendanceRateLabel`, `attendanceRateEmpty`, `attendanceAttended`, `attendanceAbsent`
+- `src/messages/en.json` — same ~20 keys mirrored in English
+
+### Infrastructure
+- No DB migrations
+- No new API routes (bills route extended in-place)
+- No new env vars
+- No type regeneration required
+- Commit: `7b84abf` — feat: admin dashboard overhaul + LINE claims review workflow
+- Deploy status: DEPLOYED — https://c-madong-product.vercel.app
+
+---
+
 ## [v3.6.0] — 2026-05-13
 
 ### Added

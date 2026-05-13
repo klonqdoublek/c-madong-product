@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { LocaleSwitcher } from "@/components/ui/locale-switcher";
 
 export default function LoginPage() {
   return (
@@ -94,7 +95,11 @@ function LoginContent() {
 
   return (
     <div className="relative flex min-h-dvh w-full flex-col overflow-hidden">
-      <AnimatePresence mode="wait">
+      {/* Language switcher — top-right, visible on both mobile and desktop */}
+      <div className="absolute right-5 top-[52px] z-50 lg:right-8 lg:top-6">
+        <LocaleSwitcher />
+      </div>
+      <AnimatePresence mode="wait" initial={!skipSplash}>
         {showSplash ? (
           <motion.div
             key="splash"
