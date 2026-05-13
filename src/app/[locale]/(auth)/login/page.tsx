@@ -197,6 +197,7 @@ function LoginContent() {
                   border border-[#e2e2e2] lg:border-0
                   bg-cu-cream-light
                   px-6 pb-8 pt-12
+                  [@media(max-height:800px)]:px-8 [@media(max-height:800px)]:pb-5 [@media(max-height:800px)]:pt-11
                   lg:px-12 lg:py-0 lg:bg-transparent lg:shadow-none
                   shadow-[0px_6px_14px_0px_rgba(185,100,130,0.08),0px_25px_25px_0px_rgba(185,100,130,0.07)]
                   lg:[box-shadow:none]
@@ -224,10 +225,10 @@ function LoginContent() {
 
                   {/* Header text */}
                   <div className="text-center">
-                    <h1 className="font-heading text-2xl font-bold text-primary lg:text-[32px]">
+                    <h1 className="font-heading text-2xl font-bold leading-tight text-primary [@media(max-height:800px)]:text-[22px] lg:text-[32px]">
                       {t("welcomeTitle")}
                     </h1>
-                    <p className="mt-1 text-sm text-cu-grey leading-relaxed lg:text-base">
+                    <p className="mt-1 text-sm text-cu-grey leading-relaxed [@media(max-height:800px)]:text-xs lg:text-base">
                       {t("welcomeDescription")}
                     </p>
                   </div>
@@ -240,7 +241,7 @@ function LoginContent() {
                   )}
 
                   {/* LINE login button */}
-                  <div className="mt-6 lg:mt-6">
+                  <div className="mt-6 [@media(max-height:800px)]:mt-5 lg:mt-6">
                     <button
                       type="button"
                       disabled={isLoading}
@@ -248,7 +249,7 @@ function LoginContent() {
                         setIsLoading(true);
                         window.location.href = "/api/auth/line";
                       }}
-                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#07C755] text-base font-bold text-white transition-all hover:bg-[#06b34d] hover:shadow-lg active:scale-[0.98]"
+                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full bg-[#07C755] text-base font-bold text-white transition-all hover:bg-[#06b34d] hover:shadow-lg active:scale-[0.98] [@media(max-height:800px)]:h-[46px] [@media(max-height:800px)]:text-sm"
                     >
                       {isLoading ? (
                         <LoadingSpinner />
@@ -267,31 +268,31 @@ function LoginContent() {
                   </div>
 
                   {/* Divider */}
-                  <div className="mt-6 flex items-center gap-3">
+                  <div className="mt-6 flex items-center gap-3 [@media(max-height:800px)]:mt-4">
                     <div className="h-px flex-1 bg-[#d9d9d9]/50" />
-                    <span className="text-sm text-[#d9d9d9] font-body">{t("orDivider")}</span>
+                    <span className="font-body text-sm text-[#d9d9d9] [@media(max-height:800px)]:text-xs">{t("orDivider")}</span>
                     <div className="h-px flex-1 bg-[#d9d9d9]/50" />
                   </div>
 
                   {/* Freshman section */}
-                  <div className="mt-4 text-center">
-                    <p className="text-sm font-bold text-cu-grey">
+                  <div className="mt-4 text-center [@media(max-height:800px)]:mt-3">
+                    <p className="text-sm font-bold text-cu-grey [@media(max-height:800px)]:text-xs">
                       {t("freshmanQuestion")}
                     </p>
                     <a
                       href="https://c-madong-product.vercel.app/th/guide/getting-started"
-                      className="mt-1 inline-block text-primary underline decoration-solid text-sm font-bold"
+                      className="mt-1 inline-block text-sm font-bold text-primary underline decoration-solid [@media(max-height:800px)]:text-xs"
                     >
                       {t("viewGuide")}
                     </a>
                   </div>
 
                   {/* Staff login section */}
-                  <div className="mt-8">
+                  <div className="mt-8 [@media(max-height:800px)]:mt-6">
                     <button
                       type="button"
                       onClick={() => setDevExpanded(!devExpanded)}
-                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#888] bg-[#fffbf1] text-[#888] transition-colors hover:border-cu-grey hover:text-cu-grey"
+                      className="flex h-[48px] w-full items-center justify-center gap-2 rounded-full border border-dashed border-[#888] bg-[#fffbf1] text-[#888] transition-colors hover:border-cu-grey hover:text-cu-grey [@media(max-height:800px)]:h-[46px]"
                     >
                       <svg
                         width="20"
@@ -306,7 +307,7 @@ function LoginContent() {
                         <circle cx="12" cy="8" r="5" />
                         <path d="M20 21a8 8 0 0 0-16 0" />
                       </svg>
-                      <span className="text-base font-bold">{t("forStaff")}</span>
+                      <span className="text-base font-bold [@media(max-height:800px)]:text-sm">{t("forStaff")}</span>
                     </button>
 
                     {/* Dev login form (expandable) */}
@@ -397,7 +398,7 @@ function LoginContent() {
                   </div>
 
                   {/* Version */}
-                  <p className="mt-8 text-center text-[10px] text-cu-grey opacity-50">
+                  <p className="mt-8 text-center text-[10px] text-cu-grey opacity-50 [@media(max-height:800px)]:mt-6">
                     C-MADONG Version 1.0
                   </p>
                 </div>
