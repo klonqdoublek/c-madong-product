@@ -1,6 +1,6 @@
 import { replyTextMessage, replyFlexMessage, replyMessage, replyMessages, showLoadingAnimation, markAsRead } from "@/lib/line/client"
 import { classifyIntent } from "./intent-router"
-import { getOrCreateSession, resetSession } from "./session-manager"
+import { getOrCreateSession, resetSession, updateSession } from "./session-manager"
 import { saveMessage, countRecentUserMessages, getRecentMessages } from "./chat-history"
 import { getConversationContext, incrementAndMaybeSummarize } from "./context-manager"
 import { getQuickReplyForIntent } from "./suggestions"
@@ -177,7 +177,9 @@ async function processEvent(event: LineEvent): Promise<void> {
         const uid = event.source.userId
         if (uid) {
           const { clearSession } = await import("./session-manager")
+          const { unlinkUserMenu } = await import("@/lib/line/rich-menu")
           await clearSession(uid)
+          unlinkUserMenu(uid).catch(() => {})
         }
         break
       }
@@ -344,6 +346,29 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
 
   // Get session
   const session = await getOrCreateSession(lineUid)
+
+  // Proactive context prepend — fire-and-forget push, 30min cooldown, skips active repair flows
+  void (async () => {
+    try {
+      if (session.state !== "idle") return // skip mid-flow states
+      const COOLDOWN_MS = 30 * 60 * 1000
+      const lastPush = session.state_data?.last_context_push_at
+        ? new Date(session.state_data.last_context_push_at as string).getTime()
+        : 0
+      if (Date.now() - lastPush < COOLDOWN_MS) return
+
+      const { getActiveUserContext } = await import("@/lib/notifications/context-fetcher")
+      const ctx = await getActiveUserContext(lineUid)
+      if (ctx.isEmpty) return
+
+      const { buildContextPrependFlex } = await import("./flex-builders/context-prepend")
+      const { pushFlexMessage } = await import("@/lib/line/client")
+      await pushFlexMessage(lineUid, buildContextPrependFlex(ctx))
+      await updateSession(lineUid, { last_context_push_at: new Date().toISOString() })
+    } catch {
+      // Non-critical — never affect main reply
+    }
+  })()
 
   // Technician query fast-path (keyword match + role gate inside handler)
   const { isTechnicianQuery, handleTechnician } = await import("./handlers/technician")

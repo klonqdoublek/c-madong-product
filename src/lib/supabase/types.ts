@@ -1943,10 +1943,12 @@ export type Database = {
           full_name_th: string
           id: string
           language: string
+          last_seen_at: string | null
           line_uid: string | null
           move_in_date: string | null
           onboarding_completed: boolean
           phone: string | null
+          push_enabled: boolean
           role: string | null
           room_id: string | null
           status: string
@@ -1993,10 +1995,12 @@ export type Database = {
           full_name_th?: string
           id?: string
           language?: string
+          last_seen_at?: string | null
           line_uid?: string | null
           move_in_date?: string | null
           onboarding_completed?: boolean
           phone?: string | null
+          push_enabled?: boolean
           role?: string | null
           room_id?: string | null
           status?: string
@@ -2438,6 +2442,30 @@ export type Database = {
           metadata?: Json | null
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      notification_dispatch_log: {
+        Row: {
+          id: string
+          user_id: string
+          notification_type: string
+          payload_hash: string
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          notification_type: string
+          payload_hash: string
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          notification_type?: string
+          payload_hash?: string
+          sent_at?: string
         }
         Relationships: []
       }

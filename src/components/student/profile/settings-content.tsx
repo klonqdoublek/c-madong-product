@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageHeader } from "@/components/layout/page-header";
 import { SettingsMenuItem } from "./settings-menu-item";
+import { useUser } from "@/hooks/use-user";
 import {
   User,
   CreditCard,
@@ -17,10 +19,34 @@ import {
 
 export function SettingsContent() {
   const t = useTranslations("profile");
+  const { profile } = useUser();
+  const queryClient = useQueryClient();
 
   const [dataAccess, setDataAccess] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [personalization, setPersonalization] = useState(false);
+
+  // Sync pushNotif with DB value once profile loads
+  useEffect(() => {
+    if (profile && typeof (profile as Record<string, unknown>).push_enabled === "boolean") {
+      setPushNotif((profile as Record<string, unknown>).push_enabled as boolean);
+    }
+  }, [profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handlePushNotifToggle(value: boolean) {
+    setPushNotif(value);
+    try {
+      await fetch("/api/student/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ push_enabled: value }),
+      });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    } catch {
+      // Revert on failure
+      setPushNotif(!value);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-[#f5f2ea]">
@@ -89,7 +115,7 @@ export function SettingsContent() {
               label={t("permPushNotif")}
               trailing="toggle"
               toggled={pushNotif}
-              onToggle={setPushNotif}
+              onToggle={handlePushNotifToggle}
             />
             <SettingsMenuItem
               icon={Sparkles}
