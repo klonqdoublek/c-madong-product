@@ -10,17 +10,25 @@ const THAI_MONTHS_SHORT = [
   "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
 ];
 
-function formatThaiDate(dateStr: string): string {
+function parseValidDate(dateStr: string | null): Date | null {
+  if (!dateStr || dateStr.trim().toUpperCase() === "N/A") return null;
   const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatThaiDate(dateStr: string | null): string | null {
+  const d = parseValidDate(dateStr);
+  if (!d) return null;
   const day = d.getDate();
   const month = THAI_MONTHS_SHORT[d.getMonth()];
   const year = d.getFullYear() + 543;
   return `${day} ${month} ${year}`;
 }
 
-function daysUntil(dateStr: string): number {
+function daysUntil(dateStr: string | null): number | null {
+  const target = parseValidDate(dateStr);
+  if (!target) return null;
   const now = new Date();
-  const target = new Date(dateStr);
   return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
 }
 
@@ -47,10 +55,13 @@ export function DashboardAdaptiveCard() {
   }
 
   const deadline = first.deadline;
-  const remaining = deadline ? daysUntil(deadline) : null;
-  const dateRange = deadline
-    ? `${formatThaiDate(first.created_at)} - ${formatThaiDate(deadline)}`
-    : formatThaiDate(first.created_at);
+  const remaining = daysUntil(deadline);
+  const createdAtLabel = formatThaiDate(first.created_at);
+  const deadlineLabel = formatThaiDate(deadline);
+  const dateRange =
+    createdAtLabel && deadlineLabel
+      ? `${createdAtLabel} - ${deadlineLabel}`
+      : deadlineLabel ?? createdAtLabel ?? "ยังไม่ระบุวันที่";
 
   return (
     <div className="px-5 py-4">

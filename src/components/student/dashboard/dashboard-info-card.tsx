@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useUser } from "@/hooks/use-user";
 import { useInsights } from "@/hooks/use-insights";
 import { useResidenceInfo } from "@/hooks/use-buildings";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Search, Sparkles, Calendar, Building2, BedDouble } from "lucide-react";
+import { Search, Sparkles, Calendar, Building2, BedDouble, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ALL_MENU_ITEMS } from "@/stores/menu-store";
 import type { Database } from "@/lib/supabase/types";
 
 type Insight = Database["public"]["Tables"]["ai_insights"]["Row"];
@@ -20,14 +23,37 @@ const THAI_MONTHS_SHORT = [
   "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค.",
 ];
 
-function formatThaiDate(dateStr: string): string {
+const HOME_SEARCH_ALIASES: Record<string, string[]> = {
+  billing: ["บิล", "ค่าใช้จ่าย", "ชำระเงิน", "bill", "payment"],
+  repair: ["ซ่อม", "แจ้งซ่อม", "maintenance", "repair"],
+  parcel: ["พัสดุ", "ของ", "parcel", "package"],
+  news: ["ข่าว", "ประกาศ", "announcement", "news"],
+  calendar: ["ปฏิทิน", "กิจกรรม", "calendar", "event"],
+  info: ["ข้อมูล", "ระเบียบ", "information", "rule"],
+  review: ["ประเมิน", "รีวิว", "evaluation", "review"],
+  emergency: ["ฉุกเฉิน", "เบอร์โทร", "emergency", "phone"],
+  forms: ["เอกสาร", "แบบฟอร์ม", "documents", "forms"],
+  profile: ["บัญชี", "โปรไฟล์", "profile", "account"],
+  score: ["คะแนน", "score"],
+  settings: ["ตั้งค่า", "settings"],
+};
+
+function parseValidDate(dateStr: string | null): Date | null {
+  if (!dateStr || dateStr.trim().toUpperCase() === "N/A") return null;
   const d = new Date(dateStr);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function formatThaiDate(dateStr: string | null): string | null {
+  const d = parseValidDate(dateStr);
+  if (!d) return null;
   return `${d.getDate()} ${THAI_MONTHS_SHORT[d.getMonth()]} ${d.getFullYear() + 543}`;
 }
 
-function daysUntil(dateStr: string): number {
+function daysUntil(dateStr: string | null): number | null {
+  const target = parseValidDate(dateStr);
+  if (!target) return null;
   const now = new Date();
-  const target = new Date(dateStr);
   return Math.max(0, Math.ceil((target.getTime() - now.getTime()) / 86400000));
 }
 
@@ -56,10 +82,13 @@ function ActionSlide({
   t: ReturnType<typeof useTranslations<"dashboard">>;
 }) {
   const deadline = insight.deadline;
-  const remaining = deadline ? daysUntil(deadline) : null;
-  const dateRange = deadline
-    ? `${formatThaiDate(insight.created_at)} - ${formatThaiDate(deadline)}`
-    : formatThaiDate(insight.created_at);
+  const remaining = daysUntil(deadline);
+  const createdAtLabel = formatThaiDate(insight.created_at);
+  const deadlineLabel = formatThaiDate(deadline);
+  const dateRange =
+    createdAtLabel && deadlineLabel
+      ? `${createdAtLabel} - ${deadlineLabel}`
+      : deadlineLabel ?? createdAtLabel ?? "ยังไม่ระบุวันที่";
 
   return (
     <div className="w-full shrink-0 snap-center">
@@ -124,6 +153,7 @@ function ActionCardCarousel({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const boundedActiveIndex = Math.min(activeIndex, Math.max(items.length - 1, 0));
 
   const scrollToIndex = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
@@ -139,10 +169,6 @@ function ActionCardCarousel({
     },
     [items.length]
   );
-
-  useEffect(() => {
-    setActiveIndex((current) => Math.min(current, items.length - 1));
-  }, [items.length]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -168,7 +194,7 @@ function ActionCardCarousel({
     if (items.length <= 1 || isDragging || isHovered) return;
 
     autoAdvanceTimeoutRef.current = window.setTimeout(() => {
-      const next = (activeIndex + 1) % items.length;
+      const next = (boundedActiveIndex + 1) % items.length;
       scrollToIndex(next);
       autoAdvanceTimeoutRef.current = null;
     }, AUTO_ADVANCE_MS);
@@ -179,7 +205,7 @@ function ActionCardCarousel({
         autoAdvanceTimeoutRef.current = null;
       }
     };
-  }, [activeIndex, items.length, isDragging, isHovered, scrollToIndex]);
+  }, [boundedActiveIndex, items.length, isDragging, isHovered, scrollToIndex]);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
@@ -283,7 +309,7 @@ function ActionCardCarousel({
                 type="button"
                 aria-label={`ไปยังรายการ ${index + 1}`}
                 className={`h-1.5 rounded-full transition-all ${
-                  index === activeIndex ? "w-5 bg-primary" : "w-1.5 bg-primary/25"
+                  index === boundedActiveIndex ? "w-5 bg-primary" : "w-1.5 bg-primary/25"
                 }`}
                 onClick={() => scrollToIndex(index)}
               />
@@ -299,6 +325,8 @@ export function DashboardInfoCard() {
   const t = useTranslations("dashboard");
   const { profile, isLoading: isUserLoading } = useUser();
   const { data: insights, isLoading: isInsightsLoading } = useInsights();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { data: residence, isLoading: isResidenceLoading } = useResidenceInfo({
     buildingId: profile?.building_id ?? null,
     roomId: profile?.room_id ?? null,
@@ -315,6 +343,20 @@ export function DashboardInfoCard() {
   const first = pending[0];
   const isProfileSectionLoading = isUserLoading || isResidenceLoading;
   const isTaskSectionLoading = isUserLoading || isInsightsLoading;
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase("th-TH");
+  const searchResults = useMemo(() => {
+    const query = normalizedSearchQuery;
+
+    return ALL_MENU_ITEMS.map((item) => {
+      const label = t(item.labelKey);
+      const aliases = HOME_SEARCH_ALIASES[item.id] ?? [];
+      return {
+        ...item,
+        label,
+        searchText: [label, item.id, ...aliases].join(" ").toLocaleLowerCase("th-TH"),
+      };
+    }).filter((item) => !query || item.searchText.includes(query));
+  }, [normalizedSearchQuery, t]);
 
   return (
     <div className="relative mx-auto w-[320px]">
@@ -369,7 +411,12 @@ export function DashboardInfoCard() {
           </div>
 
           {/* Search icon */}
-          <button className="mt-0.5 flex size-4 items-center justify-center">
+          <button
+            type="button"
+            onClick={() => setIsSearchOpen(true)}
+            aria-label="ค้นหาเมนู"
+            className="mt-0.5 flex size-8 items-center justify-center rounded-full transition-colors hover:bg-white/15"
+          >
             <Search className="size-4 text-white" />
           </button>
         </div>
@@ -402,6 +449,72 @@ export function DashboardInfoCard() {
           </div>
         )}
       </div>
+
+      <Dialog
+        open={isSearchOpen}
+        onOpenChange={(open) => {
+          setIsSearchOpen(open);
+          if (!open) setSearchQuery("");
+        }}
+      >
+        <DialogContent
+          className="top-6 translate-y-0 gap-3 rounded-2xl border-black/10 bg-cu-cream-light p-4 shadow-xl sm:top-[50%] sm:translate-y-[-50%]"
+          showCloseButton={false}
+        >
+          <div className="flex items-center justify-between">
+            <DialogTitle className="font-heading text-base font-bold text-cu-grey">
+              ค้นหาบนหน้าแรก
+            </DialogTitle>
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(false)}
+              aria-label="ปิดการค้นหา"
+              className="flex size-8 items-center justify-center rounded-full bg-white text-cu-grey shadow-sm"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-cu-muted" />
+            <Input
+              autoFocus
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="ค้นหา เช่น แจ้งซ่อม พัสดุ ประกาศ"
+              className="h-11 rounded-full border-black/10 bg-white pl-9 text-sm"
+            />
+          </div>
+
+          <div className="max-h-[50dvh] space-y-2 overflow-y-auto pr-1">
+            {searchResults.length > 0 ? (
+              searchResults.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.id}
+                    href={item.href}
+                    onClick={() => setIsSearchOpen(false)}
+                    className="flex items-center gap-3 rounded-xl border border-black/5 bg-white p-3 shadow-sm transition-colors active:bg-cu-pink-tint"
+                  >
+                    <div className="flex size-10 items-center justify-center rounded-full bg-cu-light-pink">
+                      <Icon className="size-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-cu-grey">{item.label}</p>
+                      <p className="text-[11px] text-cu-muted">{item.href}</p>
+                    </div>
+                  </Link>
+                );
+              })
+            ) : (
+              <p className="rounded-xl bg-white p-4 text-center text-sm text-cu-muted">
+                ไม่พบเมนูที่ค้นหา
+              </p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

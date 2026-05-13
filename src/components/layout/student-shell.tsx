@@ -36,7 +36,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
       <main className={`flex-1 ${showNav ? "pb-28 md:pb-0" : "pb-6 md:pb-0"}`}>
         {children}
       </main>
-      <ChatFAB showNav={showNav} />
+      {isDashboard && <ChatFAB showNav={showNav} />}
       <BottomNav visible={showNav} />
     </div>
   );
