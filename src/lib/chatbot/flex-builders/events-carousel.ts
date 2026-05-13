@@ -1,6 +1,7 @@
 import type { FlexMessagePayload } from "@/lib/line/flex-builders/bill-reminder"
 
 const PRIMARY = "#7C3AED"
+const WEB_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://c-madong-product.vercel.app"
 
 interface DormEvent {
   id: string
@@ -86,10 +87,9 @@ export function buildEventsCarouselFlex(
           color: PRIMARY,
           height: "sm",
           action: {
-            type: "postback",
+            type: "uri",
             label: "ลงทะเบียน",
-            data: `action=event_register&event_id=${event.id}`,
-            displayText: `ลงทะเบียน ${event.title}`,
+            uri: `${WEB_BASE}/th/events/${event.id}`,
           },
         },
       ],

@@ -49,7 +49,7 @@ function parseIntentJson(text: string): IntentResult | null {
     const cleaned = text.replace(/```json?\s*/g, "").replace(/```/g, "").trim()
     const data = JSON.parse(cleaned)
     const validIntents: ChatIntent[] = [
-      "repair", "knowledge", "score", "events", "parcel", "chitchat",
+      "repair", "knowledge", "score", "events", "parcel", "billing", "chitchat",
     ]
     if (validIntents.includes(data.intent)) {
       return {

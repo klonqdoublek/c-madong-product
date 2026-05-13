@@ -13,6 +13,7 @@ import {
   handleScore,
   handleEvents,
   handleParcel,
+  handleBilling,
   handlePostback,
 } from "./handlers"
 import type {
@@ -53,6 +54,18 @@ const ESCALATION_KEYWORDS = [
 function isEscalationRequest(message: string): boolean {
   const lower = message.trim().toLowerCase()
   return ESCALATION_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
+}
+
+/** Keywords for billing — explicit fast-path so intent router never misses them */
+const BILLING_KEYWORDS = [
+  "ค่าหอ", "ค่าหอพัก", "ค่าห้อง", "ค่าน้ำ", "ค่าไฟ",
+  "บิล", "bill", "ค่าใช้จ่าย", "จ่ายค่าหอ", "ชำระค่าหอ",
+  "เช็คบิล", "ดูบิล", "บิลค้างจ่าย",
+]
+
+function isBillingRelated(message: string): boolean {
+  const lower = message.trim().toLowerCase()
+  return BILLING_KEYWORDS.some((kw) => lower.includes(kw.toLowerCase()))
 }
 
 /** Keywords for parcel — checked BEFORE repair status to avoid false matches */
@@ -382,6 +395,14 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
     // Role gate failed → fall through to normal routing
   }
 
+  // If user asks about billing, route directly — skip AI classification
+  if (isBillingRelated(message)) {
+    const response = await handleBilling(lineUid)
+    await sendResponse(event.replyToken, response)
+    await saveMessages(lineUid, session.id, message, response, "billing")
+    return
+  }
+
   // If user asks about parcels, route directly — skip AI classification
   if (isParcelRelated(message)) {
     const response = await handleParcel(lineUid)
@@ -550,6 +571,9 @@ async function handleMessageEvent(event: LineMessageEvent): Promise<void> {
       break
     case "parcel":
       response = await handleParcel(lineUid)
+      break
+    case "billing":
+      response = await handleBilling(lineUid)
       break
     case "chitchat":
     default: {

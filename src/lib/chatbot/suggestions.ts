@@ -69,6 +69,20 @@ export function getQuickReplyForIntent(intent: ChatIntent): QuickReplyItem[] | u
         action: { type: "message", label: "💬 คุยกับเจ้าหน้าที่", text: "ขอคุยกับเจ้าหน้าที่" },
       },
     ],
+    billing: [
+      {
+        type: "action",
+        action: { type: "message", label: "🔧 แจ้งซ่อม", text: "แจ้งซ่อม" },
+      },
+      {
+        type: "action",
+        action: { type: "message", label: "📦 เช็คพัสดุ", text: "พัสดุ" },
+      },
+      {
+        type: "action",
+        action: { type: "message", label: "🏠 เมนูหลัก", text: "เมนู" },
+      },
+    ],
     technician: [],
     chitchat: [],
   };

@@ -73,6 +73,7 @@ export type ChatIntent =
   | "score"
   | "events"
   | "parcel"
+  | "billing"
   | "technician"
   | "chitchat"
 
