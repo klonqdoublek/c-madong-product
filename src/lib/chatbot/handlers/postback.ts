@@ -38,11 +38,7 @@ export async function handlePostback(
       break
 
     case "confirm_payment":
-      await replyMessage(replyToken, {
-        type: "text",
-        text: "บันทึกแล้วจ้า ทางหอจะตรวจสอบให้นะ ✅",
-        quickReply: { items: getQuickReplyForPostback("confirm_payment") },
-      })
+      await handleConfirmPayment(replyToken, params, lineUid)
       break
 
     case "event_register":
@@ -722,6 +718,96 @@ async function handleRemindBill(
       type: "text",
       text: "อุ๊ปส์! เกิดข้อผิดพลาดน้า 😅 ลองอีกทีนะ",
       quickReply: { items: getQuickReplyForPostback("remind_bill") },
+    })
+  }
+}
+
+async function handleConfirmPayment(
+  replyToken: string,
+  params: URLSearchParams,
+  lineUid: string
+): Promise<void> {
+  const billId = params.get("bill_id")
+  const WEB_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://c-madong-product.vercel.app"
+
+  if (!billId) {
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "ไม่พบข้อมูลบิลจ้า ลองเช็คบิลใหม่อีกครั้งนะ",
+      quickReply: { items: getQuickReplyForPostback("confirm_payment") },
+    })
+    return
+  }
+
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin")
+    const adminDb = createAdminClient()
+
+    const [billRes, profileRes] = await Promise.all([
+      adminDb
+        .from("bills")
+        .select("id, total_amount, due_date, status, student_id, admin_notes")
+        .eq("id", billId)
+        .single(),
+      adminDb
+        .from("profiles")
+        .select("id, full_name_th, display_name")
+        .eq("line_uid", lineUid)
+        .single(),
+    ])
+
+    const bill = billRes.data
+    const profile = profileRes.data
+
+    if (!bill || !profile || bill.student_id !== profile.id) {
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "ไม่พบข้อมูลบิลจ้า ลองเช็คบิลใหม่อีกครั้งนะ",
+        quickReply: { items: getQuickReplyForPostback("confirm_payment") },
+      })
+      return
+    }
+
+    if (bill.status === "paid") {
+      await replyMessage(replyToken, {
+        type: "text",
+        text: "บิลนี้ยืนยันการชำระแล้วจ้า ✅ ขอบคุณนะ!",
+        quickReply: { items: getQuickReplyForPostback("confirm_payment") },
+      })
+      return
+    }
+
+    // Stamp admin_notes with claim timestamp so admin sees it in the panel
+    const claimNote = `[LINE] นิสิตแจ้งชำระเงินผ่าน LINE เมื่อ ${new Date().toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })}`
+    const updatedNotes = bill.admin_notes
+      ? `${bill.admin_notes}\n${claimNote}`
+      : claimNote
+
+    await adminDb
+      .from("bills")
+      .update({ admin_notes: updatedNotes })
+      .eq("id", billId)
+
+    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+    const d = new Date(bill.due_date)
+    const dueDateTh = `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`
+
+    await replyMessage(replyToken, {
+      type: "text",
+      text: `บันทึกการแจ้งชำระแล้วจ้า! ✅\n\n📋 ขั้นตอนต่อไป:\nเจ้าหน้าที่หอพักจะตรวจสอบรายการโอน และอัปเดตสถานะบิลภายใน 1-2 วันทำการนะ\n\n💡 ติดตามสถานะบิลได้ที่แอปหอพัก หรือโทรสอบถามที่สำนักงานหอพักได้เลยจ้า\n\n💰 ยอด ฿${bill.total_amount.toLocaleString()} — ครบกำหนด ${dueDateTh}`,
+      quickReply: {
+        items: [
+          { type: "action", action: { type: "uri", label: "📊 ติดตามสถานะบิล", uri: `${WEB_BASE}/th/billing` } },
+          { type: "action", action: { type: "message", label: "🏠 เมนูหลัก", text: "เมนู" } },
+        ],
+      },
+    })
+  } catch (err) {
+    console.error("[Postback] ConfirmPayment error:", err)
+    await replyMessage(replyToken, {
+      type: "text",
+      text: "อุ๊ปส์! บันทึกไม่ได้น้า 😅 ลองอีกทีหรือติดต่อสำนักงานหอพักโดยตรงนะ",
+      quickReply: { items: getQuickReplyForPostback("confirm_payment") },
     })
   }
 }
