@@ -1,7 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
-import { useTranslations } from "next-intl";
-import { TicketDetail } from "@/components/maintenance/ticket-detail";
-import { PageHeader } from "@/components/layout/page-header";
+import { StudentTicketStatusContent } from "@/components/maintenance/student-ticket-status-content";
 
 export default async function MaintenanceDetailPage({
   params,
@@ -15,14 +13,5 @@ export default async function MaintenanceDetailPage({
 }
 
 function MaintenanceDetailContent({ id }: { id: string }) {
-  const t = useTranslations("maintenance");
-
-  return (
-    <>
-      <PageHeader title={t("detail.title")} backHref="/maintenance" />
-      <div className="p-4">
-        <TicketDetail ticketId={id} />
-      </div>
-    </>
-  );
+  return <StudentTicketStatusContent ticketId={id} />;
 }
